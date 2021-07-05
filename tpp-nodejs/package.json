@@ -1,0 +1,31 @@
+{
+  "name": "openid_client_fapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index-mockbank.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "dependencies": {
+    "@types/node": "^14.17.1",
+    "@types/openid-client": "^3.7.0",
+    "axios": "^0.21.1",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
+    "express": "^4.17.1",
+    "got": "^11.8.2",
+    "https": "^1.0.0",
+    "jose": "^3.12.2",
+    "jsonpath": "^1.1.1",
+    "nanoid": "^3.1.23",
+    "node-cache": "^5.1.2",
+    "node-jose": "^2.0.0",
+    "openid-client": "^4.7.4"
+  },
+  "devDependencies": {
+    "eslint": "^7.29.0"
+  }
+}

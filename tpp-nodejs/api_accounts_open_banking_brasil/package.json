@@ -1,0 +1,56 @@
+{
+  "_from": "@raidiam/api_accounts_open_banking_brasil@1.0.23",
+  "_id": "@raidiam/api_accounts_open_banking_brasil@1.0.23",
+  "_inBundle": false,
+  "_integrity": "sha512-BG6BrSlZEfItmYOrcLh1nf46oiP1MXHChTTP4MzTWsgrgIo6SpTLx9BYhQP7iMFYzd6/vZ4qizv/Z55kmBFI/g==",
+  "_location": "/@raidiam/api_accounts_open_banking_brasil",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "@raidiam/api_accounts_open_banking_brasil@1.0.23",
+    "name": "@raidiam/api_accounts_open_banking_brasil",
+    "escapedName": "@raidiam%2fapi_accounts_open_banking_brasil",
+    "scope": "@raidiam",
+    "rawSpec": "1.0.23",
+    "saveSpec": null,
+    "fetchSpec": "1.0.23"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/@raidiam/api_accounts_open_banking_brasil/-/api_accounts_open_banking_brasil-1.0.23.tgz",
+  "_shasum": "0fb99b86a868432175dfa8299e8b95474662836d",
+  "_spec": "@raidiam/api_accounts_open_banking_brasil@1.0.23",
+  "_where": "/Users/ralphbragg/Projects/openid_client_fapi",
+  "author": {
+    "name": "OpenAPI-Generator Contributors"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "axios": "^0.21.1"
+  },
+  "deprecated": false,
+  "description": "OpenAPI client for @raidiam/api_accounts_open_banking_brasil",
+  "devDependencies": {
+    "@types/node": "^12.11.5",
+    "typescript": "^3.6.4"
+  },
+  "keywords": [
+    "axios",
+    "typescript",
+    "openapi-client",
+    "openapi-generator",
+    "@raidiam/api_accounts_open_banking_brasil"
+  ],
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "name": "@raidiam/api_accounts_open_banking_brasil",
+  "scripts": {
+    "build": "tsc --outDir dist/",
+    "prepublishOnly": "npm run build"
+  },
+  "typings": "./dist/index.d.ts",
+  "version": "1.0.23"
+}

@@ -1,5 +1,6 @@
 'use strict';
 
+const { exception } = require('console');
 const { CreateConsentDataPermissionsEnum, ConsentsApi, AccountsApi } = require('./api_accounts_open_banking_brasil');
 
 const USE_PAR = true;
@@ -16,6 +17,8 @@ const USE_DYNAMIC_SCOPE = true;
     const path = require('path');
     const https = require('https');
     const { default: axios } = require('axios');
+    const jp = require('jsonpath');
+
 
 
     const certsPath = path.join(__dirname, './certs/');
@@ -41,15 +44,88 @@ const USE_DYNAMIC_SCOPE = true;
     });
 
     const instance = axios.create({ httpsAgent });
+
+    const axiosResponse = await instance.get('https://data.sandbox.directory.openbankingbrasil.org.br/participants');
+    
+    const availableBanks = axiosResponse.data;
+    let authServer;
+    const foundBank = availableBanks.find(server => {
+        if (server.AuthorisationServers && server.AuthorisationServers.some(as => {
+            if (as.CustomerFriendlyName == 'Mock Bank') {
+                authServer = as;
+                return true;
+        }  }))
+        {
+            return server;
+        }
+    });
+
+    console.log(foundBank);
+    console.log(authServer);
+
+    // @ts-ignore
+    let consentEndPointCollection;
+    if (!authServer || !authServer.ApiResources || !authServer.ApiResources.some(ep => {
+        if (ep.ApiFamilyType == 'consents') {
+            consentEndPointCollection = ep;
+            return true;
+    } }))
+    {
+        console.log('This authorisation server is not advertising a consents api collection');
+        throw new exception('Authorisation Server does not support consents api family');
+    }
+
+    console.log(consentEndPointCollection);
+    //Get the correct consent endpoint and then use that to instantiate the API.
+    let consentApiEndpoint;
+    if (!consentEndPointCollection || !consentEndPointCollection.ApiDiscoveryEndpoints || !consentEndPointCollection.ApiDiscoveryEndpoints.some(ep => {
+        if (ep.ApiEndpoint.match('consents/v1/consents$')) {
+            consentApiEndpoint = ep;
+            return true;
+        }
+    }))
+    {
+        console.log('This authorisation server is not advertising a consents api collection');
+        throw new exception('Authorisation Server does not the correct consent API');
+    }
+    
+
     const consentsApi = new ConsentsApi(
         undefined,
-        'https://matls-api.mockbank.poc.raidiam.io',
+        consentApiEndpoint.ApiEndpoint.split('/consents/v1/consents')[0],
         instance
     );
+    
+    //Load the Accounts API
+
+    let accountsEndPointCollection;
+    if (!authServer || !authServer.ApiResources || !authServer.ApiResources.some(ep => {
+        if (ep.ApiFamilyType == 'accounts') {
+            accountsEndPointCollection = ep;
+            return true;
+    } }))
+    {
+        console.log('This authorisation server is not advertising an accounts api collection');
+        throw new exception('Authorisation Server does not support accounts api family');
+    }
+
+    console.log(accountsEndPointCollection);
+    //Get the correct consent endpoint and then use that to instantiate the API.
+    let accountsApiEndpoint;
+    if (!accountsEndPointCollection || !accountsEndPointCollection.ApiDiscoveryEndpoints || !accountsEndPointCollection.ApiDiscoveryEndpoints.some(ep => {
+        if (ep.ApiEndpoint.match('accounts/v1/accounts$')) {
+            accountsApiEndpoint = ep;
+            return true;
+        }
+    }))
+    {
+        console.log('This authorisation server is not advertising an accounts api collection');
+        throw new exception('Authorisation Server does not advertise the correct accounts API');
+    }
 
     const accountsApi = new AccountsApi(
         undefined,
-        'https://matls-api.mockbank.poc.raidiam.io',
+        accountsApiEndpoint.ApiEndpoint.split('/accounts/v1/accounts')[0],
         instance
     );
 

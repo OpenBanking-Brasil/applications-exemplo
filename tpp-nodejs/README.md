@@ -1,7 +1,5 @@
 # Readme
 
-This
-
 ## What is this?
 
 FAPI Brazil Compliant Mock TPP Client this uses Node 16 x509 to simplify certificate operations
@@ -10,6 +8,8 @@ FAPI Brazil Compliant Mock TPP Client this uses Node 16 x509 to simplify certifi
 
 npm install
 npm start
+
+Open a Browser to <https://ttp.localhost>
 
 ## Notes
 

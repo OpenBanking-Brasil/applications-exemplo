@@ -24,7 +24,7 @@ const USE_DYNAMIC_SCOPE = true;
 
 
     const privateJwk = await fromKeyLike(key);
-    privateJwk.kid = 'QXxSoPrJLm78hkCYy-5n7RLcO0yBrf9lbV5cPEuGxHQ';
+    privateJwk.kid = '8o-O3VSFOPE8TrULXUTHxhxJcdADKIBmsfE0KWYkHik';
     console.log('Create private jwk key %O', privateJwk);
 
     const keyset = {
@@ -225,21 +225,19 @@ const USE_DYNAMIC_SCOPE = true;
             const introspection = await fapiClient.introspect(tokens.access_token);
             console.log(introspection);
 
-            var oneYearFromNow = new Date();
-            oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+            const oneYearFromNow = new Date();
+            oneYearFromNow.setMonth(oneYearFromNow.getMonth() + 9);
             var oneYearAndOneDayFromNow = new Date();
 
             oneYearAndOneDayFromNow.setFullYear(oneYearAndOneDayFromNow.getFullYear() + 1);
             oneYearAndOneDayFromNow.setMinutes(oneYearAndOneDayFromNow.getMinutes() + 1);
 
-            var now = new Date();
-
 
             const createPost = await consentsApi.consentsPostConsents(`${tokens.token_type} ${tokens.access_token}`,
                 {
                     data: {
-                        permissions: [CreateConsentDataPermissionsEnum.AccountsRead, CreateConsentDataPermissionsEnum.CreditCardsAccountsBillsRead, CreateConsentDataPermissionsEnum.AccountsBalancesRead, CreateConsentDataPermissionsEnum.AccountsTransactionsRead],
-                        expirationDateTime: oneYearAndOneDayFromNow.toISOString(), transactionFromDateTime: now.toISOString(), transactionToDateTime: oneYearFromNow.toISOString(),
+                        permissions: [CreateConsentDataPermissionsEnum.AccountsRead, CreateConsentDataPermissionsEnum.AccountsBalancesRead, CreateConsentDataPermissionsEnum.AccountsTransactionsRead, CreateConsentDataPermissionsEnum.ResourcesRead ],
+                        expirationDateTime: oneYearFromNow.toISOString(),
                         loggedUser: {
                             document: {
                                 identification: '76109277673',

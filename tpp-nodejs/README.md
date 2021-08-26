@@ -9,7 +9,9 @@ FAPI Brazil Compliant Mock TPP Client this uses Node 16 x509 to simplify certifi
 npm install
 npm start
 
-Open a Browser to <https://ttp.localhost>
+Open a Browser to <https://tpp.localhost>
+
+- You will need to add a local dns entry in your hosts file
 
 ## Notes
 

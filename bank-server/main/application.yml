@@ -1,0 +1,45 @@
+micronaut:
+  application:
+    name: lambdas
+  security:
+    enabled: true
+  data:
+    pageable:
+      max-page-size: 50000
+
+jackson:
+  serialization:
+    writeDatesAsTimestamps: true
+
+jpa:
+  default:
+    entity-scan:
+      packages:
+        - 'com.raidiam.trustframework.bank.domain'
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate
+        show_sql: false
+
+datasources:
+  default:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driverClassName: ${DB_DRIVER}
+    jdbc-interceptors: com.amazonaws.xray.sql.postgres.TracingInterceptor
+    initialSize: 2
+    minIdle: 2
+    maxIdle: 5
+    maxActive: 10
+    minEvictableIdleTimeMillis: 15000
+    removeAbandoned: true
+    testOnBorrow: true
+
+aws:
+  region: ${REGION:region}
+
+trustframework:
+  issuer: YOURORGID
+  audience: YOURORGID

@@ -1,0 +1,42 @@
+micronaut:
+  application:
+    name: lambdas
+  security:
+    enabled: true
+  data:
+    pageable:
+      max-page-size: 50000
+  http:
+    client:
+      read-timeout: 600s
+    server:
+      read-timeout: 600s
+    services:
+        read-timeout: 600s
+
+
+
+jpa:
+  default:
+    entity-scan:
+      packages:
+        - 'com.raidiam.trustframework.bank.domain'
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate
+        show_sql: true
+
+#datasources:
+#  default:
+#    url: jdbc:tc:postgresql://localhost/dir?TC_INITSCRIPT=file:src/test/resources/import.sql
+#    username: test
+#    password: test
+#    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+aws:
+  region: ${REGION:us-east-1}
+
+trustframework:
+  issuer: mockbank
+  audience: mockbank

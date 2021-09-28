@@ -1,0 +1,42 @@
+micronaut:
+  application:
+    name: lambdas
+  security:
+    enabled: true
+
+jpa:
+  default:
+    entity-scan:
+      packages:
+        - 'com.raidiam.trustframework.bank.domain'
+        - 'com.raidiam.trustframework.bank.audit.domain'
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate
+        show_sql: true
+
+datasources:
+  default:
+    url: jdbc:tc:postgresql://localhost/dir
+    username: test
+    password: test
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+flyway:
+  datasources:
+    default:
+      locations: classpath:db/migration
+
+aws:
+  region: ${REGION:us-east-1}
+  jwksBucket: ${JWKS_BUCKET:foo-bucket}
+  sns:
+    endpoint_notification:
+      enabled: ${SNS_WEBHOOK_ENABLED:true}
+
+trustframework:
+  organisation: OpenBanking
+  region: GB
+  keystoreBaseUrl: https://keystore.example.com
+  pkiUrl: http://localhost:4567/restapis/

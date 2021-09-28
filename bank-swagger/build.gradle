@@ -1,0 +1,86 @@
+buildscript {
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath group: 'org.yaml', name: 'snakeyaml', version: '1.19'
+  }
+}
+
+plugins {
+  id 'org.hidetake.swagger.generator' version '2.18.1'
+  id 'java-library'
+  id 'maven-publish'
+}
+
+def cfg = new org.yaml.snakeyaml.Yaml().load(new File("swagger.yaml").newInputStream())
+String buildNumber = System.getenv("BUILD_NUMBER")
+
+group = 'com.raidiam.trustframework.mockbank'
+version = buildNumber ? "${cfg.info.version}.${buildNumber}" : "${cfg.info.version}-SNAPSHOT"
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  annotationProcessor platform("io.micronaut:micronaut-bom:$micronautVersion")
+  annotationProcessor "io.micronaut:micronaut-inject-java"
+  annotationProcessor "io.micronaut:micronaut-validation"
+
+  implementation platform("io.micronaut:micronaut-bom:$micronautVersion")
+  implementation "io.micronaut:micronaut-inject"
+  implementation "io.micronaut:micronaut-validation"
+  implementation "io.micronaut:micronaut-runtime"
+  implementation "io.swagger.core.v3:swagger-annotations"
+
+  swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.14'
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
+  sourceCompatibility = JavaVersion.VERSION_1_8
+  targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      from components.java
+      artifact(file('swagger.yaml')) {
+        classifier 'swagger'
+        extension 'yaml'
+      }
+    }
+  }
+  repositories {
+    maven {
+      url ""
+      authentication {
+        awsIm(AwsImAuthentication) // load from EC2 role or env var
+      }
+    }
+  }
+}
+
+swaggerSources {
+  mockbank {
+    inputFile = file('swagger.yaml')
+    code {
+      language = 'micronaut'
+      components = [
+          models    : true,
+          modelDocs : true,
+          apiDocs   : false,
+          modelTests: true,
+      ]
+      configFile = file("micronaut-config.json")
+      templateDir = file("templates")
+    }
+  }
+}
+
+compileJava.dependsOn swaggerSources.mockbank.code
+sourceSets.main.java.srcDir "${swaggerSources.mockbank.code.outputDir}/src/main/java"
+sourceSets.main.resources.srcDir "${swaggerSources.mockbank.code.outputDir}/src/main/resources"

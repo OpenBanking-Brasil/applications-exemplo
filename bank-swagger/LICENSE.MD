@@ -3,7 +3,6 @@ This software is provided 'as is' with no support.
 This software is licensed under the MIT License:
 
 Copyright (c) 2021 Raidiam Services Ltd
-Copyright (c) 2016-2021 Filip Skokan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

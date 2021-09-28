@@ -1,0 +1,21 @@
+node{
+  stage('checkout'){
+    checkout scm
+    if (env.BRANCH_NAME == 'master') {
+      def props = readYaml file: 'swagger.yaml'
+      currentBuild.displayName = "${props.info.version}.${env.BUILD_NUMBER}"
+    }
+  }
+  stage('build') {
+    sh 'chmod +x gradlew && ./gradlew build'
+  }
+
+  if (env.BRANCH_NAME == 'master') {
+    stage('publish') {
+      sh './gradlew publish'
+      sh ""
+      sh ""
+
+    }
+  }
+}

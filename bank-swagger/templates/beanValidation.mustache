@@ -1,0 +1,6 @@
+{{#required}}
+  @NotNull{{#vendorExtensions.x-required-message}}(message="{{vendorExtensions.x-required-message}}"){{/vendorExtensions.x-required-message}}
+{{/required}}{{#isContainer}}{{^isPrimitiveType}}{{^isEnum}}
+  @Valid{{/isEnum}}{{/isPrimitiveType}}{{/isContainer}}{{#isNotContainer}}{{^isPrimitiveType}}
+  @Valid{{/isPrimitiveType}}{{/isNotContainer}}
+{{>beanValidationCore}}

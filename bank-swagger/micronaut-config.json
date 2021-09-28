@@ -1,0 +1,9 @@
+{
+  "modelPackage": "com.raidiam.trustframework.mockbank.models.generated",
+  "groupId": "com.raidiam.trustframework",
+  "artifactId": "bank-models",
+  "java8": true,
+  "dateLibrary": "java8",
+  "hideGenerationTimestamp": true,
+  "useBeanValidation": true
+}

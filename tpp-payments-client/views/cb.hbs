@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<title>McMurray's</title>
+
+<head>
+  <meta charset="utf-8">
+  <title>Join</title>
+  <style>
+    body {
+      font-size: 12px;
+      font-family: Arial;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+</head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
+  integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-blue-grey.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<style>
+  html,
+  body,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: "Open Sans", sans-serif;
+  }
+</style>
+
+<body class="w3-theme-l5">
+  <!-- Navbar -->
+  <div class="w3-top">
+    <nav class="w3-bar w3-theme-d2 w3-left-align w3-large">
+      <a href="/" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i
+          class="fa fa-home w3-margin-right"></i>McMurray's Fine Wines</a>
+      <a href="/" class="w3-bar-item w3-button w3-padding-large"><i class="fa fa-user w3-margin-right"></i>Sign
+        Up</a>
+      <a href="/" class="w3-bar-item w3-button w3-padding-large"><i
+          class="fa fa-shopping-cart w3-margin-right"></i>Cart</a>
+    </nav>
+  </div>
+
+  <!-- Page Container -->
+  <div class="w3-container w3-content" style="max-width: 1400px; margin-top: 80px">
+    <!-- The Grid -->
+    <div class="w3-row">
+      <!-- Left Column -->
+      <div class="w3-col m3">
+        <!-- Profile -->
+        <div class="w3-card w3-round w3-white">
+          <div class="w3-container">
+            <h5 class="w3-center">Join McMurray's Fine Wines</h5>
+            <img src="/assets/wine-logo.png" alt="wine" width="100%" height="100%">
+          </div>
+        </div>
+        <br />
+        <!-- End Left Column -->
+      </div>
+
+      <!-- Middle Column -->
+      <div class="w3-col m6" style="padding: 12px;">
+        <h5 style="width: 100%; align-items: left; padding-left: 15px; ">
+          Thanks you for using Raidiam Payment Services - payment details
+        </h5>
+        <br>
+        <form action="/complete" method="POST">
+          <p style="width: 100%; align-items: left; padding-left: 15px; ">Email</p>
+          <input style=" width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width:
+                1px;" name="Email" placeholder="Email" type="email" id="email" value="{{claims.email}}" />
+          <p style="width: 100%; align-items: left; padding-left: 15px; ">First Name</p>
+          <input
+            style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+            name="First Name" placeholder="First Name" type="text" id="given-name" value="{{claims.given_name}}" />
+          <p style="width: 100%; align-items: left; padding-left: 15px; ">Last Name</p>
+          <p style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.stringify}}}</p>
+        </form>
+        <!-- End Middle Column -->
+      </div>
+
+      <!-- End Grid -->
+    </div>
+
+    <!-- End Page Container -->
+  </div>
+</body>
+
+<script>
+  function checkfnlname(field) {
+    curr = document.getElementById(field).value;
+    if (curr.length > 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  window.onload = function () {
+    var btnSubmit = document.getElementById('join-button');
+    btnSubmit.setAttribute('disabled', 'disabled');
+
+    // attach the keyup event to each input
+    [].slice.call(document.querySelectorAll('form input:not([type="submit"])')).forEach(function (element, index) {
+      element.addEventListener('change', function (e) {
+        // compute the number of invalid fields
+        var invalidFields = [].slice.call(document.querySelectorAll('form input:not([type="submit"])')).filter(function (element, index) {
+          return !checkfnlname(element.id);
+        });
+        if (invalidFields.length == 0) {
+          // reenable the submit if n. of invalid inputs is 0
+          if (document.getElementById('accept').checked == true) btnSubmit.removeAttribute('disabled');
+        } else {
+          // disable submit because there are invalid inputs
+          btnSubmit.setAttribute('disabled', 'disabled');
+        }
+      }, false);
+    });
+  }
+
+  window.history.replaceState({}, "", window.location.pathname)
+</script>
+
+</html>

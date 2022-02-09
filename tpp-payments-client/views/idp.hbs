@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<title>McMurray's</title>
+<title>Open Banking Mock TPP</title>
 
 <head>
   <meta charset="utf-8">
@@ -38,7 +38,7 @@
   <div class="w3-top">
     <nav class="w3-bar w3-theme-d2 w3-left-align w3-large">
       <a href="/" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i
-          class="fa fa-home w3-margin-right"></i>McMurray's Fine Wines</a>
+          class="fa fa-home w3-margin-right"></i>Mock TPP</a>
     </nav>
   </div>
 
@@ -55,6 +55,8 @@
               Select your Bank
             </h5>
             <hr />
+            <input id="searchbar" onkeyup="search_bank()" type="text"
+            name="search" placeholder="Search banks..">
             <p>
             <div id="placeholder">
             </div>
@@ -65,6 +67,7 @@
 
       <!-- Middle Column -->
       <div class="w3-col m8" style="padding: 20px;">
+        <div class="w3-container w3-card w3-white w3-margin-bottom" style="padding: 20px;">
         <div class="w3-container">
           <p style="align-items: center;">
             You need to select your bank from the list, so that we can redirect you there for authentication using
@@ -73,6 +76,7 @@
           <p style="align-items: center;">
             You will get to see what payment details are being requested and decide whether to complete the payment.
           </p>
+          </div>
         </div>
         <!-- End Middle Column -->
       </div>
@@ -106,9 +110,38 @@
           mainContainer.appendChild(div);
         }
       }
-
     }
   }
+
+  function search_bank() {
+    let input = document.getElementById('searchbar').value
+    input=input.toLowerCase();
+    let x = document.getElementsByClassName('w3-button w3-block w3-theme-l4');
+      
+    for (i = 0; i < x.length; i++) { 
+        if (!x[i].innerHTML.toLowerCase().includes(input)) {
+            x[i].style.display="none";
+        }
+        else {
+            x[i].style.display="list-item";                 
+        }
+    }
+}
 </script>
+
+<style>
+
+  #searchbar {
+  padding: 5px;
+  font-size: 17px;
+  border: 1px solid grey;
+  float: left;
+  width: 100%;
+  background: #f1f1f1;
+}
+
+
+
+</style>
 
 </html>

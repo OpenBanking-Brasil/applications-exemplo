@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
-<title>McMurray's</title>
+<title>Open Banking Mock TPP</title>
 
 <head>
   <meta charset="utf-8">
-  <title>Join</title>
+  <title>Open Banking Mock TPP</title>
   <style>
     body {
       font-size: 12px;
@@ -38,16 +38,12 @@
   <div class="w3-top">
     <nav class="w3-bar w3-theme-d2 w3-left-align w3-large">
       <a href="/" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i
-          class="fa fa-home w3-margin-right"></i>Pay McMurray's Fine Wines</a>
-      <a href="/" class="w3-bar-item w3-button w3-padding-large"><i class="fa fa-user w3-margin-right"></i>Pay with Open Banking
-        </a>
-      <a href="/" class="w3-bar-item w3-button w3-padding-large"><i
-          class="fa fa-shopping-cart w3-margin-right"></i>Cart</a>
+          class="fa fa-home w3-margin-right"></i>Mock TPP</a>
     </nav>
   </div>
 
   <!-- Page Container -->
-  <div class="w3-container w3-content" style="max-width: 1400px; margin-top: 80px">
+  <div class="w3-container w3-content" style="max-width: 1200px; margin-top: 80px">
     <!-- The Grid -->
     <div class="w3-row">
       <!-- Left Column -->
@@ -55,8 +51,11 @@
         <!-- Profile -->
         <div class="w3-card w3-round w3-white">
           <div class="w3-container">
-            <h5 class="w3-center">Pay McMurray's Fine Wines</h5>
-            <img src="/assets/wine-logo.png" alt="wine" width="100%" height="100%">
+            <h5 class="w3-center">Mock TPP Payment Details</h5>
+            <div class="w3-center">
+            <img src="/assets/mobile-wallet.png" alt="mobile-wallet" width="35%" height="35%">
+            </div>
+            <br>
           </div>
         </div>
         <br />
@@ -64,85 +63,312 @@
       </div>
 
       <!-- Middle Column -->
-      <div class="w3-col m6" style="padding: 12px;">
-        <br>
+      <div class="w3-col m6" style="padding-left: 12px;">
+        <div class="w3-container w3-card w3-white w3-margin-bottom">
         <form action="/payment" method="POST">
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">debtorAccount_number</p>
-          <input style=" width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width:
+          
+          <h2 class="w3-text-grey w3-center w3-padding-16"><i class="fa fa-user-circle-o fa-2 w3-xxlarge"></i> Payment Details</h2>
+          <h5 class="w3"><b>Debtor</b></h5>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Account - Number (debtorAccount_number) 
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            minLength: 3
+            maxLength: 20
+            pattern: '^\d{3,20}$'
+            example: '1234567890'
+            description: Deve ser preenchido com o número da conta transacional do usuário pagador, com dígito verificador (se este existir), se houver valor alfanumérico, este deve ser convertido para 0.">
+            </i>
+          </div>
+          <input style=" width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width:
                 1px;" name="debtorAccount_number" placeholder="debtorAccount_number" type="text" id="debtorAccount_number" value="94088392" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">debtorAccount_accountType</p>
+          
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Account Type (debtorAccount_accountType)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 4
+            enum:
+              - CACC
+              - SLRY
+              - SVGS
+              - TRAN
+            example: CACC
+            description: Tipos de contas usadas para pagamento via Pix.
+              Modalidades tradicionais previstas pela Resolução 4.753, não contemplando contas vinculadas, conta de domiciliados no exterior, contas em moedas estrangeiras e conta correspondente moeda eletrônica.
+              Segue descrição de cada valor do ENUM para o escopo do Pix.
+              CACC - Current - Conta Corrente.
+              SLRY - Salary - Conta-Salário.
+              SVGS - Savings - Conta de Poupança.
+              TRAN - TransactingAccount - Conta de Pagamento pré-paga.
+              [Restrição] O campo data.payment.creditorAccount.accountType quando o arranjo alvo for TED só suportará os tipos CACC (Conta corrente), SVGS (Poupança) e TRAN (Conta de Pagamento pré-paga).">
+            </i>
+          </div>
           <input
-            style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+            style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="debtorAccount_accountType" placeholder="debtorAccount_accountType" type="text" id="debtorAccount_accountType" value="CACC" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">debtorAccount_ispb</p>
           
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">ISPB (debtorAccount_ispb)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            minLength: 8
+            maxLength: 8
+            pattern: '^[0-9]{8}$'
+            example: '12345678'
+            description: Deve ser preenchido com o ISPB (Identificador do Sistema de Pagamentos Brasileiros) do participante do SPI (Sistema de pagamentos instantâneos) somente com números.">
+            </i>
+          </div>
+          
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="debtorAccount_ispb" placeholder="debtorAccount_ispb" type="text" id="debtorAccount_ispb" value="12345678" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">debtorAccount_issuer</p>
           
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Issuer (debtorAccount_issuer)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 4
+            pattern: '^\d{4}$'
+            example: '1774'
+            description: Código da Agência emissora da conta sem dígito. (Agência é a dependência destinada ao atendimento aos clientes, ao público em geral e aos associados de cooperativas de crédito, no exercício de atividades da instituição, não podendo ser móvel ou transitória).  
+            [Restrição] Preenchimento obrigatório para os seguintes tipos de conta: CACC (CONTA_DEPOSITO_A_VISTA), SVGS (CONTA_POUPANCA) e SLRY (CONTA_SALARIO).">
+            </i>
+          
+          </div>
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="debtorAccount_issuer" placeholder="debtorAccount_issuer" type="text" id="debtorAccount_issuer" value="6272" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">loggedUser_document_identification</p>
-
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
-            name="loggedUser_document_identification" placeholder="loggedUser_document_identification" type="text" id="loggedUser_document_identification" value="76109277673" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">loggedUser_document_rel</p>
           
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <h5 class="w3"><b>Logged User</b></h5>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Document Identification (loggedUser_document_identification)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 14
+            description: Número do documento de identificação oficial do titular pessoa jurídica.
+            example: '11111111111111'
+            pattern: '^\d{14}$'">
+            </i>
+          </div>
+
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+            name="loggedUser_document_identification" placeholder="loggedUser_document_identification" type="text" id="loggedUser_document_identification" value="76109277673" />
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Document Rel (loggedUser_document_rel)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 4
+            description: Tipo do documento de identificação oficial do titular pessoa jurídica.
+            example: CNPJ
+            pattern: '^[A-Z]{4}$'">
+            </i>
+          
+          </div>
+          
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="loggedUser_document_rel" placeholder="loggedUser_document_rel" type="text" id="loggedUser_document_rel"
             value="CPF" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">creditor_name</p>
+          
+          <h5 class="w3"><b>Creditor</b></h5>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Name (creditor_name)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 140
+            pattern: '[\w\W\s]*'
+            example: Marco Antonio de Brito
+            description: Em caso de pessoa natural deve ser informado o nome completo do titular da conta do recebedor.  
+            Em caso de pessoa jurídica deve ser informada a razão social ou o nome fantasia da conta do recebedor.">
+            </i>
+          
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="creditor_name" placeholder="creditor_name" type="text" id="creditor_name" value="Marco Antonio de Brito" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">creditor_cpfCnpj</p>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">CPF/CNPJ (creditor_cpfCnpj)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            minLength: 11
+            maxLength: 14
+            pattern: '^\d{11}$|^\d{14}$'
+            example: '58764789000137'
+            description: Identificação da pessoa envolvida na transação.  
+            Preencher com o CPF ou CNPJ, de acordo com o valor escolhido no campo type.  
+            O CPF será utilizado com 11 números e deverá ser informado sem pontos ou traços.  
+            O CNPJ será utilizado com 14 números e deverá ser informado sem pontos ou traços.">
+            </i>
+          
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="creditor_cpfCnpj" placeholder="creditor_cpfCnpj" type="text" id="creditor_cpfCnpj" value="48847377765" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">creditor_personType</p>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Person Type (creditor_personType)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 15
+            enum:
+            - PESSOA_NATURAL
+            - PESSOA_JURIDICA
+            description: Titular, pessoa natural ou juridica a quem se referem os dados de recebedor (creditor).">
+            </i>
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="creditor_personType" placeholder="creditor_personType" type="text" id="creditor_personType" value="PESSOA_NATURAL" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">payment_amount</p>
+          
+          <h5 class="w3"><b>Payment</b></h5>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Amount (payment_amount)
+            <i class="fa fa-info-circle fa-1" title=
+            "
+            type: string
+            minLength: 4
+            maxLength: 19
+            pattern: '^((\d{1,16}\.\d{2}))$'
+            example: '100000.12'
+            description: Valor da transação com 2 casas decimais.
+            ">
+            </i>
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="payment_amount" placeholder="payment_amount" type="text" id="payment_amount" value="1335.00" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">payment_type</p>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Type (payment_type)
+            <i class="fa fa-info-circle fa-1" title="
+            EnumPixPaymentType:
+              enum:
+                - PIX
+              example: PIX
+            EnumTedPaymentType:
+              enum:
+                - TED
+              example: TED
+            EnumTefPaymentType:
+              enum:
+                - TEF
+              example: TEF
+            description: Este campo define o tipo de pagamento que será iniciado após a autorização do consentimento.
+            ">
+            </i>
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="payment_type" placeholder="payment_type" type="text" id="payment_type" value="PIX" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">payment_details_proxy</p>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Proxy (payment_details_proxy)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 77
+            pattern: '[\w\W\s]*'
+            example: '12345678901'
+            description: 
+            Chave cadastrada no DICT pertencente ao recebedor. Os tipos de chaves podem ser: telefone, e-mail, cpf/cnpj ou chave aleatória.
+            No caso de telefone celular deve ser informado no padrão E.1641.
+            Para e-mail deve ter o formato xxxxxxxx@xxxxxxx.xxx(.xx) e no máximo 77 caracteres.
+            No caso de CPF deverá ser informado com 11 números, sem pontos ou traços.
+            Para o caso de CNPJ deverá ser informado com 14 números, sem pontos ou traços.
+            No caso de chave aleatória deve ser informado o UUID gerado pelo DICT, conforme formato especificado na RFC41223.
+            Se informado, a detentora da conta deve validar o proxy no DICT quando localInstrument for igual a DICT, QRDN ou QRES e validar o campo creditorAccount.
+            Esta validação é opcional caso o localInstrument for igual a INIC.
+            [Restrição]
+            Se localInstrument for igual a MANU, o campo proxy não deve ser preenchido.
+            Se localInstrument for igual INIC, DICT, QRDN ou QRES, o campo proxy deve ser sempre preenchido com a chave Pix.
+            ">
+            </i>
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="payment_details_proxy" placeholder="payment_details_proxy" type="text" id="payment_details_proxy" value="12345678901" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">payment_details_localInstrument</p>  
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Local Instrument (payment_details_localInstrument)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 4
+            enum:
+            - MANU
+            - DICT
+            - QRDN
+            - QRES
+            - INIC
+            example: DICT
+            description: |
+            Especifica a forma de iniciação do pagamento:
+            - MANU - Inserção manual de dados da conta transacional
+            - DICT - Inserção manual de chave Pix
+            - QRDN - QR code dinâmico
+            - QRES - QR code estático
+            - INIC - Indica que o recebedor (creditor) contratou o Iniciador de Pagamentos especificamente para realizar iniciações de pagamento em que o beneficiário é previamente conhecido.">
+            </i>
+          </div>  
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="payment_details_localInstrument" placeholder="payment_details_localInstrument" type="text" id="payment_details_localInstrument" value="DICT" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">payment_details_creditAccount_number</p>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Credit Account Number (payment_details_creditAccount_number)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            minLength: 3
+            maxLength: 20
+            pattern: '^\d{3,20}$'
+            example: '1234567890'
+            description: 
+              Deve ser preenchido com o número da conta do usuário recebedor, com dígito verificador (se este existir), se houver valor alfanumérico, este deve ser convertido para 0.">
+            </i>
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="payment_details_creditAccount_number" placeholder="payment_details_creditAccount_number" type="text" id="payment_details_creditAccount_number"
             value="1234567890" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">payment_details_creditAccount_accountType</p>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Credit Account Type (payment_details_creditAccount_accountType)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 4
+            enum:
+              - CACC
+              - SLRY
+              - SVGS
+              - TRAN
+            example: CACC
+            description: Tipos de contas usadas para pagamento via Pix.
+              Modalidades tradicionais previstas pela Resolução 4.753, não contemplando contas vinculadas, conta de domiciliados no exterior, contas em moedas estrangeiras e conta correspondente moeda eletrônica.
+              Segue descrição de cada valor do ENUM para o escopo do Pix.
+              CACC - Current - Conta Corrente.
+              SLRY - Salary - Conta-Salário.
+              SVGS - Savings - Conta de Poupança.
+              TRAN - TransactingAccount - Conta de Pagamento pré-paga.
+              [Restrição] O campo data.payment.creditorAccount.accountType quando o arranjo alvo for TED só suportará os tipos CACC (Conta corrente), SVGS (Poupança) e TRAN (Conta de Pagamento pré-paga).
+            ">
+            </i>
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="payment_details_creditAccount_accountType" placeholder="payment_details_creditAccount_accountType" type="text"
             id="payment_details_creditAccount_accountType" value="CACC" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">payment_details_creditAccount_ispb</p>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Credit Account ISPB (payment_details_creditAccount_ispb)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            minLength: 8
+            maxLength: 8
+            pattern: '^[0-9]{8}$'
+            example: '12345678'
+            description: |
+              Deve ser preenchido com o ISPB (Identificador do Sistema de Pagamentos Brasileiros) do participante do SPI (Sistema de pagamentos instantâneos) somente com números.">
+            </i>
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="payment_details_creditAccount_ispb" placeholder="payment_details_creditAccount_ispb" type="text" id="payment_details_creditAccount_ispb"
             value="12345678" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">payment_details_creditAccount_issuer</p>
+          <div style="width: 100%; align-items: left; padding-left: 15px; ">Credit Account Issuer (payment_details_creditAccount_issuer)
+            <i class="fa fa-info-circle fa-1" title="
+            type: string
+            maxLength: 4
+            pattern: '^\d{4}$'
+            example: '1774'
+            description: |
+              Código da Agência emissora da conta sem dígito.  
+              (Agência é a dependência destinada ao atendimento aos clientes, ao público em geral e aos associados de cooperativas de crédito,  
+              no exercício de atividades da instituição, não podendo ser móvel ou transitória).  
+              [Restrição] Preenchimento obrigatório para os seguintes tipos de conta: CACC (CONTA_DEPOSITO_A_VISTA), SVGS (CONTA_POUPANCA) e SLRY (CONTA_SALARIO).">
+            </i>
+          </div>
 
-          <input style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
+          <input style="width: 50%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
             name="payment_details_creditAccount_issuer" placeholder="payment_details_creditAccount_issuer" type="text" id="payment_details_creditAccount_issuer"
             value="1774" />
-
-          <button style="margin: 15px; padding: 10px; border-radius: 5px; border-width: 1px;"
+          <div style="align-items: center; justify-content: center; display: flex;">
+          <button style="width: 75%; margin: 15px; padding: 10px; border-radius: 5px; border-width: 1px;"
             class="w3-button w3-block w3-theme-l4" formmethod="post" action="/payment" id="submit-payment-details"
             name="submit-payment-details">Pay</button>
+          </div>
         </form>
         <!-- End Middle Column -->
       </div>

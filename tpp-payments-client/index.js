@@ -131,7 +131,7 @@ const config = require('./config');
     //Check if the client is registered, if it is not, register it.
     dcrLog('Check if client already registered for this target bank');
     dcrLog('Client not registered');
-    dcrLog('Begining DCR Process');
+    dcrLog('Beginning DCR Process');
     dcrLog('Discover how to talk to the Directory of Participants');
     //Create a new FAPI Client to talk to the directory.
     const directoryIssuer = await Issuer.discover(
@@ -303,7 +303,7 @@ const config = require('./config');
     organisation,
     payment
   ) {
-    consentLog('Begining the generation of a consent record and authorisation process');
+    consentLog('Beginning the generation of a consent record and authorisation process');
     //Find the consent endpoint for this authorisation server
     consentLog('Find the consent endpoint for the payments consent from the selected authorisation server from the directory');
     const consentEndpoint = getEndpoint(
@@ -354,7 +354,7 @@ const config = require('./config');
       console.log(JSON.parse(createdConsent.body.toString()));
     }
     consentLog('Validate the Consent Response JWT to confirm it was signed correctly by the bank');
-    consentLog('Retreive the keyset for the bank sending the consent response from the diretory of participants');
+    consentLog('Retrieve the keyset for the bank sending the consent response from the diretory of participants');
     //Retrieve the keyset of the sending bank
     const JWKS = await jose.createRemoteJWKSet(
       new URL(
@@ -683,7 +683,7 @@ const config = require('./config');
       }
     }
 
-    paymentLog('Payment has reached a final state of ACCC or RJCT');
+    paymentLog('Payment has reached a final state of',payload.data.status);
     paymentLog(payload);
     payload.stringify = JSON.stringify(payload);
     paymentLog('Payment execution complete');

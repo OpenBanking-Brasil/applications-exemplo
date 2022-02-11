@@ -685,7 +685,7 @@ const config = require('./config');
 
     paymentLog('Payment has reached a final state of',payload.data.status);
     paymentLog(payload);
-    payload.stringify = JSON.stringify(payload);
+    payload.stringify = JSON.stringify(payload, null, 2);
     paymentLog('Payment execution complete');
     return res.render('cb', { claims: tokenSet.claims(), payload });
   });

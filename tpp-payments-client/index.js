@@ -358,9 +358,7 @@ const config = require('./config');
       }
     );
     //Errors processing a JWT are sent as a
-    if (createdConsent.statusCode != 201) {
-      console.log(JSON.parse(createdConsent.body.toString()));
-    }
+
     consentLog('Validate the Consent Response JWT to confirm it was signed correctly by the bank');
     consentLog('Retrieve the keyset for the bank sending the consent response from the diretory of participants');
     //Retrieve the keyset of the sending bank
@@ -370,6 +368,8 @@ const config = require('./config');
       )
     );
 
+    console.log(createdConsent.body.toString());
+      
     //Validate the jwt
     const { payload } = await jose.jwtVerify(
       createdConsent.body.toString(),
@@ -380,6 +380,10 @@ const config = require('./config');
         clockTolerance: 2,
       }
     );
+    if (createdConsent.statusCode != 201) {
+      consentLog('Consent NOT created successfully');
+      return {error: payload};
+    }
     //Update the payment consent
     createdConsent = payload;
     consentLog('Consent response payload validated and extracted successfully');
@@ -711,6 +715,12 @@ const config = require('./config');
     );
     paymentLog('Payment response extracted and validated');
 
+    if (payload.errors) {
+        payload = { msg: 'Payment errored', payload: payload };
+        payload.stringify = JSON.stringify(payload);
+        return res.render('cb', { claims: tokenSet.claims(), payload });
+    }
+
     let x = 0;
     while (!['ACSP', 'ACCC', 'RJCT'].includes(payload.data.status)) {
       paymentLog(
@@ -775,12 +785,18 @@ const config = require('./config');
     const path = '';
 
     //Setup the request
-    const { authUrl, code_verifier, state, nonce } = await generateRequest(
+    const { authUrl, code_verifier, state, nonce, error } = await generateRequest(
       client,
       selectedAuthServer,
       selectedOrganisation,
       JSON.parse(req.cookies.consent)
     );
+
+    if (error) {
+      const payload = { msg: 'Unable To Complete Payment', payload: error };
+      payload.stringify = JSON.stringify(payload);
+      return res.render('cb', { claims: undefined, payload });
+    }
 
     res.cookie('state', state, { path, sameSite: 'none', secure: true });
     res.cookie('nonce', nonce, { path, sameSite: 'none', secure: true });

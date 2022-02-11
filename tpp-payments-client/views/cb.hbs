@@ -63,21 +63,29 @@
       </div>
 
       <!-- Middle Column -->
-      <div class="w3-col m6" style="padding: 12px;">
+       
+      <div class="w3-col m6" style="padding-left: 12px;">
+        <div class="w3-container w3-card w3-white w3-margin-bottom" style="padding: 20px;">
         <h5 style="width: 100%; align-items: left; padding-left: 15px; ">
-          Thanks you for using Raidiam Payment Services - payment details
+          Thanks you for using the Mock TPP
         </h5>
         <br>
         <form action="/complete" method="POST">
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">Email</p>
-          <input style=" width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width:
-                1px;" name="Email" placeholder="Email" type="email" id="email" value="{{claims.email}}" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">First Name</p>
-          <input
-            style="width: 100%; margin: 15px; padding: 5px; padding-left: 15px; border-radius: 5px; border-width: 1px;"
-            name="First Name" placeholder="First Name" type="text" id="given-name" value="{{claims.given_name}}" />
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">Last Name</p>
-          <p style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.stringify}}}</p>
+        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Payment Value</p></b>
+        <p style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.data.payment.amount}}} {{{payload.data.payment.currency}}}</p>
+        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Final Payment Status</p></b>
+                    <p style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.data.status}}}</p>
+        </div>
+        <br>
+        <div class="w3-container w3-card w3-border w3-border-green">
+        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Consent Payload</p></b>
+          <pre><p id="payments_json" style="width: 100%; align-items: left; padding-left: 15px; "></p></pre>
+        </div>
+        <br>
+        <div class="w3-container w3-card w3-border w3-border-blue">
+        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Payment Payload</p></b>
+          <pre><p id="payments_json" style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.stringify}}}</p></pre>
+        </div>
         </form>
         <!-- End Middle Column -->
       </div>
@@ -121,6 +129,7 @@
   }
 
   window.history.replaceState({}, "", window.location.pathname)
+
 </script>
 
 </html>

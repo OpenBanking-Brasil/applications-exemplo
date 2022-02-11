@@ -296,6 +296,12 @@ const config = require('./config');
     return consentEndpoint;
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
   //This pushes an authorization request to the banks pushed authorisation request and returns the authorisation redirect uri
   async function generateRequest(
     fapiClient,
@@ -572,7 +578,74 @@ const config = require('./config');
         },
       }
     );
-    consentLog('Access token obtained. %O', tokenSet);
+    consentLog('Payment Access token obtained. %O', tokenSet);
+
+    //Cut down version of the consent process
+    consentLog('Find the consent endpoint to check the status of the consent resource');
+    const consentEndpoint = getEndpoint(
+      selectedAuthServer,
+      'payments-consents',
+      'open-banking/payments/v1/consents$'
+    );
+    consentLog('Consent endpoint found %O', consentEndpoint);
+    consentLog('Obtaining an access token to create the consent record');
+    const ccToken = await client.grant({
+      grant_type: 'client_credentials',
+      scope: 'payments',
+    });
+
+    const JWKS = await jose.createRemoteJWKSet(
+      new URL(
+        `https://keystore.sandbox.directory.openbankingbrasil.org.br/${selectedOrganisation.OrganisationId}/application.jwks`
+      )
+    );
+
+    let y = 0;
+    while (!['AUTHORISED'].includes(createdConsent.data.status)) {
+      //Create the consent
+      consentLog('Get the consent record');
+      createdConsent = await client.requestResource(
+        `${consentEndpoint}/${createdConsent.data.consentId}`,
+        ccToken,
+        {
+          headers: {
+            'accept': 'application/jwt',
+            'x-idempotency-key': nanoid(),
+          },
+        }
+      );
+      //Errors processing a JWT are sent as a
+      consentLog('Validate the Consent Response JWT to confirm it was signed correctly by the bank');
+
+      //Validate the jwt
+      let { payload } = await jose.jwtVerify(
+        createdConsent.body.toString(),
+        JWKS,
+        {
+          issuer: selectedOrganisation.OrganisationId,
+          audience: config.data.organisation_id,
+          clockTolerance: 2,
+        }
+      );
+      //Update the payment consent
+      createdConsent = payload;
+      consentLog('Consent response payload validated and extracted successfully');
+      consentLog(createdConsent);
+
+      await sleep(1000);
+
+      y = y + 1;
+      if (y > 5) {
+        consentLog(
+          'Consent has not reached authorised state after 5 iterations, failing'
+        );
+        payload = { msg: 'Unable To Complete Authorisation - State Not Authorised', payload: payload };
+        payload.stringify = JSON.stringify(payload);
+        return res.render('cb', { claims: tokenSet.claims(), payload });
+      }
+
+    }
+
     consentLog('Consent process finished');
 
     paymentLog('Find payment endpoint for the selected bank from the directory of participants');
@@ -624,13 +697,6 @@ const config = require('./config');
     paymentLog('Payment resource created successfully %O', paymentResponse.body.toString());
     paymentLog('Validate payment response as it is a JWT');
     paymentLog('Retrieve the keyset for the bank (this has already been done and could be cached)');
-    //Retrieve the keyset of the sending bank
-    const JWKS = await jose.createRemoteJWKSet(
-      new URL(
-        `https://keystore.sandbox.directory.openbankingbrasil.org.br/${selectedOrganisation.OrganisationId}/application.jwks`
-      )
-    );
-
     //Validate the jwt came from teh correct bank and was meant to be sent to me.
     let { payload } = await jose.jwtVerify(
       paymentResponse.body.toString(),

@@ -102,8 +102,15 @@ const config = require('./config');
   );
 
 
-  const availableBanks = axiosResponse.data;
-  setupLog(availableBanks);
+  const TotalBanks = axiosResponse.data;
+  setupLog(TotalBanks.length)
+  const availableBanks = TotalBanks.filter(e => 
+    e.AuthorisationServers.some(as =>
+      as.ApiResources.some(apifamily => 
+        apifamily.ApiFamilyType == "payments-consents")
+    ))
+  setupLog(availableBanks.length);
+
 
   //These are set as global variables, they should be stored in a memory cache and retrieved based on the users session / state
   let selectedAuthServer;

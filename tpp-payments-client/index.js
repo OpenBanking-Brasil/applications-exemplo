@@ -214,14 +214,14 @@ const config = require('./config');
       localIssuer.metadata
     );
 
-    dcrLog(`Select how to to authenticate to the bank from Banks advertised mechanisms, ${process.env.PREFERED_TOKEN_AUTH_MECH} is preferred`);
+    dcrLog(`Select how to to authenticate to the bank from Banks advertised mechanisms, ${process.env.PREFERRED_TOKEN_AUTH_MECH} is preferred`);
     const { FAPI1Client } = localIssuer;
     //base on the options that the bank supports we're going to turn some defaults on
     localIssuer.metadata.token_endpoint_auth_methods_supported.includes(
-      process.env.PREFERED_TOKEN_AUTH_MECH
+      process.env.PREFERRED_TOKEN_AUTH_MECH
     )
-      ? (config.data.client.token_endpoint_auth_method = process.env.PREFERED_TOKEN_AUTH_MECH)
-      : (process.env.PREFERED_TOKEN_AUTH_MECH == 'private_key_jwt' ? config.data.client.token_endpoint_auth_method = 'tls_client_auth' : config.data.client.token_endpoint_auth_method = 'private_key_jwt'  );
+      ? (config.data.client.token_endpoint_auth_method = process.env.PREFERRED_TOKEN_AUTH_MECH)
+      : (process.env.PREFERRED_TOKEN_AUTH_MECH == 'private_key_jwt' ? config.data.client.token_endpoint_auth_method = 'tls_client_auth' : config.data.client.token_endpoint_auth_method = 'private_key_jwt'  );
     dcrLog('Mechanism selected based on what bank supports %O', config.data.client.token_endpoint_auth_method);
     //This line will require the bank to enforce par without it the client should be free to choose PAR or standard
     localIssuer.metadata.request_uri_parameter_supported ? config.data.client.require_pushed_authorization_requests = true : config.data.client.require_pushed_authorization_requests = false;

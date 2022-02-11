@@ -757,16 +757,24 @@ const config = require('./config');
           'Payment has not reached final state after 5 iterations, failing'
         );
         payload = { msg: 'Unable To Complete Payment', payload: payload };
-        payload.stringify = JSON.stringify(payload);
-        return res.render('cb', { claims: tokenSet.claims(), payload });
+        payload.stringify = JSON.stringify(payload, null, 2);
+
+        const consentPayload = { msg: 'Unable To Complete Payment', payload: createdConsent };
+        consentPayload.stringify =  JSON.stringify(createdConsent, null, 2);
+          
+        return res.render('cb', { claims: tokenSet.claims(), payload, consentPayload });
       }
     }
 
     paymentLog('Payment has reached a final state of',payload.data.status);
     paymentLog(payload);
     payload.stringify = JSON.stringify(payload, null, 2);
+
+    const consentPayload = createdConsent;
+    consentPayload.stringify = JSON.stringify(createdConsent, null, 2);
+    
     paymentLog('Payment execution complete');
-    return res.render('cb', { claims: tokenSet.claims(), payload });
+    return res.render('cb', { claims: tokenSet.claims(), payload, consentPayload });
   });
 
   app.post('/makepayment', async (req, res) => {

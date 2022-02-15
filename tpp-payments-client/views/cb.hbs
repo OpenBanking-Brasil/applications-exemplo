@@ -72,19 +72,24 @@
         <br>
         <form action="/complete" method="POST">
         <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Payment Value</p></b>
-        <p style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.data.payment.amount}}} {{{payload.data.payment.currency}}}</p>
+        <p style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.data.payment.amount}}} {{{payload.data.payment.currency}}} {{{paymentInfo.payment.amount}}} {{{paymentInfo.payment.currency}}}</p>
         <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Final Payment Status</p></b>
-                    <p style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.data.status}}}</p>
+                    <p style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.data.status}}} {{{errorPayload.msg}}} : {{{errorPayload.payload.errors.0.code}}}</p>
         </div>
         <br>
         <div class="w3-container w3-card w3-border w3-border-green">
-        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Consent Payload</p></b>
+        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Consent Response Payload</p></b>
           <pre><p id="payments_json" style="width: 100%; align-items: left; padding-left: 15px; ">{{{consentPayload.stringify}}}</p></pre>
         </div>
         <br>
         <div class="w3-container w3-card w3-border w3-border-blue">
-        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Payment Payload</p></b>
+        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Payment Response Payload</p></b>
           <pre><p id="payments_json" style="width: 100%; align-items: left; padding-left: 15px; ">{{{payload.stringify}}}</p></pre>
+        </div>
+        <br>
+        <div class="w3-container w3-card w3-border w3-border-red">
+        <b><p style="width: 100%; align-items: left; padding-left: 15px; ">Error Response Payload</p></b>
+          <pre><p id="payments_json" style="width: 100%; align-items: left; padding-left: 15px; ">{{{errorPayload.stringify}}}</p></pre>
         </div>
         </form>
         <!-- End Middle Column -->

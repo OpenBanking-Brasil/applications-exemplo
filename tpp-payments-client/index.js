@@ -807,9 +807,11 @@ const config = require('./config');
     );
 
     if (error) {
-      const payload = { msg: 'Unable To Complete Payment', payload: error };
-      payload.stringify = JSON.stringify(payload, null, 2);
-      return res.render('cb', { claims: undefined, payload });
+      const errorPayload = { msg: 'Unable To Complete Payment', payload: error };
+      errorPayload.stringify = JSON.stringify(errorPayload, null, 2);
+      const paymentInfo = JSON.parse(req.cookies.consent);
+      paymentInfo.stringify = JSON.stringify(paymentInfo, null, 2)
+      return res.render('cb', { claims: undefined, errorPayload, paymentInfo });
     }
 
     res.cookie('state', state, { path, sameSite: 'none', secure: true });

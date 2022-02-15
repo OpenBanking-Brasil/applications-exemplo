@@ -652,7 +652,7 @@ const config = require('./config');
           'Consent has not reached authorised state after 5 iterations, failing'
         );
         payload = { msg: 'Unable To Complete Authorisation - State Not Authorised', payload: payload };
-        payload.stringify = JSON.stringify(payload);
+        payload.stringify = JSON.stringify(payload, null, 2);
         return res.render('cb', { claims: tokenSet.claims(), payload });
       }
 
@@ -723,7 +723,7 @@ const config = require('./config');
 
     if (payload.errors) {
         payload = { msg: 'Payment errored', payload: payload };
-        payload.stringify = JSON.stringify(payload);
+        payload.stringify = JSON.stringify(payload, null, 2);
         return res.render('cb', { claims: tokenSet.claims(), payload });
     }
 
@@ -808,7 +808,7 @@ const config = require('./config');
 
     if (error) {
       const payload = { msg: 'Unable To Complete Payment', payload: error };
-      payload.stringify = JSON.stringify(payload);
+      payload.stringify = JSON.stringify(payload, null, 2);
       return res.render('cb', { claims: undefined, payload });
     }
 

@@ -652,7 +652,7 @@ const config = require('./config');
           'Consent has not reached authorised state after 5 iterations, failing'
         );
         payload = { msg: 'Unable To Complete Authorisation - State Not Authorised', payload: payload };
-        payload.stringify = JSON.stringify(payload);
+        payload.stringify = JSON.stringify(payload, null, 2);
         return res.render('cb', { claims: tokenSet.claims(), payload });
       }
 
@@ -722,9 +722,11 @@ const config = require('./config');
     paymentLog('Payment response extracted and validated');
 
     if (payload.errors) {
-        payload = { msg: 'Payment errored', payload: payload };
-        payload.stringify = JSON.stringify(payload);
-        return res.render('cb', { claims: tokenSet.claims(), payload });
+        const errorPayload = { msg: 'Payment errored', payload: payload };
+        errorPayload.stringify = JSON.stringify(errorPayload, null, 2);
+        const paymentInfo = payment
+        paymentInfo.stringify = JSON.stringify(paymentInfo, null, 2);
+        return res.render('cb', { claims: tokenSet.claims(), errorPayload, paymentInfo });
     }
 
     let x = 0;
@@ -807,9 +809,11 @@ const config = require('./config');
     );
 
     if (error) {
-      const payload = { msg: 'Unable To Complete Payment', payload: error };
-      payload.stringify = JSON.stringify(payload);
-      return res.render('cb', { claims: undefined, payload });
+      const errorPayload = { msg: 'Unable To Complete Payment', payload: error };
+      errorPayload.stringify = JSON.stringify(errorPayload, null, 2);
+      const paymentInfo = JSON.parse(req.cookies.consent);
+      paymentInfo.stringify = JSON.stringify(paymentInfo, null, 2)
+      return res.render('cb', { claims: undefined, errorPayload, paymentInfo });
     }
 
     res.cookie('state', state, { path, sameSite: 'none', secure: true });

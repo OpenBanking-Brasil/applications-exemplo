@@ -722,9 +722,11 @@ const config = require('./config');
     paymentLog('Payment response extracted and validated');
 
     if (payload.errors) {
-        payload = { msg: 'Payment errored', payload: payload };
-        payload.stringify = JSON.stringify(payload, null, 2);
-        return res.render('cb', { claims: tokenSet.claims(), payload });
+        const errorPayload = { msg: 'Payment errored', payload: payload };
+        errorPayload.stringify = JSON.stringify(errorPayload, null, 2);
+        const paymentInfo = payment
+        paymentInfo.stringify = JSON.stringify(paymentInfo, null, 2);
+        return res.render('cb', { claims: tokenSet.claims(), errorPayload, paymentInfo });
     }
 
     let x = 0;

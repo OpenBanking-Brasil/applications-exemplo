@@ -31,11 +31,20 @@
                   sm="4"
                   md="4"
                 >
-              <b>Document Identification</b>
+             <b>Document Identification </b><v-icon small title="
+                type: string
+            maxLength: 14
+            description: Número do documento de identificação oficial do titular pessoa jurídica.
+            example: '11111111111111'
+            pattern: '^\d{14}$'">
+                  mdi-information
+                </v-icon>
                 <v-text-field class="text-green"
-                  placeholder="123456"
+                  placeholder="76109277673"
                     outlined
                     filled
+                    id="loggedUser_document_identification"
+                    value="76109277673"
                     
                 ></v-text-field>
               </v-col>
@@ -45,11 +54,20 @@
                 md="4"
                 
               >
-              <b>Document Rel</b>
+              <b>Document Rel </b><v-icon small title="
+                type: string
+            maxLength: 4
+            description: Tipo do documento de identificação oficial do titular pessoa jurídica.
+            example: CNPJ
+            pattern: '^[A-Z]{4}$'">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="CPF"
                     outlined
                     filled
+                    id="loggedUser_document_rel"
+                    value="CPF"
                 ></v-text-field>
               </v-col>
               
@@ -70,12 +88,27 @@
                   sm="4"
                   md="4"
                 >
-              <b>Revoked By</b>
-                <v-text-field class="text-green"
-                  placeholder="123456"
+              <b>Revoked By </b><v-icon small title="
+                type: string
+                maxLength: 8
+                enum:
+                - USER
+                - ASPSP
+                - TPP
+                example: USER
+                description:
+                Define qual das partes envolvidas na transação está realizando a revogação. Valores possíveis:
+                - USER (Revogado pelo usuário)
+                - ASPSP (Provedor de serviços de pagamento para serviços de conta - Detentora de conta)
+                - TPP (Instituições Provedoras - iniciadora de pagamentos)">
+                  mdi-information
+                </v-icon>
+                <v-text-field
+                  placeholder="USER"
                     outlined
                     filled
-                    
+                    id="revokedBy"
+                    value="USER"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -84,11 +117,27 @@
                 md="4"
                 
               >
-              <b>Code</b>
+              <b>Code </b><v-icon small title="
+                type: string
+                maxLength: 22
+                enum:
+                - FRAUD
+                - ACCOUNT_CLOSURE
+                - OTHER
+                example: OTHER
+                description: Define o código da razão pela qual o consentimento foi revogado.
+                Valores possíveis:
+                FRAUD - Indica suspeita de fraude
+                ACCOUNT_CLOSURE - Indica que a conta do usuário foi encerrada
+                OTHER - Indica que motivo do cancelamento está fora dos motivos pré-estabelecidos.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="OTHER"
                     outlined
                     filled
+                    id="revokedCode"
+                    value="OTHER"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -97,11 +146,22 @@
                 md="4"
                 
               >
-              <b>Additional Information</b>
+              <b>Additional Information </b><v-icon small title="
+                type: string
+                maxLength: 140
+                pattern: '[\w\W\s]*'
+                example: Não quero mais o serviço
+                description: 
+                Contém informações adicionais definidas pelo requisitante da revogação.
+                [Restrição] Deverá ser obrigatoriamente preenchido quando a revogação for feita pela iniciadora ou pela detentora unilateralmente, ou seja, quando o campo revokedBy for igual a TPP ou ASPSP e o motivo de revogação for OTHER.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="Não quero mais o serviço"
                     outlined
                     filled
+                    id="revokedAdditionalInfo"
+                    value="Não quero mais o serviço"
                 ></v-text-field>
               </v-col>
               

@@ -30,13 +30,25 @@
                   sm="4"
                   md="4"
                 >
-              <b>Account Number</b>
+              <b>Account Number </b>
+                <v-icon small title="
+                type: string
+                minLength: 3
+                maxLength: 20
+                pattern: '^\d{3,20}$'
+                example: '1234567890'
+                description: Deve ser preenchido com o número da conta transacional do usuário pagador, com dígito verificador (se este existir), se houver valor alfanumérico, este deve ser convertido para 0.">
+                  mdi-information
+                </v-icon>
                 <v-text-field class="text-green"
-                  placeholder="123456"
+                  placeholder="94088392"
                     outlined
                     filled
+                    value="94088392"
+                    id="debtorAccount_number"
                     
                 ></v-text-field>
+                
               </v-col>
               <v-col
                 cols="12"
@@ -44,11 +56,32 @@
                 md="4"
                 
               >
-              <b>Account Type</b>
+              <b>Account Type </b>
+              <v-icon small title="
+                type: string
+            maxLength: 4
+            enum:
+              - CACC
+              - SLRY
+              - SVGS
+              - TRAN
+            example: CACC
+            description: Tipos de contas usadas para pagamento via Pix.
+              Modalidades tradicionais previstas pela Resolução 4.753, não contemplando contas vinculadas, conta de domiciliados no exterior, contas em moedas estrangeiras e conta correspondente moeda eletrônica.
+              Segue descrição de cada valor do ENUM para o escopo do Pix.
+              CACC - Current - Conta Corrente.
+              SLRY - Salary - Conta-Salário.
+              SVGS - Savings - Conta de Poupança.
+              TRAN - TransactingAccount - Conta de Pagamento pré-paga.
+              [Restrição] O campo data.payment.creditorAccount.accountType quando o arranjo alvo for TED só suportará os tipos CACC (Conta corrente), SVGS (Poupança) e TRAN (Conta de Pagamento pré-paga).">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="CACC"
                     outlined
                     filled
+                    id="debtorAccount_accountType"
+                    value="CACC"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -57,11 +90,21 @@
                 md="4"
                 
               >
-              <b>ISPB</b>
+              <b>ISPB </b><v-icon small title="
+                type: string
+            minLength: 8
+            maxLength: 8
+            pattern: '^[0-9]{8}$'
+            example: '12345678'
+            description: Deve ser preenchido com o ISPB (Identificador do Sistema de Pagamentos Brasileiros) do participante do SPI (Sistema de pagamentos instantâneos) somente com números.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="12345678"
                     outlined
                     filled
+                    value="12345678"
+                    id="debtorAccount_ispb"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -70,11 +113,21 @@
                 md="4"
                 
               >
-              <b>Issuer</b>
+              <b>Issuer </b><v-icon small title="
+               type: string
+            maxLength: 4
+            pattern: '^\d{4}$'
+            example: '1774'
+            description: Código da Agência emissora da conta sem dígito. (Agência é a dependência destinada ao atendimento aos clientes, ao público em geral e aos associados de cooperativas de crédito, no exercício de atividades da instituição, não podendo ser móvel ou transitória).  
+            [Restrição] Preenchimento obrigatório para os seguintes tipos de conta: CACC (CONTA_DEPOSITO_A_VISTA), SVGS (CONTA_POUPANCA) e SLRY (CONTA_SALARIO).">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="6272"
                     outlined
                     filled
+                    id="debtorAccount_issuer"
+                    value="6272"
                 ></v-text-field>
                 
               </v-col>
@@ -95,11 +148,20 @@
                   sm="4"
                   md="4"
                 >
-              <b>Document Identification</b>
+              <b>Document Identification </b><v-icon small title="
+                type: string
+            maxLength: 14
+            description: Número do documento de identificação oficial do titular pessoa jurídica.
+            example: '11111111111111'
+            pattern: '^\d{14}$'">
+                  mdi-information
+                </v-icon>
                 <v-text-field class="text-green"
-                  placeholder="123456"
+                  placeholder="76109277673"
                     outlined
                     filled
+                    id="loggedUser_document_identification"
+                    value="76109277673"
                     
                 ></v-text-field>
               </v-col>
@@ -109,11 +171,20 @@
                 md="4"
                 
               >
-              <b>Document Rel</b>
+              <b>Document Rel </b><v-icon small title="
+                type: string
+            maxLength: 4
+            description: Tipo do documento de identificação oficial do titular pessoa jurídica.
+            example: CNPJ
+            pattern: '^[A-Z]{4}$'">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="CPF"
                     outlined
                     filled
+                    id="loggedUser_document_rel"
+                    value="CPF"
                 ></v-text-field>
               </v-col>
               
@@ -134,12 +205,21 @@
                   sm="4"
                   md="4"
                 >
-              <b>Name</b>
+              <b>Name </b><v-icon small title="
+                type: string
+            maxLength: 140
+            pattern: '[\w\W\s]*'
+            example: Marco Antonio de Brito
+            description: Em caso de pessoa natural deve ser informado o nome completo do titular da conta do recebedor.  
+            Em caso de pessoa jurídica deve ser informada a razão social ou o nome fantasia da conta do recebedor.">
+                  mdi-information
+                </v-icon>
                 <v-text-field class="text-green"
-                  placeholder="123456"
+                  placeholder="Marco Antonio de Brito"
                     outlined
                     filled
-                    
+                    id="loggedUser_document_rel"
+                    value="Marco Antonio de Brito"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -148,11 +228,24 @@
                 md="4"
                 
               >
-              <b>CPF/CNPJ</b>
+              <b>CPF/CNPJ </b><v-icon small title="
+                type: string
+            minLength: 11
+            maxLength: 14
+            pattern: '^\d{11}$|^\d{14}$'
+            example: '58764789000137'
+            description: Identificação da pessoa envolvida na transação.  
+            Preencher com o CPF ou CNPJ, de acordo com o valor escolhido no campo type.  
+            O CPF será utilizado com 11 números e deverá ser informado sem pontos ou traços.  
+            O CNPJ será utilizado com 14 números e deverá ser informado sem pontos ou traços.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="48847377765"
                     outlined
                     filled
+                      id="creditor_cpfCnpj"
+                    value="48847377765"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -161,11 +254,21 @@
                 md="4"
                 
               >
-              <b>Person Type</b>
+              <b>Person Type </b><v-icon small title="
+                type: string
+            maxLength: 15
+            enum:
+            - PESSOA_NATURAL
+            - PESSOA_JURIDICA
+            description: Titular, pessoa natural ou juridica a quem se referem os dados de recebedor (creditor).">
+                  mdi-information
+                </v-icon>
                 <v-text-field
                   placeholder="123456"
                     outlined
                     filled
+                    id="creditor_personType"
+                    value="PESSOA_NATURAL"
                 ></v-text-field>
               </v-col>
               
@@ -186,11 +289,21 @@
                   sm="4"
                   md="4"
                 >
-              <b>Amount</b>
+              <b>Amount </b><v-icon small title="
+                type: string
+            minLength: 4
+            maxLength: 19
+            pattern: '^((\d{1,16}\.\d{2}))$'
+            example: '100000.12'
+            description: Valor da transação com 2 casas decimais.">
+                  mdi-information
+                </v-icon>
                 <v-text-field class="text-green"
-                  placeholder="123456"
+                  placeholder="1335.00"
                     outlined
                     filled
+                    id="payment_amount"
+                    value="1335.00"
                     
                 ></v-text-field>
               </v-col>
@@ -200,7 +313,7 @@
                 md="4"
                 
               >
-              <b>Payment Scheduled</b>
+              <b>Payment Scheduled </b>
                 <v-select v-model="selected"
                   :items="['Yes','No']"
                   label=""
@@ -228,11 +341,28 @@
                 md="6"
                 
               >
-              <b>Type</b>
+              <b>Type</b><v-icon small title="
+                EnumPixPaymentType:
+              enum:
+                - PIX
+              example: PIX
+            EnumTedPaymentType:
+              enum:
+                - TED
+              example: TED
+            EnumTefPaymentType:
+              enum:
+                - TEF
+              example: TEF
+            description: Este campo define o tipo de pagamento que será iniciado após a autorização do consentimento.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="PIX"
                     outlined
                     filled
+                    id="payment_type"
+                    value="PIX"
                 ></v-text-field>
               </v-col>
                 </v-row>
@@ -243,11 +373,31 @@
                 md="4"
                 
               >
-              <b>Proxy</b>
+              <b>Proxy </b><v-icon small title="
+                type: string
+            maxLength: 77
+            pattern: '[\w\W\s]*'
+            example: '12345678901'
+            description: 
+            Chave cadastrada no DICT pertencente ao recebedor. Os tipos de chaves podem ser: telefone, e-mail, cpf/cnpj ou chave aleatória.
+            No caso de telefone celular deve ser informado no padrão E.1641.
+            Para e-mail deve ter o formato xxxxxxxx@xxxxxxx.xxx(.xx) e no máximo 77 caracteres.
+            No caso de CPF deverá ser informado com 11 números, sem pontos ou traços.
+            Para o caso de CNPJ deverá ser informado com 14 números, sem pontos ou traços.
+            No caso de chave aleatória deve ser informado o UUID gerado pelo DICT, conforme formato especificado na RFC41223.
+            Se informado, a detentora da conta deve validar o proxy no DICT quando localInstrument for igual a DICT, QRDN ou QRES e validar o campo creditorAccount.
+            Esta validação é opcional caso o localInstrument for igual a INIC.
+            [Restrição]
+            Se localInstrument for igual a MANU, o campo proxy não deve ser preenchido.
+            Se localInstrument for igual INIC, DICT, QRDN ou QRES, o campo proxy deve ser sempre preenchido com a chave Pix.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="12345678901"
                     outlined
                     filled
+                    id="payment_details_proxy"
+                    value="12345678901"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -256,11 +406,31 @@
                 md="4"
                 
               >
-              <b>Local Instrument</b>
+              <b>Local Instrument </b><v-icon small title="
+                type: string
+            maxLength: 4
+            enum:
+            - MANU
+            - DICT
+            - QRDN
+            - QRES
+            - INIC
+            example: DICT
+            description: |
+            Especifica a forma de iniciação do pagamento:
+            - MANU - Inserção manual de dados da conta transacional
+            - DICT - Inserção manual de chave Pix
+            - QRDN - QR code dinâmico
+            - QRES - QR code estático
+            - INIC - Indica que o recebedor (creditor) contratou o Iniciador de Pagamentos especificamente para realizar iniciações de pagamento em que o beneficiário é previamente conhecido.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="DICT"
                     outlined
                     filled
+                    id="payment_details_localInstrument"
+                    value="DICT"
                 ></v-text-field>
               </v-col>
               </v-row>
@@ -271,11 +441,22 @@
                 md="4"
                 
               >
-              <b>Credit Account Number</b>
+              <b>Credit Account Number </b><v-icon small title="
+                type: string
+            minLength: 3
+            maxLength: 20
+            pattern: '^\d{3,20}$'
+            example: '1234567890'
+            description: 
+              Deve ser preenchido com o número da conta do usuário recebedor, com dígito verificador (se este existir), se houver valor alfanumérico, este deve ser convertido para 0.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="1234567890"
                     outlined
                     filled
+                    id="payment_details_creditAccount_number"
+                    value="1234567890"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -284,11 +465,31 @@
                 md="4"
                 
               >
-              <b>Credit Account Type</b>
+              <b>Credit Account Type </b><v-icon small title="
+                type: string
+            maxLength: 4
+            enum:
+              - CACC
+              - SLRY
+              - SVGS
+              - TRAN
+            example: CACC
+            description: Tipos de contas usadas para pagamento via Pix.
+              Modalidades tradicionais previstas pela Resolução 4.753, não contemplando contas vinculadas, conta de domiciliados no exterior, contas em moedas estrangeiras e conta correspondente moeda eletrônica.
+              Segue descrição de cada valor do ENUM para o escopo do Pix.
+              CACC - Current - Conta Corrente.
+              SLRY - Salary - Conta-Salário.
+              SVGS - Savings - Conta de Poupança.
+              TRAN - TransactingAccount - Conta de Pagamento pré-paga.
+              [Restrição] O campo data.payment.creditorAccount.accountType quando o arranjo alvo for TED só suportará os tipos CACC (Conta corrente), SVGS (Poupança) e TRAN (Conta de Pagamento pré-paga).">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="CACC"
                     outlined
                     filled
+                    id="payment_details_creditAccount_accountType"
+                    value="CACC"
                 ></v-text-field>
               </v-col>
               </v-row>
@@ -299,11 +500,22 @@
                 md="4"
                 
               >
-              <b>Credit Account ISPB</b>
+              <b>Credit Account ISPB </b><v-icon small title="
+                type: string
+            minLength: 8
+            maxLength: 8
+            pattern: '^[0-9]{8}$'
+            example: '12345678'
+            description: |
+              Deve ser preenchido com o ISPB (Identificador do Sistema de Pagamentos Brasileiros) do participante do SPI (Sistema de pagamentos instantâneos) somente com números.">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="12345678"
                     outlined
                     filled
+                    id="payment_details_creditAccount_ispb"
+                    value="12345678"
                 ></v-text-field>
               </v-col>
               <v-col
@@ -312,11 +524,24 @@
                 md="4"
                 
               >
-              <b>Credit Account Issuer</b>
+              <b>Credit Account Issuer </b><v-icon small title="
+                type: string
+            maxLength: 4
+            pattern: '^\d{4}$'
+            example: '1774'
+            description: |
+              Código da Agência emissora da conta sem dígito.  
+              (Agência é a dependência destinada ao atendimento aos clientes, ao público em geral e aos associados de cooperativas de crédito,  
+              no exercício de atividades da instituição, não podendo ser móvel ou transitória).  
+              [Restrição] Preenchimento obrigatório para os seguintes tipos de conta: CACC (CONTA_DEPOSITO_A_VISTA), SVGS (CONTA_POUPANCA) e SLRY (CONTA_SALARIO).">
+                  mdi-information
+                </v-icon>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="1774"
                     outlined
                     filled
+                    id="payment_details_creditAccount_issuer"
+                    value="1774"
                 ></v-text-field>
               </v-col>
              

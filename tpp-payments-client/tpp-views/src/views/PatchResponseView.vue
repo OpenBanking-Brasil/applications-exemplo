@@ -33,7 +33,7 @@
                 >
               <b>Payment Value</b>
                 <v-text-field class="text-green"
-                  placeholder="123456"
+                  placeholder="1335.0"
                     outlined
                     filled
                     
@@ -41,13 +41,13 @@
               </v-col>
               <v-col
                 cols="12"
-                sm="4"
-                md="4"
+                sm="2"
+                md="2"
                 
               >
-              <b>Final Payment Status</b>
+              <b>Revoked By</b>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="USER"
                     outlined
                     filled
                 ></v-text-field>
@@ -76,7 +76,7 @@
                 outlined
                 color=""
                 >
-                <v-card-title style="color: white; background-color:#3949AB">Payment Response Payload</v-card-title>
+                <v-card-title style="color: white; background-color:#3949AB">Patch Response Payload</v-card-title>
                 <v-card-text>
                   <pre class="pt-4">
                   JSON

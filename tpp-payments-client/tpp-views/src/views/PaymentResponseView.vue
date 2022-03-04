@@ -33,7 +33,7 @@
                 >
               <b>Payment Value</b>
                 <v-text-field class="text-green"
-                  placeholder="123456"
+                  placeholder="1335.0"
                     outlined
                     filled
                     
@@ -47,7 +47,7 @@
               >
               <b>Final Payment Status</b>
                 <v-text-field
-                  placeholder="123456"
+                  placeholder="ACCC"
                     outlined
                     filled
                 ></v-text-field>

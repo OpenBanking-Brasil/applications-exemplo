@@ -21,7 +21,6 @@
             >Payment Provider Details
             </div>     
             <v-text-field
-            v-model="message4"
             label="Search"
             outlined
             clearable
@@ -90,27 +89,23 @@ export default {
       recent: [
         {
           active: true,
-          avatar: 'https://cdn.vuetifyjs.com/images/lists/1.jpg',
-          title: 'Bank A',
+          avatar: 'https://cdn.raidiam.io/directory-ui/brand/obbrazil/0.2.0.112/favicon.svg',
+          title: 'Mock Bank',
         },
         {
           active: true,
-          avatar: 'https://cdn.vuetifyjs.com/images/lists/2.jpg',
-          title: 'Bank B',
+          avatar: 'https://novo.brb.com.br/wp-content/uploads/2021/08/logo.svg',
+          title: 'BRB Auth Server 1.0',
         },
         {
-          avatar: 'https://cdn.vuetifyjs.com/images/lists/3.jpg',
-          title: 'Bank C',
+          avatar: 'https://bancobari.com.br/assets/openbanking/logo-banco-bari.svg',
+          title: 'Banco BARI',
         },
         {
-          avatar: 'https://cdn.vuetifyjs.com/images/lists/4.jpg',
-          title: 'Bank D',
+          avatar: 'https://www.original.com.br/img/nav/logo.svg',
+          title: 'Banco Original',
         },
-      ],
-      previous: [{
-        title: 'Bank E',
-        avatar: 'https://cdn.vuetifyjs.com/images/lists/5.jpg',
-      }],
+      ]
     }),
 
   }

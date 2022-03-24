@@ -24,8 +24,8 @@ const routes = [
   },
   {
     path: '/payment-menu',
-    name: 'payments',
-    component: MainMenuView
+    name: 'payment-menu',
+    component: MainMenuView,
   },
   {
     path: '/payment-detail',

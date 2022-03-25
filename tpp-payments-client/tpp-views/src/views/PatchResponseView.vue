@@ -40,7 +40,7 @@
               >
               <v-card-text>
                 <pre class="pt-4">
-                  JSON
+                  {{ consentResponse }}
                 </pre>
               </v-card-text>
             </v-card>
@@ -62,7 +62,7 @@
               >
               <v-card-text>
                 <pre class="pt-4">
-                  JSON
+                  {{ errorResponse }}
                 </pre>
               </v-card-text>
             </v-card>

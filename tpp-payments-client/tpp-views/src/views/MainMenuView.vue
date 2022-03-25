@@ -205,7 +205,7 @@ export default {
         .then((response) => {
           this.paymentAmount = response.data.data.payment.amount;
           this.status = response.data.data.status;
-          this.currency = response.data.data.payment.amount;
+          this.currency = response.data.data.payment.currency;
           this.creationDateTime = response.data.data.creationDateTime;
         });
     },

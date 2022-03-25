@@ -8,7 +8,7 @@
                fill-height
             ><v-row justify="center"><v-col  align="center" >
               <v-icon x-large 
-              @click="$router.back()"
+              @click="$router.push('payment-menu')"
               >mdi-arrow-left-circle</v-icon></v-col></v-row>
           </v-sheet>
             </v-container>

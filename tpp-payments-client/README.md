@@ -7,7 +7,11 @@ Open Banking Brasil Mock Payments Client
 ### Getting started
 
 npm install
-npm start
+npm start-server - runs the server.js
+
+And on a separate terminal, go to the tpp-views folder and run:
+
+npm run serve
 
 Open a Browser to <https://tpp.localhost>
 

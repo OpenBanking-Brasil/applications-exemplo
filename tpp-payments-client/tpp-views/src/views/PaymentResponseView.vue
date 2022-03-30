@@ -64,7 +64,7 @@
               >
               <v-card-text>
                 <pre class="pt-4" style="overflow: auto" v-if="errorResponse">
-                  {{ errorResponse }}
+                  {{ errorResponse.stringify }}
                 </pre>
               </v-card-text>
             </v-card>

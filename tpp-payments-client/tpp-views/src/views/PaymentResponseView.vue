@@ -36,7 +36,7 @@
               </v-card-text>
             </v-card>
             <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
+            <v-card elevation="2" outlined color="" v-if="consentResponse">
               <v-card-title style="color: white; background-color: #9ccc65"
                 >Consent Response Payload</v-card-title
               >
@@ -47,7 +47,7 @@
               </v-card-text>
             </v-card>
             <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
+            <v-card elevation="2" outlined color="" v-if="paymentResponse">
               <v-card-title style="color: white; background-color: #3949ab"
                 >Payment Response Payload</v-card-title
               >
@@ -58,12 +58,12 @@
               </v-card-text>
             </v-card>
             <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
+            <v-card elevation="2" outlined color="" v-if="errorResponse">
               <v-card-title style="color: white; background-color: #ff5252"
                 >Error Response Payload</v-card-title
               >
               <v-card-text>
-                <pre class="pt-4" style="overflow: auto">
+                <pre class="pt-4" style="overflow: auto" v-if="errorResponse">
                   {{ errorResponse }}
                 </pre>
               </v-card-text>
@@ -94,9 +94,9 @@ export default {
   },
 
   data: () => ({
-    consentResponse: {},
-    paymentResponse: {},
-    errorResponse: {},
+    consentResponse: "",
+    paymentResponse: "",
+    errorResponse: "",
     amount: null,
     status: ""
   }),

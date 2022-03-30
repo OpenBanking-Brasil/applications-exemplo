@@ -40,6 +40,9 @@ let config = JSON.parse(JSON.stringify(configuration));
   // parse various different custom JSON types as JSON
   app.use(express.json({ type: "application/json" }));
 
+  /*fapiClient object should be stored in a session db since object with methods cannot be stored in memory session,
+  but for now we use an array to store the fapiClients with associated session IDs*/
+  const fapiClientSpecificData = [];
 
   //We need to confirm our private key into a jwks for local signing
   const key = crypto.createPrivateKey(
@@ -385,7 +388,6 @@ let config = JSON.parse(JSON.stringify(configuration));
       )
     );
 
-    console.log(req.session.createdConsent.body.toString());
       
     //Validate the jwt
     const { payload } = await jose.jwtVerify(
@@ -547,11 +549,14 @@ let config = JSON.parse(JSON.stringify(configuration));
     //if date has been selected
     if(req.body.selected === "Yes"){
       delete data.payment.date;
+      req.session.paymentIsScheduled = true;
       data.payment.schedule = {
         single: {
           date: req.body.date
         }
       };
+    } else {
+      req.session.paymentIsScheduled = false;
     }
 
     consentLog('Storing consent payload in a cookie for convenience, server side mechanisms would be more secure and consent payload only just fits in a cookie size');
@@ -571,7 +576,9 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   paymentLog('Find payment endpoint with the specified ID for the selected bank from the directory of participants');
   app.get("/payment/:paymentId", async (req, res) => {
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
     const paymentId = req.params.paymentId;
+
     const paymentEndpoint = `${getEndpoint(
       req.session.selectedAuthServer,
       'payments-pix',
@@ -595,18 +602,17 @@ let config = JSON.parse(JSON.stringify(configuration));
     );
     paymentLog("Payment response recieved %O", response);
 
-    res.json(JSON.parse(response.body.toString()));
+    res.json({...JSON.parse(response.body.toString()), selectedBank: req.session.selectedBank});
   });
-
-
-
-  let client;
-  let issuer;
 
   app.use(express.urlencoded());
   
   //This is used for response mode form_post, query and form_post are the most common
   app.post('/cb', async (req, res) => {
+    const fapiClient = fapiClientSpecificData.find(client => client.sessionId === req.session.id);
+    const client = fapiClient.client;
+    const issuer = fapiClient.issuer;
+
     consentLog('Received redirect from the bank');
     const callbackParams = client.callbackParams(req);
     consentLog('Trying to obtain an access token using the authorization code');
@@ -850,16 +856,19 @@ let config = JSON.parse(JSON.stringify(configuration));
       ...req.session.paymentResData,
       clientId: req.session.clientId,
       refreshToken: req.session.refreshToken,
+      scheduled: req.session.paymentIsScheduled
     }
 
     return res.json(paymentResponse);
   });
 
-  app.options('/makepayment', cors()) 
-  app.post('/makepayment', async (req, res) => {
+  app.post('/dcr', async (req, res) => {
+
     if(req.body.bank){
       req.session.selectedBank = req.body.bank;
     }
+    let client;
+    let issuer;
     if (req.session.selectedBank) {
       //Setup the client
       consentLog('Customer has select bank issuer to use %O', req.session.selectedBank);
@@ -872,11 +881,26 @@ let config = JSON.parse(JSON.stringify(configuration));
       throw Error('No bank was selected');
     }
 
+    //Technically this should be saved into a session database because an object with methods cannot be stored in session memory
+    consentLog('Save fapi client with the session ID into the array');
+    fapiClientSpecificData.push({
+      sessionId: req.session.id,
+      client,
+      issuer
+    });
+
+    res.send({clientId: client.client_id});
+  });
+
+  app.options('/makepayment', cors()) 
+  app.post('/makepayment', async (req, res) => {
+
     const path = '';
 
+    const fapiClient = fapiClientSpecificData.find(client => client.sessionId === req.session.id);
     //Setup the request
     const { authUrl, code_verifier, state, nonce, error } = await generateRequest(
-      client,
+      fapiClient.client,
       req.session.selectedAuthServer,
       req.session.selectedOrganisation,
       JSON.parse(req.cookies.consent),
@@ -909,9 +933,58 @@ let config = JSON.parse(JSON.stringify(configuration));
     return res.json({authUrl});
   });
 
+  app.get('/payment-consent/:consentId', async (req, res) => {
+
+    const consentId = req.params.consentId;
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+
+    consentLog('Find the patch consent endpoint for the payments consent from the selected authorisation server from the directory');
+    const patchEndpoint = `${getEndpoint(
+      req.session.selectedAuthServer,
+      'payments-consents',
+      'open-banking/payments/v1/consents$'
+    )}/${consentId}`;
+
+    consentLog('Obtaining an access token to patch payment');
+    const ccToken = await client.grant({
+      grant_type: 'client_credentials',
+      scope: 'payments',
+    });
+
+    paymentLog("Getting patch payment response ")
+    const response = await client.requestResource(
+      patchEndpoint,
+      ccToken,
+      {
+        method: 'GET',
+      }
+    );
+    paymentLog("Revoked payment response recieved %O", response);
+
+    // consentLog('Retrieve the keyset for the bank sending the payment consent response from the diretory of participants');
+    // const JWKS = await jose.createRemoteJWKSet(
+    //   new URL(
+    //     `https://keystore.sandbox.directory.openbankingbrasil.org.br/${req.session.selectedOrganisation.OrganisationId}/application.jwks`
+    //   )
+    // );
+
+    // const { payload } = await jose.jwtVerify(
+    //   response.body.toString(),
+    //   JWKS,
+    //   {
+    //     issuer: req.session.selectedOrganisation.OrganisationId,
+    //     audience: req.session.config.data.organisation_id,
+    //     clockTolerance: 2,
+    //   }
+    // );
+
+    res.json(JSON.parse(response.body.toString()));
+  });
+
   app.patch('/revoke-payment', async (req, res) => {
 
     const consentId =  req.session.createdConsent.data.consentId;
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
     consentLog('Find the patch consent endpoint for the payments consent from the selected authorisation server from the directory');
     const patchEndpoint = `${getEndpoint(

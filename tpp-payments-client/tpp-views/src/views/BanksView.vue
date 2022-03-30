@@ -30,7 +30,13 @@
                     @click="selectBank(bank.title)"
                   >
                     <v-list-item-avatar>
-                      <v-img contain :src="bank.avatar || 'https://ui-avatars.com/api/?name=John+Doe'"></v-img>
+                      <v-img
+                        contain
+                        :src="
+                          bank.avatar ||
+                          'https://ui-avatars.com/api/?name=John+Doe'
+                        "
+                      ></v-img>
                     </v-list-item-avatar>
 
                     <v-list-item-content>
@@ -45,15 +51,14 @@
             </v-col>
             <v-col> </v-col>
           </v-row>
-          <Button
-            colour="primary"
-            text="Select"
-            :func="confirmSelectedBank"
-          />
+          <Button colour="primary" text="Select" :func="confirmSelectedBank" />
         </v-sheet>
       </v-col>
       <v-col> </v-col>
     </v-row>
+    <v-overlay :value="loading">
+      <v-progress-circular indeterminate size="100"></v-progress-circular>
+    </v-overlay>
   </v-main>
 </template>
 
@@ -72,6 +77,7 @@ export default {
     Button,
   },
   data: () => ({
+    loading: false,
     selectedBank: "",
     banks: [],
     search: "",
@@ -80,13 +86,33 @@ export default {
     selectBank(bankTitle) {
       this.selectedBank = bankTitle;
     },
-    confirmSelectedBank(){
-      this.$router.push({
-        name: "payment-menu",
-        params: {
-          data: this.selectedBank
-        }
-      });
+    confirmSelectedBank() {
+      axios.defaults.withCredentials = true;
+      this.loading = true;
+      axios
+        .post(
+          "/dcr",
+          { bank: this.selectedBank },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        )
+        .then((res) => {
+          this.$router.push({
+            name: "payment-menu",
+            params: {
+              data: {
+                selectedBank: this.selectedBank,
+                clientId: res.data.clientId,
+              },
+            },
+          });
+        }).catch((err) => {
+          console.log(err);
+          this.loading = false;
+        });
     },
     getBanks(data) {
       for (var i = 0; i < data.length; i++) {
@@ -100,7 +126,7 @@ export default {
           }
         }
       }
-    }
+    },
   },
 
   computed: {
@@ -108,11 +134,11 @@ export default {
       return this.banks.filter((bank) => {
         return bank.title.toLowerCase().includes(this.search.toLowerCase());
       });
-    }
+    },
   },
 
   mounted() {
-    axios.get("/banks", {withCredentials: true}).then((response) => {
+    axios.get("/banks", { withCredentials: true }).then((response) => {
       this.getBanks(response.data);
     });
   },

@@ -94,7 +94,7 @@
                               <v-card-title
                                 class="subheading font-weight-bold mt-6"
                               >
-                                Mock Bank
+                                {{ bankName }}
                               </v-card-title>
 
                               <v-divider></v-divider>
@@ -129,13 +129,22 @@
 
                                 <v-list-item>
                                   <v-list-item-content
-                                    >Creation Date and Time:</v-list-item-content
+                                    >Creation Date and
+                                    Time:</v-list-item-content
                                   >
                                   <v-list-item-content class="align-end">
-                                   {{ creationDateTime }}
+                                    {{ creationDateTime }}
                                   </v-list-item-content>
                                 </v-list-item>
 
+                                <v-list-item v-if="paymentIsScheduled">
+                                  <v-list-item-content
+                                    >Scheduled Date :</v-list-item-content
+                                  >
+                                  <v-list-item-content class="align-end">
+                                    {{ scheduledDate }}
+                                  </v-list-item-content>
+                                </v-list-item>
                               </v-list>
                             </v-card>
                           </v-col>
@@ -149,7 +158,7 @@
                 </template>
               </v-dialog>
             </v-col>
-            <v-col align="center">
+            <v-col align="center" v-if="paymentIsScheduled">
               <Button
                 colour="white--text light-blue darken-4"
                 text="Revoke Payment"
@@ -189,11 +198,13 @@ export default {
     refreshToken: "",
     consentID: "",
     paymentID: "",
+    paymentIsScheduled: false,
 
     paymentAmount: 0,
     status: "",
     currency: "",
-    creationDateTime: ""
+    creationDateTime: "",
+    scheduledDate: "",
   }),
 
   methods: {
@@ -207,6 +218,14 @@ export default {
           this.status = response.data.data.status;
           this.currency = response.data.data.payment.currency;
           this.creationDateTime = response.data.data.creationDateTime;
+          this.bankName = response.data.selectedBank;
+          axios
+            .get(`/payment-consent/${this.consentID}`, {
+              withCredentials: true,
+            })
+            .then((response) => {
+              this.scheduledDate = response.data.data.payment.schedule.single.date;
+            });
         });
     },
     createPayment() {
@@ -223,7 +242,8 @@ export default {
   },
 
   created() {
-    this.bankName = this.$route.params.data;
+    //this.bankName = this.$route.params.data?.selectedBank;
+    this.clientID = this.$route.params.data?.clientId;
     axios
       .get("/payment-response-data", {
         withCredentials: true,
@@ -234,6 +254,7 @@ export default {
           this.refreshToken = response.data.refreshToken;
           this.consentID = response.data.payload.data.consentId;
           this.paymentID = response.data.payload.data.paymentId;
+          this.paymentIsScheduled = response.data.scheduled ? true : false;
         }
       });
   },

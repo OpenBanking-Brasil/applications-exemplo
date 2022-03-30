@@ -298,7 +298,12 @@
                         filled
                       ></v-select>
                     </v-col>
-                    <v-col v-if="formDataObj.selected == 'Yes'" cols="12" sm="2" md="2">
+                    <v-col
+                      v-if="formDataObj.selected == 'Yes'"
+                      cols="12"
+                      sm="2"
+                      md="2"
+                    >
                       <b>Payment Date</b>
                       <v-dialog
                         ref="dialog"
@@ -561,7 +566,6 @@
                     color="primary"
                     x-large
                     type="submit"
-                    :loading="loading"
                     ><v-icon left> mdi-file </v-icon>
                     Create Payment
                   </v-btn>
@@ -571,9 +575,11 @@
           </v-sheet>
         </v-form>
       </v-col>
-
       <v-col cols="12" sm="2"> </v-col>
     </v-row>
+    <v-overlay :value="loading">
+      <v-progress-circular indeterminate size="100"></v-progress-circular>
+    </v-overlay>
   </v-main>
 </template>
 
@@ -593,7 +599,9 @@ export default {
     bankName: "",
     formDataObj: {
       selected: "No",
-      date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
+      date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+        .toISOString()
+        .substr(0, 10),
       debtorAccount_number: "94088392",
       debtorAccount_accountType: "CACC",
       debtorAccount_ispb: "12345678",
@@ -641,11 +649,14 @@ export default {
           if (res.status === 200) {
             axios
               .post(
-                "/makepayment", { bank: this.bankName }, {
+                "/makepayment",
+                { bank: this.bankName },
+                {
                   headers: {
                     "Content-Type": "application/json",
                   },
-                })
+                }
+              )
               .then((response) => {
                 bankConsent.location.href = response.data.authUrl;
               });

@@ -598,11 +598,32 @@ let config = JSON.parse(JSON.stringify(configuration));
       ccToken,
       {
         method: 'GET',
+        headers: {
+          'accept': 'application/jwt',
+          'x-idempotency-key': nanoid(),
+        },
       }
     );
     paymentLog("Payment response recieved %O", response);
 
-    res.json({...JSON.parse(response.body.toString()), selectedBank: req.session.selectedBank});
+    consentLog('Retrieve the keyset for the bank sending the payment consent response from the diretory of participants');
+    const JWKS = await jose.createRemoteJWKSet(
+      new URL(
+        `https://keystore.sandbox.directory.openbankingbrasil.org.br/${req.session.selectedOrganisation.OrganisationId}/application.jwks`
+      )
+    );
+
+    const { payload } = await jose.jwtVerify(
+      response.body.toString(),
+      JWKS,
+      {
+        issuer: req.session.selectedOrganisation.OrganisationId,
+        audience: req.session.config.data.organisation_id,
+        clockTolerance: 2,
+      }
+    );
+
+    res.json({...payload, selectedBank: req.session.selectedBank});
   });
 
   app.use(express.urlencoded());
@@ -957,28 +978,32 @@ let config = JSON.parse(JSON.stringify(configuration));
       ccToken,
       {
         method: 'GET',
+        headers: {
+          'accept': 'application/jwt',
+          'x-idempotency-key': nanoid(),
+        },
       }
     );
     paymentLog("Revoked payment response recieved %O", response);
 
-    // consentLog('Retrieve the keyset for the bank sending the payment consent response from the diretory of participants');
-    // const JWKS = await jose.createRemoteJWKSet(
-    //   new URL(
-    //     `https://keystore.sandbox.directory.openbankingbrasil.org.br/${req.session.selectedOrganisation.OrganisationId}/application.jwks`
-    //   )
-    // );
+    consentLog('Retrieve the keyset for the bank sending the payment consent response from the diretory of participants');
+    const JWKS = await jose.createRemoteJWKSet(
+      new URL(
+        `https://keystore.sandbox.directory.openbankingbrasil.org.br/${req.session.selectedOrganisation.OrganisationId}/application.jwks`
+      )
+    );
 
-    // const { payload } = await jose.jwtVerify(
-    //   response.body.toString(),
-    //   JWKS,
-    //   {
-    //     issuer: req.session.selectedOrganisation.OrganisationId,
-    //     audience: req.session.config.data.organisation_id,
-    //     clockTolerance: 2,
-    //   }
-    // );
+    const { payload } = await jose.jwtVerify(
+      response.body.toString(),
+      JWKS,
+      {
+        issuer: req.session.selectedOrganisation.OrganisationId,
+        audience: req.session.config.data.organisation_id,
+        clockTolerance: 2,
+      }
+    );
 
-    res.json(JSON.parse(response.body.toString()));
+    res.json(payload);
   });
 
   app.patch('/revoke-payment', async (req, res) => {

@@ -69,6 +69,7 @@ import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import Button from "@/components/Buttons/Button.vue";
 import axios from "../util/axios.js";
 import { v1 as uuid } from "uuid";
+import { mapGetters } from "vuex";
 
 export default {
   name: "BankView",
@@ -100,16 +101,23 @@ export default {
           }
         )
         .then((res) => {
-          this.$router.push({
-            name: "payment-menu",
-            params: {
-              data: {
-                selectedBank: this.selectedBank,
-                clientId: res.data.clientId,
+          if(this.selectedOption === "payments"){
+            this.$router.push({
+              name: "payment-menu",
+              params: {
+                data: {
+                  selectedBank: this.selectedBank,
+                  clientId: res.data.clientId,
+                },
               },
-            },
-          });
-        }).catch((err) => {
+            });
+          } else {
+            this.$router.push({
+              name: "consent-menu"
+            });
+          }
+        })
+        .catch((err) => {
           console.log(err);
           this.loading = false;
         });
@@ -135,12 +143,16 @@ export default {
         return bank.title.toLowerCase().includes(this.search.toLowerCase());
       });
     },
+
+    ...mapGetters(["selectedOption"])
   },
 
-  mounted() {
-    axios.get("/banks", { withCredentials: true }).then((response) => {
+  created() {
+    axios.get(`/banks/${this.selectedOption}`, { withCredentials: true }).then((response) => {
       this.getBanks(response.data);
     });
+
+    
   },
 };
 </script>

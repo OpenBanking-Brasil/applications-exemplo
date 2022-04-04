@@ -7,7 +7,7 @@ import PaymentDetail from '../views/PaymentDetails.vue'
 import PatchView from '../views/PatchView.vue'
 import PaymentResponseView from '../views/PaymentResponseView.vue'
 import PatchResponseView from '../views/PatchResponseView.vue'
-PatchResponseView
+import ConsentMenu from '../views/ConsentMenu.vue'
 
 Vue.use(VueRouter)
 
@@ -46,6 +46,11 @@ const routes = [
     path: '/patch-response',
     name: 'patch-response',
     component: PatchResponseView
+  },
+  {
+    path: '/consent-menu',
+    name: 'consent-menu',
+    component: ConsentMenu
   }
 ]
 

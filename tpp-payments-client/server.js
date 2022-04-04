@@ -115,21 +115,12 @@ let config = JSON.parse(JSON.stringify(configuration));
     'https://data.sandbox.directory.openbankingbrasil.org.br/participants'
   );
 
-
-  const TotalBanks = axiosResponse.data;
-  const availableBanks = TotalBanks.filter(e => 
-    e.AuthorisationServers.some(as =>
-      as.ApiResources.some(apifamily => 
-        apifamily.ApiFamilyType == "payments-consents")
-    ))
-  setupLog(availableBanks);
-
   //This configures a FAPI Client for the Bank that you have selected from the UI
   async function setupClient(bank, req) {
     //deep copy config to avoid modifying the orginal config
     req.session.config = JSON.parse(JSON.stringify(configuration));
     setupLog('Begin Client Setup for Target Bank');
-    req.session.selectedOrganisation = availableBanks.find((server) => {
+    req.session.selectedOrganisation = req.session.availableBanks.find((server) => {
       if (
         server.AuthorisationServers &&
         server.AuthorisationServers.some((as) => {
@@ -487,10 +478,20 @@ let config = JSON.parse(JSON.stringify(configuration));
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
 
-  app.use('/banks', async (req, res) => {
-    req.session.isLoggedIn = true;
+  app.use('/banks/:option', async (req, res) => {
+
+    const apiFamilyType = req.params.option === "payments" ? "payments-consents" : "customers-personal";
+
+    const TotalBanks = axiosResponse.data;
+    req.session.availableBanks = TotalBanks.filter(e => 
+      e.AuthorisationServers.some(as =>
+        as.ApiResources.some(apifamily => 
+          apifamily.ApiFamilyType == apiFamilyType)
+      ))
+    //setupLog(req.session.availableBanks);
+
     consentLog('Providing a list of banks to the customer for them to choose from the UI');
-    res.json(availableBanks);
+    res.json(req.session.availableBanks);
   });
 
   //TODO

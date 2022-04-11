@@ -1,63 +1,47 @@
 <template>
   <v-main class="payment-details">
-
-        <v-row>
-          <v-col
-            cols="12"
-            sm="2"
-          >
-          </v-col>
-          <v-col
-            cols="12"
-            sm="8"
-          >
-          <SheetAppBar header="Payment Details"/>
-            <v-sheet
-              min-height="70vh"
-              rounded="lg"
-            >
+    <v-row>
+      <v-col cols="12" sm="2"> </v-col>
+      <v-col cols="12" sm="8">
+        <SheetAppBar header="Payment Details" />
+        <v-form @submit.prevent="createPayment">
+          <v-sheet min-height="70vh" rounded="lg">
             <v-container class="pa-md-12">
-              <v-card
-                elevation="2"
-                outlined
-                color=""
+              <v-card elevation="2" outlined color="">
+                <v-card-title style="color: white; background-color: #004d40"
+                  >Debtor</v-card-title
                 >
-                <v-card-title style="color: white; background-color:#004D40">Debtor</v-card-title>
                 <v-card-text>
-                <v-row class="pa-6">
-                <v-col
-                  cols="12"
-                  sm="4"
-                  md="4"
-                >
-              <b>Account Number </b>
-                <v-icon small title="
+                  <v-row class="pa-6">
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Account Number </b>
+                      <v-icon
+                        small
+                        title="
                 type: string
                 minLength: 3
                 maxLength: 20
                 pattern: '^\d{3,20}$'
                 example: '1234567890'
-                description: Deve ser preenchido com o número da conta transacional do usuário pagador, com dígito verificador (se este existir), se houver valor alfanumérico, este deve ser convertido para 0.">
-                  mdi-information
-                </v-icon>
-                <v-text-field class="text-green"
-                  placeholder="94088392"
-                    outlined
-                    filled
-                    value="94088392"
-                    id="debtorAccount_number"
-                    
-                ></v-text-field>
-                
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Account Type </b>
-              <v-icon small title="
+                description: Deve ser preenchido com o número da conta transacional do usuário pagador, com dígito verificador (se este existir), se houver valor alfanumérico, este deve ser convertido para 0."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        class="text-green"
+                        placeholder="94088392"
+                        outlined
+                        filled
+                        v-model="formDataObj.debtorAccount_number"
+                        name="debtorAccount_number"
+                        id="debtorAccount_number"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Account Type </b>
+                      <v-icon
+                        small
+                        title="
                 type: string
             maxLength: 4
             enum:
@@ -73,162 +57,159 @@
               SLRY - Salary - Conta-Salário.
               SVGS - Savings - Conta de Poupança.
               TRAN - TransactingAccount - Conta de Pagamento pré-paga.
-              [Restrição] O campo data.payment.creditorAccount.accountType quando o arranjo alvo for TED só suportará os tipos CACC (Conta corrente), SVGS (Poupança) e TRAN (Conta de Pagamento pré-paga).">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="CACC"
-                    outlined
-                    filled
-                    id="debtorAccount_accountType"
-                    value="CACC"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>ISPB </b><v-icon small title="
+              [Restrição] O campo data.payment.creditorAccount.accountType quando o arranjo alvo for TED só suportará os tipos CACC (Conta corrente), SVGS (Poupança) e TRAN (Conta de Pagamento pré-paga)."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="CACC"
+                        outlined
+                        filled
+                        name="debtorAccount_accountType"
+                        id="debtorAccount_accountType"
+                        v-model="formDataObj.debtorAccount_accountType"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>ISPB </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             minLength: 8
             maxLength: 8
             pattern: '^[0-9]{8}$'
             example: '12345678'
-            description: Deve ser preenchido com o ISPB (Identificador do Sistema de Pagamentos Brasileiros) do participante do SPI (Sistema de pagamentos instantâneos) somente com números.">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="12345678"
-                    outlined
-                    filled
-                    value="12345678"
-                    id="debtorAccount_ispb"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Issuer </b><v-icon small title="
+            description: Deve ser preenchido com o ISPB (Identificador do Sistema de Pagamentos Brasileiros) do participante do SPI (Sistema de pagamentos instantâneos) somente com números."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="12345678"
+                        outlined
+                        filled
+                        v-model="formDataObj.debtorAccount_ispb"
+                        name="debtorAccount_ispb"
+                        id="debtorAccount_ispb"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Issuer </b
+                      ><v-icon
+                        small
+                        title="
                type: string
             maxLength: 4
             pattern: '^\d{4}$'
             example: '1774'
             description: Código da Agência emissora da conta sem dígito. (Agência é a dependência destinada ao atendimento aos clientes, ao público em geral e aos associados de cooperativas de crédito, no exercício de atividades da instituição, não podendo ser móvel ou transitória).  
-            [Restrição] Preenchimento obrigatório para os seguintes tipos de conta: CACC (CONTA_DEPOSITO_A_VISTA), SVGS (CONTA_POUPANCA) e SLRY (CONTA_SALARIO).">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="6272"
-                    outlined
-                    filled
-                    id="debtorAccount_issuer"
-                    value="6272"
-                ></v-text-field>
-                
-              </v-col>
-</v-row>
-</v-card-text>
-</v-card>
-<div class="pa-2"></div>
-  <v-card
-                elevation="2"
-                outlined
-                color=""
+            [Restrição] Preenchimento obrigatório para os seguintes tipos de conta: CACC (CONTA_DEPOSITO_A_VISTA), SVGS (CONTA_POUPANCA) e SLRY (CONTA_SALARIO)."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="6272"
+                        outlined
+                        filled
+                        name="debtorAccount_issuer"
+                        id="debtorAccount_issuer"
+                        v-model="formDataObj.debtorAccount_issuer"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+              <div class="pa-2"></div>
+              <v-card elevation="2" outlined color="">
+                <v-card-title style="color: white; background-color: #004c50"
+                  >Logged User</v-card-title
                 >
-                <v-card-title style="color: white; background-color:#004C50">Logged User</v-card-title>
                 <v-card-text>
-                <v-row class="pa-6">
-                <v-col
-                  cols="12"
-                  sm="4"
-                  md="4"
-                >
-              <b>Document Identification </b><v-icon small title="
+                  <v-row class="pa-6">
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Document Identification </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             maxLength: 14
             description: Número do documento de identificação oficial do titular pessoa jurídica.
             example: '11111111111111'
-            pattern: '^\d{14}$'">
-                  mdi-information
-                </v-icon>
-                <v-text-field class="text-green"
-                  placeholder="76109277673"
-                    outlined
-                    filled
-                    id="loggedUser_document_identification"
-                    value="76109277673"
-                    
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Document Rel </b><v-icon small title="
+            pattern: '^\d{14}$'"
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        class="text-green"
+                        placeholder="76109277673"
+                        outlined
+                        filled
+                        name="loggedUser_document_identification"
+                        id="loggedUser_document_identification"
+                        v-model="formDataObj.loggedUser_document_identification"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Document Rel </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             maxLength: 4
             description: Tipo do documento de identificação oficial do titular pessoa jurídica.
             example: CNPJ
-            pattern: '^[A-Z]{4}$'">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="CPF"
-                    outlined
-                    filled
-                    id="loggedUser_document_rel"
-                    value="CPF"
-                ></v-text-field>
-              </v-col>
-              
-</v-row>
-</v-card-text>
-</v-card>
-<div class="pa-2"></div>
-  <v-card
-                elevation="2"
-                outlined
-                color=""
+            pattern: '^[A-Z]{4}$'"
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="CPF"
+                        outlined
+                        filled
+                        name="loggedUser_document_rel"
+                        id="loggedUser_document_rel"
+                        v-model="formDataObj.loggedUser_document_rel"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+              <div class="pa-2"></div>
+              <v-card elevation="2" outlined color="">
+                <v-card-title style="color: white; background-color: #004c50"
+                  >Creditor</v-card-title
                 >
-                <v-card-title style="color: white; background-color:#004C50">Creditor</v-card-title>
                 <v-card-text>
-                <v-row class="pa-6">
-                <v-col
-                  cols="12"
-                  sm="4"
-                  md="4"
-                >
-              <b>Name </b><v-icon small title="
+                  <v-row class="pa-6">
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Name </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             maxLength: 140
             pattern: '[\w\W\s]*'
             example: Marco Antonio de Brito
             description: Em caso de pessoa natural deve ser informado o nome completo do titular da conta do recebedor.  
-            Em caso de pessoa jurídica deve ser informada a razão social ou o nome fantasia da conta do recebedor.">
-                  mdi-information
-                </v-icon>
-                <v-text-field class="text-green"
-                  placeholder="Marco Antonio de Brito"
-                    outlined
-                    filled
-                    id="loggedUser_document_rel"
-                    value="Marco Antonio de Brito"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>CPF/CNPJ </b><v-icon small title="
+            Em caso de pessoa jurídica deve ser informada a razão social ou o nome fantasia da conta do recebedor."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        class="text-green"
+                        placeholder="Marco Antonio de Brito"
+                        outlined
+                        filled
+                        name="creditor_name"
+                        id="creditor_name"
+                        v-model="formDataObj.creditor_name"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>CPF/CNPJ </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             minLength: 11
             maxLength: 14
@@ -237,111 +218,134 @@
             description: Identificação da pessoa envolvida na transação.  
             Preencher com o CPF ou CNPJ, de acordo com o valor escolhido no campo type.  
             O CPF será utilizado com 11 números e deverá ser informado sem pontos ou traços.  
-            O CNPJ será utilizado com 14 números e deverá ser informado sem pontos ou traços.">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="48847377765"
-                    outlined
-                    filled
-                      id="creditor_cpfCnpj"
-                    value="48847377765"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Person Type </b><v-icon small title="
+            O CNPJ será utilizado com 14 números e deverá ser informado sem pontos ou traços."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="48847377765"
+                        outlined
+                        filled
+                        name="creditor_cpfCnpj"
+                        id="creditor_cpfCnpj"
+                        v-model="formDataObj.creditor_cpfCnpj"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Person Type </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             maxLength: 15
             enum:
             - PESSOA_NATURAL
             - PESSOA_JURIDICA
-            description: Titular, pessoa natural ou juridica a quem se referem os dados de recebedor (creditor).">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="123456"
-                    outlined
-                    filled
-                    id="creditor_personType"
-                    value="PESSOA_NATURAL"
-                ></v-text-field>
-              </v-col>
-              
-</v-row>
-</v-card-text>
-</v-card>
-<div class="pa-2"></div>
-  <v-card
-                elevation="2"
-                outlined
-                color=""
+            description: Titular, pessoa natural ou juridica a quem se referem os dados de recebedor (creditor)."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="123456"
+                        outlined
+                        filled
+                        name="creditor_personType"
+                        id="creditor_personType"
+                        v-model="formDataObj.creditor_personType"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+              <div class="pa-2"></div>
+              <v-card elevation="2" outlined color="">
+                <v-card-title style="color: white; background-color: #004c50"
+                  >Payment</v-card-title
                 >
-                <v-card-title style="color: white; background-color:#004C50">Payment</v-card-title>
                 <v-card-text class="pa-6">
-                <v-row class="pl-6">
-                <v-col
-                  cols="12"
-                  sm="4"
-                  md="4"
-                >
-              <b>Amount </b><v-icon small title="
+                  <v-row class="pl-6">
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Amount </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             minLength: 4
             maxLength: 19
             pattern: '^((\d{1,16}\.\d{2}))$'
             example: '100000.12'
-            description: Valor da transação com 2 casas decimais.">
-                  mdi-information
-                </v-icon>
-                <v-text-field class="text-green"
-                  placeholder="1335.00"
-                    outlined
-                    filled
-                    id="payment_amount"
-                    value="1335.00"
-                    
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Payment Scheduled </b>
-                <v-select v-model="selected"
-                  :items="['Yes','No']"
-                  label=""
-                  outlined
-        ></v-select>
-              </v-col>
-              <v-col v-if="selected == 'Yes'"
-                cols="12"
-                sm="2"
-                md="2"
-                
-              >
-              <b>Payment Date</b>
-                <v-text-field
-                  placeholder="123456"
-                    outlined
-                    filled
-                ></v-text-field>
-              </v-col>
-                </v-row>
-                <v-row class="pl-6">
-              <v-col
-                cols="12"
-                sm="6"
-                md="6"
-                
-              >
-              <b>Type</b><v-icon small title="
+            description: Valor da transação com 2 casas decimais."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        class="text-green"
+                        placeholder="1335.00"
+                        outlined
+                        filled
+                        name="payment_amount"
+                        id="payment_amount"
+                        v-model="formDataObj.payment_amount"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Payment Scheduled </b>
+                      <v-select
+                        v-model="formDataObj.selected"
+                        :items="['Yes', 'No']"
+                        label=""
+                        outlined
+                        filled
+                      ></v-select>
+                    </v-col>
+                    <v-col
+                      v-if="formDataObj.selected == 'Yes'"
+                      cols="12"
+                      sm="2"
+                      md="2"
+                    >
+                      <b>Payment Date</b>
+                      <v-dialog
+                        ref="dialog"
+                        v-model="modal"
+                        :return-value.sync="formDataObj.date"
+                        persistent
+                        width="290px"
+                      >
+                        <template v-slot:activator="{ on, attrs }">
+                          <v-text-field
+                            outlined
+                            filled
+                            v-model="formDataObj.date"
+                            name="date"
+                            prepend-icon="mdi-calendar"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on"
+                          ></v-text-field>
+                        </template>
+                        <v-date-picker v-model="formDataObj.date" scrollable>
+                          <v-spacer></v-spacer>
+                          <v-btn text color="primary" @click="modal = false">
+                            Cancel
+                          </v-btn>
+                          <v-btn
+                            text
+                            color="primary"
+                            @click="$refs.dialog.save(formDataObj.date)"
+                          >
+                            OK
+                          </v-btn>
+                        </v-date-picker>
+                      </v-dialog>
+                    </v-col>
+                  </v-row>
+                  <v-row class="pl-6">
+                    <v-col cols="12" sm="6" md="6">
+                      <b>Type</b
+                      ><v-icon
+                        small
+                        title="
                 EnumPixPaymentType:
               enum:
                 - PIX
@@ -354,26 +358,26 @@
               enum:
                 - TEF
               example: TEF
-            description: Este campo define o tipo de pagamento que será iniciado após a autorização do consentimento.">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="PIX"
-                    outlined
-                    filled
-                    id="payment_type"
-                    value="PIX"
-                ></v-text-field>
-              </v-col>
-                </v-row>
-                <v-row class="pl-6">
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Proxy </b><v-icon small title="
+            description: Este campo define o tipo de pagamento que será iniciado após a autorização do consentimento."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="PIX"
+                        outlined
+                        filled
+                        name="payment_type"
+                        id="payment_type"
+                        v-model="formDataObj.payment_type"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-row class="pl-6">
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Proxy </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             maxLength: 77
             pattern: '[\w\W\s]*'
@@ -389,24 +393,24 @@
             Esta validação é opcional caso o localInstrument for igual a INIC.
             [Restrição]
             Se localInstrument for igual a MANU, o campo proxy não deve ser preenchido.
-            Se localInstrument for igual INIC, DICT, QRDN ou QRES, o campo proxy deve ser sempre preenchido com a chave Pix.">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="12345678901"
-                    outlined
-                    filled
-                    id="payment_details_proxy"
-                    value="12345678901"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Local Instrument </b><v-icon small title="
+            Se localInstrument for igual INIC, DICT, QRDN ou QRES, o campo proxy deve ser sempre preenchido com a chave Pix."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="12345678901"
+                        outlined
+                        filled
+                        name="payment_details_proxy"
+                        id="payment_details_proxy"
+                        v-model="formDataObj.payment_details_proxy"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Local Instrument </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             maxLength: 4
             enum:
@@ -422,50 +426,52 @@
             - DICT - Inserção manual de chave Pix
             - QRDN - QR code dinâmico
             - QRES - QR code estático
-            - INIC - Indica que o recebedor (creditor) contratou o Iniciador de Pagamentos especificamente para realizar iniciações de pagamento em que o beneficiário é previamente conhecido.">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="DICT"
-                    outlined
-                    filled
-                    id="payment_details_localInstrument"
-                    value="DICT"
-                ></v-text-field>
-              </v-col>
-              </v-row>
-                <v-row class="pl-6">
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Credit Account Number </b><v-icon small title="
+            - INIC - Indica que o recebedor (creditor) contratou o Iniciador de Pagamentos especificamente para realizar iniciações de pagamento em que o beneficiário é previamente conhecido."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="DICT"
+                        outlined
+                        filled
+                        name="payment_details_localInstrument"
+                        id="payment_details_localInstrument"
+                        v-model="formDataObj.payment_details_localInstrument"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-row class="pl-6">
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Credit Account Number </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             minLength: 3
             maxLength: 20
             pattern: '^\d{3,20}$'
             example: '1234567890'
             description: 
-              Deve ser preenchido com o número da conta do usuário recebedor, com dígito verificador (se este existir), se houver valor alfanumérico, este deve ser convertido para 0.">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="1234567890"
-                    outlined
-                    filled
-                    id="payment_details_creditAccount_number"
-                    value="1234567890"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Credit Account Type </b><v-icon small title="
+              Deve ser preenchido com o número da conta do usuário recebedor, com dígito verificador (se este existir), se houver valor alfanumérico, este deve ser convertido para 0."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="1234567890"
+                        outlined
+                        filled
+                        id="payment_details_creditAccount_number"
+                        name="payment_details_creditAccount_number"
+                        v-model="
+                          formDataObj.payment_details_creditAccount_number
+                        "
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Credit Account Type </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             maxLength: 4
             enum:
@@ -481,50 +487,52 @@
               SLRY - Salary - Conta-Salário.
               SVGS - Savings - Conta de Poupança.
               TRAN - TransactingAccount - Conta de Pagamento pré-paga.
-              [Restrição] O campo data.payment.creditorAccount.accountType quando o arranjo alvo for TED só suportará os tipos CACC (Conta corrente), SVGS (Poupança) e TRAN (Conta de Pagamento pré-paga).">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="CACC"
-                    outlined
-                    filled
-                    id="payment_details_creditAccount_accountType"
-                    value="CACC"
-                ></v-text-field>
-              </v-col>
-              </v-row>
-                <v-row class="pl-6">
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Credit Account ISPB </b><v-icon small title="
+              [Restrição] O campo data.payment.creditorAccount.accountType quando o arranjo alvo for TED só suportará os tipos CACC (Conta corrente), SVGS (Poupança) e TRAN (Conta de Pagamento pré-paga)."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="CACC"
+                        outlined
+                        filled
+                        name="payment_details_creditAccount_accountType"
+                        id="payment_details_creditAccount_accountType"
+                        v-model="
+                          formDataObj.payment_details_creditAccount_accountType
+                        "
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                  <v-row class="pl-6">
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Credit Account ISPB </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             minLength: 8
             maxLength: 8
             pattern: '^[0-9]{8}$'
             example: '12345678'
             description: |
-              Deve ser preenchido com o ISPB (Identificador do Sistema de Pagamentos Brasileiros) do participante do SPI (Sistema de pagamentos instantâneos) somente com números.">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="12345678"
-                    outlined
-                    filled
-                    id="payment_details_creditAccount_ispb"
-                    value="12345678"
-                ></v-text-field>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="4"
-                md="4"
-                
-              >
-              <b>Credit Account Issuer </b><v-icon small title="
+              Deve ser preenchido com o ISPB (Identificador do Sistema de Pagamentos Brasileiros) do participante do SPI (Sistema de pagamentos instantâneos) somente com números."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="12345678"
+                        outlined
+                        filled
+                        name="payment_details_creditAccount_ispb"
+                        id="payment_details_creditAccount_ispb"
+                        v-model="formDataObj.payment_details_creditAccount_ispb"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="4" md="4">
+                      <b>Credit Account Issuer </b
+                      ><v-icon
+                        small
+                        title="
                 type: string
             maxLength: 4
             pattern: '^\d{4}$'
@@ -533,64 +541,132 @@
               Código da Agência emissora da conta sem dígito.  
               (Agência é a dependência destinada ao atendimento aos clientes, ao público em geral e aos associados de cooperativas de crédito,  
               no exercício de atividades da instituição, não podendo ser móvel ou transitória).  
-              [Restrição] Preenchimento obrigatório para os seguintes tipos de conta: CACC (CONTA_DEPOSITO_A_VISTA), SVGS (CONTA_POUPANCA) e SLRY (CONTA_SALARIO).">
-                  mdi-information
-                </v-icon>
-                <v-text-field
-                  placeholder="1774"
-                    outlined
-                    filled
-                    id="payment_details_creditAccount_issuer"
-                    value="1774"
-                ></v-text-field>
-              </v-col>
-             
-
-              
-</v-row>
-</v-card-text>
-</v-card>
-<v-container class="pt-16">
-         <v-col align="center">
-    <v-btn
-      depressed
-      color="primary"
-      x-large
-      @click="$router.push('payment-menu')"
-    ><v-icon left> mdi-file </v-icon>
-      Create Payment
-    </v-btn>
-         </v-col>
-    </v-container>
-
-
-    </v-container>
-            </v-sheet>
-          </v-col>
-
-          <v-col
-            cols="12"
-            sm="2"
-          >
-            
-            
-          </v-col>
-        </v-row>
-
-</v-main>
+              [Restrição] Preenchimento obrigatório para os seguintes tipos de conta: CACC (CONTA_DEPOSITO_A_VISTA), SVGS (CONTA_POUPANCA) e SLRY (CONTA_SALARIO)."
+                      >
+                        mdi-information
+                      </v-icon>
+                      <v-text-field
+                        placeholder="1774"
+                        outlined
+                        filled
+                        name="payment_details_creditAccount_issuer"
+                        id="payment_details_creditAccount_issuer"
+                        v-model="
+                          formDataObj.payment_details_creditAccount_issuer
+                        "
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-card-text>
+              </v-card>
+              <v-container class="pt-16">
+                <v-col align="center">
+                  <v-btn
+                    depressed
+                    color="primary"
+                    x-large
+                    type="submit"
+                    ><v-icon left> mdi-file </v-icon>
+                    Create Payment
+                  </v-btn>
+                </v-col>
+              </v-container>
+            </v-container>
+          </v-sheet>
+        </v-form>
+      </v-col>
+      <v-col cols="12" sm="2"> </v-col>
+    </v-row>
+    <v-overlay :value="loading">
+      <v-progress-circular indeterminate size="100"></v-progress-circular>
+    </v-overlay>
+  </v-main>
 </template>
 
 <script>
 // @ is an alias to /src
-import SheetAppBar from '@/components/GeneralAppComponents/SheetAppBar.vue'
+import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
+import axios from "../util/axios.js";
 
 export default {
-  name: 'PaymentDetail',
+  name: "PaymentDetail",
   components: {
-    SheetAppBar
+    SheetAppBar,
   },
   data: () => ({
-      selected: undefined,
-    }),
-}
+    loading: false,
+    modal: false,
+    bankName: "",
+    formDataObj: {
+      selected: "No",
+      date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+        .toISOString()
+        .substr(0, 10),
+      debtorAccount_number: "94088392",
+      debtorAccount_accountType: "CACC",
+      debtorAccount_ispb: "12345678",
+      debtorAccount_issuer: "6272",
+      loggedUser_document_identification: "76109277673",
+      loggedUser_document_rel: "CPF",
+      creditor_name: "Marco Antonio de Brito",
+      creditor_cpfCnpj: "48847377765",
+      creditor_personType: "PESSOA_NATURAL",
+      payment_amount: "1335.00",
+      payment_type: "PIX",
+      payment_details_proxy: "12345678901",
+      payment_details_localInstrument: "DICT",
+      payment_details_creditAccount_number: "1234567890",
+      payment_details_creditAccount_accountType: "CACC",
+      payment_details_creditAccount_ispb: "12345678",
+      payment_details_creditAccount_issuer: "1774",
+    },
+  }),
+
+  created() {
+    this.bankName = this.$route.params.data;
+  },
+
+  methods: {
+    createPayment() {
+      let formBody = [];
+      for (let property in this.formDataObj) {
+        const encodedKey = encodeURIComponent(property);
+        const encodedValue = encodeURIComponent(this.formDataObj[property]);
+        formBody.push(encodedKey + "=" + encodedValue);
+      }
+      formBody = formBody.join("&");
+      axios.defaults.withCredentials = true;
+
+      let bankConsent = window.open("", "_self");
+      this.loading = true;
+      axios
+        .post("/payment", formBody, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        })
+        .then((res) => {
+          if (res.status === 200) {
+            axios
+              .post(
+                "/makepayment",
+                { bank: this.bankName },
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              )
+              .then((response) => {
+                bankConsent.location.href = response.data.authUrl;
+              });
+          }
+        })
+        .catch(function (response) {
+          console.log(response);
+          this.loading = false;
+        });
+    },
+  },
+};
 </script>

@@ -151,8 +151,6 @@ export default {
     axios.get(`/banks/${this.selectedOption}`, { withCredentials: true }).then((response) => {
       this.getBanks(response.data);
     });
-
-    
   },
 };
 </script>

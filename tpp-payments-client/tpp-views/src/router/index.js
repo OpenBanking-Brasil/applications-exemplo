@@ -8,6 +8,8 @@ import PatchView from '../views/PatchView.vue'
 import PaymentResponseView from '../views/PaymentResponseView.vue'
 import PatchResponseView from '../views/PatchResponseView.vue'
 import ConsentMenu from '../views/ConsentMenu.vue'
+import ConsentResponseMenu from '../views/ConsentResponseMenu'
+import AccountsMenu from '../views/AccountsMenu'
 
 Vue.use(VueRouter)
 
@@ -51,6 +53,16 @@ const routes = [
     path: '/consent-menu',
     name: 'consent-menu',
     component: ConsentMenu
+  },
+  {
+    path: '/consent-response-menu',
+    name: 'consent-response-menu',
+    component: ConsentResponseMenu
+  },
+  {
+    path: '/accounts',
+    name: 'accounts',
+    component: AccountsMenu
   }
 ]
 

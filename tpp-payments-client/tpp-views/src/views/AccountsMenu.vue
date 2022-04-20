@@ -16,7 +16,7 @@
                   >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
-                         <!-- {} -->
+                         {{ accountsResponse }}
                     </pre>
                   </v-card-text>
                 </v-card>
@@ -26,25 +26,37 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Accounts API (accounts/{resouceID}"
+                  :accountId="selectedAccountId"
                   btnText="GO"
+                  :path="`${selectedAccountId}`"
+                  @fetch-account-data="fetchAccountData"
                 />
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Overdraft Limits API (accounts/ {resouceID}/ overdraft-limits)"
+                  :accountId="selectedAccountId"
                   btnText="GO"
+                  :path="`${selectedAccountId}/overdraft-limits`"
+                  @fetch-account-data="fetchAccountData"
                 />
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Balances API (accounts/ {resouceID}/balances)"
+                  :accountId="selectedAccountId"
                   btnText="GO"
+                  :path="`${selectedAccountId}/balances`"
+                  @fetch-account-data="fetchAccountData"
                 />
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Transactions API (accounts/ {resouceID}/ transactions)"
+                  :accountId="selectedAccountId"
                   btnText="GO"
+                  :path="`${selectedAccountId}/transactions`"
+                  @fetch-account-data="fetchAccountData"
                 />
               </v-col>
             </v-row>
@@ -55,11 +67,11 @@
                 <v-card class="mx-auto" max-width="300" tile>
                   <v-subheader>Available Account IDs</v-subheader>
                   <v-list dense max-height="20vh" style="overflow: auto">
-                    <v-list-item-group v-model="selectedItem" color="primary">
-                      <v-list-item v-for="(item, i) in items" :key="i">
+                    <v-list-item-group color="primary">
+                      <v-list-item v-for="(accountId, i) in accountIDs" :key="i" @click="() => { setAccountId(accountId) }">
                         <v-list-item-content>
                           <v-list-item-title
-                            v-text="item.text"
+                            v-text="accountId"
                           ></v-list-item-title>
                         </v-list-item-content>
                       </v-list-item>
@@ -74,7 +86,7 @@
                   >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
-                         <!-- {} -->
+                        {{ accountDataResponse }}
                     </pre>
                   </v-card-text>
                 </v-card>
@@ -92,6 +104,7 @@
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import CardComponent from "@/components/GeneralAppComponents/CardComponent.vue";
+import axios from "../util/axios.js";
 
 export default {
   name: "AccountsMenu",
@@ -101,25 +114,33 @@ export default {
   },
   data() {
     return {
-      selected: true,
-      selectedItem: 1,
-      items: [
-        { text: "hf74tj4g3hjg35h43g534h" },
-        { text: "4356n5hjghg345g4g34f34" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-      ],
+      accountsResponse: "",
+      accountIDs: [],
+      selectedAccountId: "",
+      accountDataResponse: ""
     };
   },
+  created(){
+      axios.get("/accounts", {withCredentials: true})
+      .then((response) => {
+        this.accountsResponse = response.data.data;
+        this.accountsResponse.forEach(account => {
+          this.accountIDs.push(account.accountId);
+        });
+      });
+  },
+  methods: {
+    setAccountId(accountId){
+      this.selectedAccountId = accountId;
+    },
+
+    fetchAccountData(path){
+      axios.get(`accounts/${path}`, {withCredentials: true})
+      .then((response) => {
+        this.accountDataResponse = response.data;
+      });
+    }
+  }
 };
 </script>
 

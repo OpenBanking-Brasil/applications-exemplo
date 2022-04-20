@@ -104,19 +104,7 @@ export default {
       selected: true,
       selectedItem: 1,
       items: [
-        { text: "hf74tj4g3hjg35h43g534h" },
-        { text: "4356n5hjghg345g4g34f34" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
-        { text: "jh34g534hg54g35hg5h345" },
+        { text: "hf74tj4g3hjg35h43g534h" }
       ],
     };
   },

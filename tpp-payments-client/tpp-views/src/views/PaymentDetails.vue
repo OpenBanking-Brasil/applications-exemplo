@@ -580,6 +580,24 @@
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="100"></v-progress-circular>
     </v-overlay>
+      <v-snackbar
+        v-model="snackbar"
+        :multi-line="multiLine"
+
+      >
+        {{ text }}
+  
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="white"
+            text
+            v-bind="attrs"
+            @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
   </v-main>
 </template>
 
@@ -594,9 +612,14 @@ export default {
     SheetAppBar,
   },
   data: () => ({
+    multiLine: true,
+    snackbar: false,
+    text: `Payment schedule date cannot be today, it must be in the future`,
+
     loading: false,
     modal: false,
     bankName: "",
+    today: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().substr(0, 10),
     formDataObj: {
       selected: "No",
       date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -628,6 +651,12 @@ export default {
 
   methods: {
     createPayment() {
+
+      if(this.formDataObj.selected === "Yes" && this.formDataObj.date.toString() === this.today.toString()){
+        this.snackbar = true;
+        return;
+      }
+
       let formBody = [];
       for (let property in this.formDataObj) {
         const encodedKey = encodeURIComponent(property);

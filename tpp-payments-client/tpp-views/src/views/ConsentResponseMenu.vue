@@ -35,7 +35,7 @@
                       @click="() => { getConsentInfo(consent)}"
                     >
                       <v-icon left>mdi-information</v-icon>
-                      {{ consent.category }}
+                      {{ consent.category }} ({{ consent.group }})
                     </v-btn>
 
                   </template>
@@ -66,6 +66,14 @@
                                     >
                                     <v-list-item-content class="align-end">
                                       {{ text }}
+                                    </v-list-item-content>
+                                  </v-list-item>
+                                  <v-list-item>
+                                    <v-list-item-content
+                                      >Group:</v-list-item-content
+                                    >
+                                    <v-list-item-content class="align-end">
+                                      {{ group }}
                                     </v-list-item-content>
                                   </v-list-item>
                                 </v-list>
@@ -139,6 +147,7 @@ export default {
       this.consents.forEach(consent => {
         if(consent.dataCategory === consentData.category && consent.id === consentData.id){
           this.grantedConsentsCategory = consentData.category;
+          this.group = consentData.group;
           consent.permissions.forEach((permission) => {
             this.text = this.text + " " + permission;
           });
@@ -154,7 +163,7 @@ export default {
       axios.get("/consent", {withCredentials: true})
       .then((response) => {
         this.consentPayload = response.data.consent;
-        this.grantedConsents = response.data.consentCategories;
+        this.grantedConsents = response.data.permissionsData;
         this.loading = false;
       });
   }

@@ -456,7 +456,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     consentLog('Add the created consent records id to the dynamic consent scope');
 
-    const scope = flag === "PAYMENTS" ? `openid consent:${payload.data.consentId} payments` : `openid consent:${JSON.parse(response.body.toString()).data.consentId}`;
+    const scope = flag === "PAYMENTS" ? `openid consent:${payload.data.consentId} payments` : `openid consent:${JSON.parse(response.body.toString()).data.consentId} accounts resources`;
     consentLog('Create the FAPI request object');
     const requestObject = await fapiClient.requestObject({
       scope,
@@ -689,6 +689,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     consentLog('Access token obtained. %O', tokenSet);
 
     req.session.refreshToken = tokenSet.refresh_token;
+    req.session.accessToken = tokenSet.access_token;
 
     let apiFamilyType;
     let apiEndpointRegex;
@@ -1230,6 +1231,92 @@ let config = JSON.parse(JSON.stringify(configuration));
     );
 
     res.json(payload);
+  });
+
+  async function fetchAccountData(req, path = ""){
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+
+    paymentLog('Find the account endpoint for the selected bank from the directory of participants');
+    const accountEndpoint = `${getEndpoint(
+      req.session.selectedAuthServer,
+      'accounts',
+      'open-banking/accounts/v1/accounts$'
+    )}/${path}`;
+    consentLog('The account endpoint found %O', accountEndpoint);
+
+    paymentLog("Getting account response")
+    const response = await client.requestResource(
+      accountEndpoint,
+      req.session.accessToken
+    );
+
+    return JSON.parse(response.body.toString());
+  }
+
+  app.get('/accounts', async (req, res) => {
+
+    const response = await fetchAccountData(req);
+
+    return res.send(response);
+
+  });
+
+  app.get('/accounts/:accountId', async (req, res) => {
+
+    const accountId = req.params.accountId;
+    const response = await fetchAccountData(req, accountId);
+
+    return res.send(response);
+  });
+
+  app.get('/accounts/:accountId/overdraft-limits', async (req, res) => {
+
+    const accountId = req.params.accountId;
+    const path = `${accountId}/overdraft-limits`;
+
+    const response = await fetchAccountData(req, path);
+
+    return res.send(response);
+  });
+
+  app.get('/accounts/:accountId/balances', async (req, res) => {
+
+    const accountId = req.params.accountId;
+    const path = `${accountId}/balances`;
+
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+
+    paymentLog('Find the account endpoint for the selected bank from the directory of participants');
+    const accountEndpoint = `${getEndpoint(
+      req.session.selectedAuthServer,
+      'accounts',
+      'open-banking/accounts/v1/accounts$'
+    )}/${path}`;
+    consentLog('The account endpoint found %O', accountEndpoint);
+
+    consentLog("Obtaining Payment Access Token");
+    const ccToken = await client.grant({
+      grant_type: 'client_credentials',
+      scope: 'accounts',
+    });
+
+    paymentLog("Getting account response")
+    const response = await client.requestResource(
+      accountEndpoint,
+      req.session.accessToken
+    );
+
+    return res.send(JSON.parse(response.body.toString()));
+  });
+
+  app.get('/accounts/:accountId/transactions', async (req, res) => {
+
+    const accountId = req.params.accountId;
+    const path = `${accountId}/transactions`;
+
+    const response = await fetchAccountData(req, path);
+
+    return res.send(response);
   });
 
   https

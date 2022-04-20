@@ -6,12 +6,12 @@
           <div class="text-overline mb-2">
             {{ title }}
           </div>
-          <v-text-field dense outlined placeholder="Resource ID"></v-text-field>
+          <v-text-field dense outlined placeholder="Resource ID" :value="accountId"></v-text-field>
         </v-list-item-content>
       </v-list-item>
 
       <v-card-actions class="mt-n5">
-        <v-btn outlined rounded text> {{ btnText }} </v-btn>
+        <v-btn outlined rounded text @click="onClickAccount"> {{ btnText }} </v-btn>
       </v-card-actions>
     </v-card>
   </v-container>
@@ -26,9 +26,20 @@ export default {
     btnText: {
       type: String,
     },
+    accountId: {
+      type: String
+    },
+    path: {
+      type: String
+    }
   },
   name: "CardComponent",
 
   data: () => ({}),
+  methods: {
+    onClickAccount(){
+      this.$emit("fetch-account-data", this.path)
+    }
+  }
 };
 </script>

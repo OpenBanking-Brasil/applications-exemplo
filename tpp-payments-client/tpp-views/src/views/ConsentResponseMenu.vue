@@ -92,10 +92,10 @@
               2. Accounts
             </v-btn>
             <v-btn color="primary" class="ma-3 mt-5">
-              3. Cartão de crédito
+              3. Credit Card
             </v-btn>
             <v-btn color="primary" class="ma-3 mt-5">
-              4. Operações de crédito
+              4. Credit Operations
             </v-btn>
             <v-btn color="primary" class="ma-3 mt-5">
               5. Resources

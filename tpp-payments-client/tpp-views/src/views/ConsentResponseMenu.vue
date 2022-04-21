@@ -35,7 +35,7 @@
                       @click="() => { getConsentInfo(consent)}"
                     >
                       <v-icon left>mdi-information</v-icon>
-                      {{ consent.category }} ({{ consent.group }})
+                      {{ consent.category }}
                     </v-btn>
 
                   </template>
@@ -58,22 +58,28 @@
                                 </v-card-title>
 
                                 <v-divider></v-divider>
-
-                                <v-list dense>
                                   <v-list-item>
-                                    <v-list-item-content
-                                      >Granted Permissions:</v-list-item-content
+                                    <v-list-item-content>
+                                       <strong>Group(s)</strong>
+                                      </v-list-item-content
                                     >
                                     <v-list-item-content class="align-end">
-                                      {{ text }}
+                                      <strong>Permissions</strong>
                                     </v-list-item-content>
                                   </v-list-item>
+                                <v-divider></v-divider>
+
+                                <v-list
+                                  v-for="(consentObj, index) in consentsArr"
+                                  :key="index" 
+                                  dense>
                                   <v-list-item>
-                                    <v-list-item-content
-                                      >Group:</v-list-item-content
+                                    <v-list-item-content>
+                                       {{ consentObj.group }}
+                                      </v-list-item-content
                                     >
                                     <v-list-item-content class="align-end">
-                                      {{ group }}
+                                      {{ consentObj.permissions }}
                                     </v-list-item-content>
                                   </v-list-item>
                                 </v-list>
@@ -136,23 +142,24 @@ export default {
       loading: true,
       consentPayload: "",
       grantedConsents: [],
-      text: "",
-      grantedConsentsCategory: ""
+      grantedConsentsCategory: "",
+      consentsArr: [], 
     };
   },
 
   methods: {
     getConsentInfo(consentData){
-      this.text = "";
-      this.consents.forEach(consent => {
-        if(consent.dataCategory === consentData.category && consent.id === consentData.id){
-          this.grantedConsentsCategory = consentData.category;
-          this.group = consentData.group;
-          consent.permissions.forEach((permission) => {
-            this.text = this.text + " " + permission;
-          });
-        }
+      this.grantedConsentsCategory = consentData.category;
+      this.consentsArr = consentData.permissionsArray;
+    },
+
+    convertArrayToString(arr){
+      let text = "";
+      arr.forEach((item) => {
+        text = text + " " + item;
       });
+
+      return text;
     }
   },
 
@@ -164,6 +171,61 @@ export default {
       .then((response) => {
         this.consentPayload = response.data.consent;
         this.grantedConsents = response.data.permissionsData;
+
+        let consentsArr = [];
+        this.grantedConsents.forEach((consentData) => {
+          this.consents.forEach(consent => {
+            if(consent.dataCategory === consentData.category && consent.id === consentData.id){
+              consentsArr.push(consent);
+            }
+          });
+        });
+
+        //Get all consents that have the same category
+        let duplicates = this.grantedConsents.map((consent) => consent.category).filter((consentCategory, i, arr) => arr.indexOf(consentCategory) !== i);
+        duplicates =[...new Set(duplicates)]; //unique duplicates
+
+        const consentsList = [];
+        duplicates.forEach((consentCategory) => {
+          consentsArr.forEach((consentObj) => {
+            if(consentCategory === consentObj.dataCategory){
+              consentsList.push(consentObj);
+            }
+          });
+        });
+
+        const consentObj = {
+          category: "",
+          permissionsArray: [],
+        };
+        consentsList.forEach((item) => {
+          consentObj.category = item.dataCategory;
+          consentObj.permissionsArray.push({
+            group: item.group,
+            permissions: this.convertArrayToString(item.permissions)
+          });
+        });
+
+        //Get all consents except the consents with duplicate categories
+        consentsArr = consentsArr.filter((consent) => {
+          for(let dupConsentCategory of duplicates){
+            return consent.dataCategory !== dupConsentCategory;
+          }
+        });
+
+        //Standarise the consent objects format
+        consentsArr = consentsArr.map((item) => {
+          return {
+            category: item.dataCategory,
+            permissionsArray: [{
+              group: item.group,
+              permissions: this.convertArrayToString(item.permissions)
+            }]
+          }
+        });
+
+        consentsArr.push(consentObj);
+        this.grantedConsents = consentsArr;
         this.loading = false;
       });
   }

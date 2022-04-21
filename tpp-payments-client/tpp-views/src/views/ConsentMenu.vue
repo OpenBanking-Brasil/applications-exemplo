@@ -87,8 +87,6 @@ export default {
         (rowData) => rowData.consent === true
       );
 
-      console.log("heeey", selectedConsents)
-
       axios
         .post(
           "/consent",

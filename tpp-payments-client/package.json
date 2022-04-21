@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "start": "DEBUG=tpp* node index.js",
-    "start-server": "DEBUG=tpp* node server.js",
+    "start-server": "concurrently \"DEBUG=tpp* node server.js\" \"cd tpp-views && npm run serve\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -34,6 +34,7 @@
     "path": "^0.12.7"
   },
   "devDependencies": {
+    "concurrently": "^7.1.0",
     "eslint": "^8.8.0"
   }
 }

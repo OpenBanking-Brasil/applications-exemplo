@@ -5,7 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "DEBUG=tpp* node index.js",
+    "start": "concurrently \"DEBUG=tpp* node index.js\" \"cd tpp-views && npm run serve\"",
     "start-server": "DEBUG=tpp* node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

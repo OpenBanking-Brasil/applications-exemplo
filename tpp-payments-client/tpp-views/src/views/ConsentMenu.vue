@@ -5,11 +5,26 @@
       <v-col cols="12" sm="8">
         <SheetAppBar header="Consent Menu" />
         <v-container class="pa-md-12" style="background: #ffffff">
+        <v-row align="center">
+          <v-col
+            class="d-flex"
+            cols="12"
+            sm="6"
+          >
+            <v-select
+              :items="cadastroOptions"
+              label="Cadastro Options"
+              dense
+              outlined
+              v-model="selectedOption"
+            ></v-select>
+          </v-col>
+        </v-row>
           <v-data-table
             :hide-default-footer="true"
             :items-per-page="11"
             :headers="headers"
-            :items="consents"
+            :items="consentsArr"
             class="elevation-1"
           >
             <template v-slot:[`item.permissions`]="{ item }">
@@ -59,7 +74,9 @@ export default {
   data() {
     return {
       loading: false,
-
+      cadastroOptions: ['PF', 'PJ'],
+      selectedOption: "PF",
+      consentsArr: [],
       headers: [
         {
           text: "CATEGORIA DE DADOS",
@@ -74,8 +91,25 @@ export default {
     };
   },
 
+  watch: {
+    selectedOption(val){
+      this.consentsArr = this.consents.filter((consent) => {
+        if(val === "PF"){
+          return consent.id !== 3 && consent.id !== 4; 
+        } else if(val === "PJ"){
+          return consent.id !== 1 && consent.id !== 2;
+        }
+      });
+    }
+  },
+
   computed: {
     ...mapGetters(["consents"])
+  },
+
+  created(){
+    this.consentsArr = [...this.consents];
+    this.consentsArr = this.consents.filter((consent) => consent.id !== 3 && consent.id !== 4);
   },
 
   methods: {
@@ -83,7 +117,7 @@ export default {
       this.loading = true;
       axios.defaults.withCredentials = true;
       let bankConsent = window.open("", "_self");
-      const selectedConsents = this.consents.filter(
+      const selectedConsents = this.consentsArr.filter(
         (rowData) => rowData.consent === true
       );
 

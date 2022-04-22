@@ -8,8 +8,9 @@ import PatchView from '../views/PatchView.vue'
 import PaymentResponseView from '../views/PaymentResponseView.vue'
 import PatchResponseView from '../views/PatchResponseView.vue'
 import ConsentMenu from '../views/ConsentMenu.vue'
-import ConsentResponseMenu from '../views/ConsentResponseMenu'
-import AccountsMenu from '../views/AccountsMenu'
+import ConsentResponseMenu from '../views/ConsentResponseMenu.vue'
+import AccountsMenu from '../views/AccountsMenu.vue'
+import ResourcesResponse from '../views/ResourcesResponse.vue'
 
 Vue.use(VueRouter)
 
@@ -63,6 +64,11 @@ const routes = [
     path: '/accounts',
     name: 'accounts',
     component: AccountsMenu
+  },
+  {
+    path: '/resources',
+    name: 'resources',
+    component: ResourcesResponse
   }
 ]
 

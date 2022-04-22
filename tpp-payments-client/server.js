@@ -940,7 +940,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   });
 
   app.get("/consent", (req, res) => {
-    return res.send({consent: req.session.createdConsent, consentCategories: req.session.permissionCategory});
+    return res.send({consent: req.session.createdConsent, permissionsData: req.session.consentsArr});
   });
 
   app.get("/payment-response-data", (req, res) => {
@@ -1085,8 +1085,8 @@ let config = JSON.parse(JSON.stringify(configuration));
     });
 
     //granted permissions categories
-    req.session.permissionCategory = req.body.permissionsArr.map((permissionData) => {
-      return {category: permissionData.category, id: permissionData.id};
+    req.session.consentsArr = req.body.permissionsArr.map((permissionData) => {
+      return {category: permissionData.dataCategory, id: permissionData.id, group: permissionData.group};
     });
 
     let permissions = [];

@@ -14,6 +14,24 @@
         <v-btn outlined rounded text @click="onClickAccount"> {{ btnText }} </v-btn>
       </v-card-actions>
     </v-card>
+    <v-snackbar
+        v-model="snackbar"
+        :multi-line="multiLine"
+
+      >
+        {{ text }}
+  
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="white"
+            text
+            v-bind="attrs"
+            @click="snackbar = false"
+          >
+            Close
+          </v-btn>
+        </template>
+      </v-snackbar>
   </v-container>
 </template>
 
@@ -35,9 +53,19 @@ export default {
   },
   name: "CardComponent",
 
-  data: () => ({}),
+  data(){
+    return {
+      multiLine: true,
+      snackbar: false,
+      text: "You must provide resource ID"
+    }
+  },
   methods: {
     onClickAccount(){
+      if(!this.accountId){
+        this.snackbar = true;
+        return;
+      }
       this.$emit("fetch-account-data", this.path)
     }
   }

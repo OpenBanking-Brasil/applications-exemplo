@@ -111,7 +111,7 @@
             <v-btn color="primary" class="ma-3 mt-5">
               4. Credit Operations
             </v-btn>
-            <v-btn color="primary" class="ma-3 mt-5">
+            <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('resources')">
               5. Resources
             </v-btn>
           </v-container>

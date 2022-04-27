@@ -26,7 +26,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Accounts API (accounts/{resourceID}"
-                  :accountId="selectedAccountId"
+                  :resourceId="selectedAccountId"
                   btnText="RUN"
                   :path="`${selectedAccountId}`"
                   @fetch-account-data="fetchAccountData"
@@ -35,7 +35,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Overdraft Limits API (accounts/ {resourceID}/ overdraft-limits)"
-                  :accountId="selectedAccountId"
+                  :resourceId="selectedAccountId"
                   btnText="RUN"
                   :path="`${selectedAccountId}/overdraft-limits`"
                   @fetch-account-data="fetchAccountData"
@@ -44,7 +44,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Balances API (accounts/ {resourceID}/balances)"
-                  :accountId="selectedAccountId"
+                  :resourceId="selectedAccountId"
                   btnText="RUN"
                   :path="`${selectedAccountId}/balances`"
                   @fetch-account-data="fetchAccountData"
@@ -53,7 +53,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Transactions API (accounts/ {resourceID}/ transactions)"
-                  :accountId="selectedAccountId"
+                  :resourceId="selectedAccountId"
                   btnText="RUN"
                   :path="`${selectedAccountId}/transactions`"
                   @fetch-account-data="fetchAccountData"

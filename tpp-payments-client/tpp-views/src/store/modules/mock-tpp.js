@@ -1,7 +1,7 @@
-//import axios from "../../util/axios";
-
 const state = {
   selectedOption: "",
+  clientID: "notingfornow",
+  registrationAccessToken: "heelo",
   consents: [
     {
       id: 1,
@@ -146,6 +146,9 @@ const actions = {
 const mutations = {
   setSelectedOption: (state, selectedOption) =>
     (state.selectedOption = selectedOption),
+
+  setClientID: (state, clientID) => state.clientID = clientID,
+  setRegistrationAccessToken: (state, registrationAccessToken) => state.registrationAccessToken = registrationAccessToken
 };
 
 export default {

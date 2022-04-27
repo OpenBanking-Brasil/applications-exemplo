@@ -13,7 +13,7 @@
           <v-row class="pt-12"> </v-row>
           <v-row class="pt-12">
             <v-col>
-              <v-card class="mx-auto" max-width="344" outlined>
+              <v-card class="mx-auto" max-width="344">
                 <v-list-item three-line>
                   <v-list-item-content>
                     <div class="text-overline mb-4">Phase 2</div>

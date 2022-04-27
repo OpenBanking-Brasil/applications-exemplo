@@ -173,9 +173,6 @@ let config = JSON.parse(JSON.stringify(configuration));
           registrationAccessToken,
           keyset
         );
-
-        //`ijvUy6tk1WdaVIBzz_nGm`,
-        //'IJDrFGw5l7qfVUdIo7J9gmygSZ_DIrrD22rMPg_Q5al',
   
         req.session.fapiClient = fapiClient;
         dcrLog('The existing client obtained successfully');

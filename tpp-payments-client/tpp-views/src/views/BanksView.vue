@@ -55,6 +55,7 @@
                   v-bind="attrs"
                   x-large
                   v-on="on"
+                  class="mb-10"
                 >
                   Continue
                 </v-btn>

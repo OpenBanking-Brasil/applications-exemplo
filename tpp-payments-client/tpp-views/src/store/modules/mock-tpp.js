@@ -1,7 +1,7 @@
 const state = {
   selectedOption: "",
-  clientID: "notingfornow",
-  registrationAccessToken: "heelo",
+  clientID: "",
+  registrationAccessToken: "",
   consents: [
     {
       id: 1,

@@ -105,7 +105,7 @@
             <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('accounts')">
               2. Accounts
             </v-btn>
-            <v-btn color="primary" class="ma-3 mt-5">
+            <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('credit-card-accounts')">
               3. Credit Card
             </v-btn>
             <v-btn color="primary" class="ma-3 mt-5">

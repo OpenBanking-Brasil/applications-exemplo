@@ -6,7 +6,7 @@
           <div class="text-overline mb-2">
             {{ title }}
           </div>
-          <v-text-field dense outlined placeholder="Resource ID" :value="accountId"></v-text-field>
+          <v-text-field dense outlined placeholder="Resource ID" :value="resourceId"></v-text-field>
         </v-list-item-content>
       </v-list-item>
 
@@ -44,7 +44,7 @@ export default {
     btnText: {
       type: String,
     },
-    accountId: {
+    resourceId: {
       type: String
     },
     path: {
@@ -62,7 +62,7 @@ export default {
   },
   methods: {
     onClickAccount(){
-      if(!this.accountId){
+      if(!this.resourceId){
         this.snackbar = true;
         return;
       }

@@ -116,11 +116,11 @@ export default {
     continueConsent() {
       this.loading = true;
       axios.defaults.withCredentials = true;
-      let bankConsent = window.open("", "_self");
       const selectedConsents = this.consentsArr.filter(
         (rowData) => rowData.consent === true
       );
 
+      const bankConsent = window.open("", "_self");
       axios
         .post(
           "/consent",

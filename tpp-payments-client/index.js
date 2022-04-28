@@ -116,7 +116,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   );
 
   //This configures a FAPI Client for the Bank that you have selected from the UI
-  async function setupClient(bank, req) {
+  async function setupClient(bank, selectedDcrOption, req, clientId = "", registrationAccessToken = "") {
     //deep copy config to avoid modifying the orginal config
     req.session.config = JSON.parse(JSON.stringify(configuration));
     setupLog('Begin Client Setup for Target Bank');
@@ -135,6 +135,73 @@ let config = JSON.parse(JSON.stringify(configuration));
         return server;
       }
     });
+
+    //Find the openid server configuration for the target bank
+    dcrLog('Discovering how to talk to target bank');
+    const localIssuer = await Issuer.discover(
+      req.session.selectedAuthServer.OpenIDDiscoveryDocument
+    );
+
+    dcrLog(
+      'Discovered Target Bank Issuer Configuration %s %O',
+      localIssuer.issuer,
+      localIssuer.metadata
+    );
+
+    const { FAPI1Client } = localIssuer;
+    
+    let fapiClient;
+    if(selectedDcrOption === "Use Existing DCR"){
+      try {
+        dcrLog("Get the existing client from the Bank");
+        //try and get the existing client and set the private keys
+        //For the new instance
+        FAPI1Client[custom.http_options] = function (url,options) {
+          // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
+          const result = {};
+  
+          result.cert = fs.readFileSync(certsPath + 'transport.pem'); // <string> | <string[]> | <Buffer> | <Buffer[]>
+          result.key = fs.readFileSync(certsPath + 'transport.key');
+          result.ca = fs.readFileSync(
+            certsPath + 'ca.pem'
+          ); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+          return result;
+        };
+
+        fapiClient = await FAPI1Client.fromUri(
+          `https://matls-auth.mockbank.poc.raidiam.io/reg/${clientId}`,
+          registrationAccessToken,
+          keyset
+        );
+  
+        req.session.fapiClient = fapiClient;
+        dcrLog('The existing client obtained successfully');
+        dcrLog(fapiClient);
+        req.session.clientId = fapiClient.client_id
+        dcrLog('TODO: Save client For Later Use');
+      } catch (err) {
+        console.log(err);
+        dcrLog("Error obtaining the existing client's deatils from the bank");
+        dcrLog(err);
+        throw(err);
+      }
+
+      //For the new instance set the HTTPS options as well
+      fapiClient[custom.http_options] = function (url,options) {
+        // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
+        const result = {};
+
+        result.cert = fs.readFileSync(certsPath + 'transport.pem'); // <string> | <string[]> | <Buffer> | <Buffer[]>
+        result.key = fs.readFileSync(certsPath + 'transport.key');
+        result.ca = fs.readFileSync(
+          certsPath + 'ca.pem'
+        ); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+        return result;
+      };
+
+      setupLog('Client Setup for Target Bank Complete');
+      return { fapiClient, localIssuer };
+    }
 
     //Check if the client is registered, if it is not, register it.
     dcrLog('Check if client already registered for this target bank');
@@ -202,20 +269,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     );
     dcrLog(payload);
 
-    //Find the openid server configuration for the target bank
-    dcrLog('Discovering how to talk to target bank');
-    const localIssuer = await Issuer.discover(
-      req.session.selectedAuthServer.OpenIDDiscoveryDocument
-    );
-
-    dcrLog(
-      'Discovered Target Bank Issuer Configuration %s %O',
-      localIssuer.issuer,
-      localIssuer.metadata
-    );
-
     dcrLog(`Select how to to authenticate to the bank from Banks advertised mechanisms, ${process.env.PREFERRED_TOKEN_AUTH_MECH} is preferred`);
-    const { FAPI1Client } = localIssuer;
     //base on the options that the bank supports we're going to turn some defaults on
     localIssuer.metadata.token_endpoint_auth_methods_supported.includes(
       process.env.PREFERRED_TOKEN_AUTH_MECH
@@ -239,8 +293,6 @@ let config = JSON.parse(JSON.stringify(configuration));
     req.session.config.data.client.jwks_uri = payload.software_jwks_uri;
     dcrLog('Set jwks_uri from directory into registration metadata %O', payload.software_jwks_uri);
 
-
-    let fapiClient;
     try {
       dcrLog('Register Client at Bank');
       //try and register a new client and set the private keys
@@ -956,16 +1008,21 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   app.post('/dcr', async (req, res) => {
 
-    if(req.body.bank){
-      req.session.selectedBank = req.body.bank;
+    const selectedBank = req.body.bank;
+    const selectedDcrOption = req.body.selectedDcrOption;
+    const clientId = req.body.clientId;
+    const registrationAccessToken = req.body.registrationAccessToken;
+
+    if(selectedBank){
+      req.session.selectedBank = selectedBank;
     }
     let client;
     let issuer;
     if (req.session.selectedBank) {
       //Setup the client
       consentLog('Customer has select bank issuer to use %O', req.session.selectedBank);
-      const { fapiClient, localIssuer } = await setupClient(req.session.selectedBank, req);
-      consentLog('Client created, ready to talk to the chosen bank');
+      const { fapiClient, localIssuer } = await setupClient(req.session.selectedBank, selectedDcrOption, req, clientId, registrationAccessToken);
+      consentLog('Client is ready to talk to the chosen bank');
       client = fapiClient;
       issuer = localIssuer;
     }
@@ -981,7 +1038,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       issuer
     });
 
-    res.send({clientId: client.client_id});
+    return res.send({clientId: client.client_id, registrationAccessToken: client.registration_access_token, message: "Client is setup"});
   });
 
   app.options('/makepayment', cors()) 
@@ -1233,29 +1290,40 @@ let config = JSON.parse(JSON.stringify(configuration));
     res.json(payload);
   });
 
-  async function fetchAccountData(req, path = ""){
+  //Fetch data for the given API
+  async function fetchData(req, apiFamilyType, apiType, path = ""){
     const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
-    paymentLog('Find the account endpoint for the selected bank from the directory of participants');
-    const accountEndpoint = `${getEndpoint(
-      req.session.selectedAuthServer,
-      'accounts',
-      'open-banking/accounts/v1/accounts$'
-    )}/${path}`;
-    consentLog('The account endpoint found %O', accountEndpoint);
+    let pathRegex;
+    if(apiFamilyType === "accounts"){
+      pathRegex = 'open-banking/accounts/v1/accounts$';
+    } else if (apiFamilyType === "credit-cards-accounts"){
+      pathRegex = '/open-banking/credit-cards-accounts/v1/accounts$';
+    } else if (apiFamilyType === "resources"){
+      pathRegex = 'open-banking/resources/v1/resources$';
+    }
 
-    paymentLog("Getting account response")
+    paymentLog(`Find the ${apiType} endpoint for the selected bank from the directory of participants`);
+    const endpoint= `${getEndpoint(
+      req.session.selectedAuthServer,
+      apiFamilyType,
+      pathRegex
+    )}/${path}`;
+    consentLog(`The ${apiType} endpoint found %O`, endpoint);
+
+    paymentLog(`Getting ${apiType} response`)
     const response = await client.requestResource(
-      accountEndpoint,
+      endpoint,
       req.session.accessToken
     );
 
     return JSON.parse(response.body.toString());
   }
 
+  const accountsApiFamily = "accounts";
   app.get('/accounts', async (req, res) => {
 
-    const response = await fetchAccountData(req);
+    const response = await fetchData(req, accountsApiFamily, accountsApiFamily);
 
     return res.send(response);
 
@@ -1264,7 +1332,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   app.get('/accounts/:accountId', async (req, res) => {
 
     const accountId = req.params.accountId;
-    const response = await fetchAccountData(req, accountId);
+    const response = await fetchData(req, accountsApiFamily, "account", accountId);
 
     return res.send(response);
   });
@@ -1274,7 +1342,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const accountId = req.params.accountId;
     const path = `${accountId}/overdraft-limits`;
 
-    const response = await fetchAccountData(req, path);
+    const response = await fetchData(req, accountsApiFamily, "overdraft limits", path);
 
     return res.send(response);
   });
@@ -1284,29 +1352,9 @@ let config = JSON.parse(JSON.stringify(configuration));
     const accountId = req.params.accountId;
     const path = `${accountId}/balances`;
 
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const response = await fetchData(req, accountsApiFamily, "balances", path);
 
-    paymentLog('Find the account endpoint for the selected bank from the directory of participants');
-    const accountEndpoint = `${getEndpoint(
-      req.session.selectedAuthServer,
-      'accounts',
-      'open-banking/accounts/v1/accounts$'
-    )}/${path}`;
-    consentLog('The account endpoint found %O', accountEndpoint);
-
-    consentLog("Obtaining Payment Access Token");
-    const ccToken = await client.grant({
-      grant_type: 'client_credentials',
-      scope: 'accounts',
-    });
-
-    paymentLog("Getting account response")
-    const response = await client.requestResource(
-      accountEndpoint,
-      req.session.accessToken
-    );
-
-    return res.send(JSON.parse(response.body.toString()));
+    return res.send(response);
   });
 
   app.get('/accounts/:accountId/transactions', async (req, res) => {
@@ -1314,30 +1362,69 @@ let config = JSON.parse(JSON.stringify(configuration));
     const accountId = req.params.accountId;
     const path = `${accountId}/transactions`;
 
-    const response = await fetchAccountData(req, path);
+    const response = await fetchData(req, accountsApiFamily, "transactions", path);
 
     return res.send(response);
   });
 
   app.get('/resources', async (req, res) => {
 
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const response = await fetchData(req, "resources", "resources");
 
-    paymentLog('Find the resources endpoint for the selected bank from the directory of participants');
-    const accountEndpoint = getEndpoint(
-      req.session.selectedAuthServer,
-      'resources',
-      'open-banking/resources/v1/resources$'
-    );
-    consentLog('The resources endpoint found %O', accountEndpoint);
+    return res.send(response);
+  });
 
-    paymentLog("Getting resources response")
-    const response = await client.requestResource(
-      accountEndpoint,
-      req.session.accessToken
-    );
+  const creditCardAccountAPIFamily = "credit-cards-accounts";
+  app.get('/credit-cards-accounts', async (req, res) => {
 
-    return res.send(JSON.parse(response.body.toString()));
+    const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts");
+
+    return res.send(response);
+  });
+
+  app.get('/credit-cards-accounts/:creditCardAccountId', async (req, res) => {
+
+    const creditCardAccountId = req.params.creditCardAccountId;
+    const response = await fetchData(req, creditCardAccountAPIFamily, "credit card account", creditCardAccountId);
+
+    return res.send(response);
+  });
+
+  app.get('/credit-cards-accounts/:creditCardAccountId/limits', async (req, res) => {
+
+    const creditCardAccountId = req.params.creditCardAccountId;
+    const path = `${creditCardAccountId}/limits`;
+    const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts limits", path);
+
+    return res.send(response);
+  });
+
+  app.get('/credit-cards-accounts/:creditCardAccountId/transactions', async (req, res) => {
+
+    const creditCardAccountId = req.params.creditCardAccountId;
+    const path = `${creditCardAccountId}/transactions`;
+    const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts transactions", path);
+
+    return res.send(response);
+  });
+
+  app.get('/credit-cards-accounts/:creditCardAccountId/bills', async (req, res) => {
+
+    const creditCardAccountId = req.params.creditCardAccountId;
+    const path = `${creditCardAccountId}/bills`;
+    const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts bills", path);
+
+    return res.send(response);
+  });
+
+  app.get('/credit-cards-accounts/:creditCardAccountId/bills/:billId/transactions', async (req, res) => {
+
+    const creditCardAccountId = req.params.creditCardAccountId;
+    const billId = req.params.billId;
+    const path = `${creditCardAccountId}/bills/${billId}/transactions`;
+    const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts transactions", path);
+
+    return res.send(response);
   });
 
   https

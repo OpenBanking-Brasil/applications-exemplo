@@ -195,46 +195,30 @@ export default {
         });
 
         const myArr = [];
-        for(let item of consentsList){
+        for(let consentCategory of duplicates){
 
           const consentObj = {
             category: "",
             permissionsArray: [],
           };
 
-          if(myArr.length > 0){
-            myArr.forEach((consentItem) => {
-              if(item.dataCategory === consentItem.category){
-                consentItem.permissionsArray.push({
-                  group: item.group,
-                  permissions: this.convertArrayToString(item.permissions)
-                });
-              } else {
-                  if(myArr.length === duplicates.length) return;
-                  consentObj.category = item.dataCategory;
-                  consentObj.permissionsArray.push({
-                    group: item.group,
-                    permissions: this.convertArrayToString(item.permissions)
-                  });
-                  myArr.push(consentObj);
-              }
-            });
-          } else {
-            consentObj.category = item.dataCategory;
-            consentObj.permissionsArray.push({
-              group: item.group,
-              permissions: this.convertArrayToString(item.permissions)
-            });
-            myArr.push(consentObj);
-          }
+          consentsList.forEach((consentItem) => {
+            if(consentCategory === consentItem.dataCategory){
+              consentObj.category = consentCategory;
+              consentObj.permissionsArray.push({
+                group: consentItem.group,
+                permissions: this.convertArrayToString(consentItem.permissions)
+              });
+            }
+          });
+
+          myArr.push(consentObj);
         }
 
         //Get all consents except the consents with duplicate categories
         consentsArr = consentsArr.filter((consent) => {
           return !duplicates.includes(consent.dataCategory);
         });
-
-        console.log(consentsArr);
 
         //Standarise the consent objects format
         consentsArr = consentsArr.map((item) => {

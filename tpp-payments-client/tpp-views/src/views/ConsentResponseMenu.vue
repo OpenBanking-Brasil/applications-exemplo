@@ -194,7 +194,7 @@ export default {
           });
         });
 
-        const myArr = [];
+        const formatedConsents = [];
         for(let consentCategory of duplicates){
 
           const consentObj = {
@@ -212,7 +212,7 @@ export default {
             }
           });
 
-          myArr.push(consentObj);
+          formatedConsents.push(consentObj);
         }
 
         //Get all consents except the consents with duplicate categories
@@ -231,8 +231,7 @@ export default {
           }
         });
 
-        //consentsArr.push(consentObj);
-        this.grantedConsents = [...consentsArr, ...myArr];
+        this.grantedConsents = [...consentsArr, ...formatedConsents];
         this.loading = false;
       });
   }

@@ -25,8 +25,10 @@
             <v-row>
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Accounts API (accounts/{resourceID}"
+                  title="Account API"
+                  fullPath="/open-banking/accounts/v1/accounts/{accountId}"
                   :resourceId="selectedAccountId"
+                  :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedAccountId}`"
                   @fetch-account-data="fetchAccountData"
@@ -34,8 +36,10 @@
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Account Overdraft Limits API (accounts/ {resourceID}/ overdraft-limits)"
+                  title="Account Overdraft Limits API"
+                  fullPath="/open-banking/accounts/v1/accounts/{accountId}/overdraft-limits"
                   :resourceId="selectedAccountId"
+                  :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedAccountId}/overdraft-limits`"
                   @fetch-account-data="fetchAccountData"
@@ -43,17 +47,21 @@
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Account Balances API (accounts/ {resourceID}/balances)"
+                  title="Account Balances API"
+                  fullPath="/open-banking/accounts/v1/accounts/{accountId}/balances"
                   :resourceId="selectedAccountId"
                   btnText="RUN"
+                  :displayTextField="true"
                   :path="`${selectedAccountId}/balances`"
                   @fetch-account-data="fetchAccountData"
                 />
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Account Transactions API (accounts/ {resourceID}/ transactions)"
+                  title="Account Transactions API"
+                  fullPath="/open-banking/accounts/v1/accounts/{accountId}/transactions"
                   :resourceId="selectedAccountId"
+                  :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedAccountId}/transactions`"
                   @fetch-account-data="fetchAccountData"

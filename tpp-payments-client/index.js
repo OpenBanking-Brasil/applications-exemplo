@@ -1301,6 +1301,10 @@ let config = JSON.parse(JSON.stringify(configuration));
       pathRegex = '/open-banking/credit-cards-accounts/v1/accounts$';
     } else if (apiFamilyType === "resources"){
       pathRegex = 'open-banking/resources/v1/resources$';
+    } else if (apiFamilyType === "customers-business"){
+      pathRegex = `open-banking/customers/v1/business/${apiType}$`
+    } else if (apiFamilyType === "customers-personal"){
+      pathRegex = `open-banking/customers/v1/personal/${apiType}$`
     }
 
     paymentLog(`Find the ${apiType} endpoint for the selected bank from the directory of participants`);
@@ -1423,6 +1427,20 @@ let config = JSON.parse(JSON.stringify(configuration));
     const billId = req.params.billId;
     const path = `${creditCardAccountId}/bills/${billId}/transactions`;
     const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts transactions", path);
+
+    return res.send(response);
+  });
+  
+  app.get('/customers-business/:apiType', async (req, res) => {
+
+    const response = await fetchData(req, "customers-business", req.params.apiType);
+
+    return res.send(response);
+  });
+
+  app.get('/customers-personal/:apiType', async (req, res) => {
+
+    const response = await fetchData(req, "customers-personal", req.params.apiType);
 
     return res.send(response);
   });

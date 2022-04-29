@@ -25,9 +25,11 @@
             <v-row v-if="billIdSelected">
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Credit Card Bill Transactions API (/open-banking /credit-cards-accounts /v1/accounts /{creditCardAccountId} /bills/{billId} /transactions)"
+                  title="Credit Card Bill Transactions API"
+                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/bills/{billId}/transactions"
                   :resourceId="selectedBillId"
                   btnText="RUN"
+                  :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/bills/${selectedBillId}/transactions`"
                   @fetch-account-data="fetchAccountData"
                 />
@@ -36,36 +38,44 @@
             <v-row v-else>
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Credit Card Accounts API (/open-banking /credit-cards-accounts /v1/accounts /{creditCardAccountId})"
+                  title="Credit Card Account API"
+                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
+                  :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}`"
                   @fetch-account-data="fetchAccountData"
                 />
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Credit Card Account Limits API (/open-banking /credit-cards-accounts /v1/accounts/ {creditCardAccountId}/limits)"
+                  title="Credit Card Account Limits API"
+                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/limits"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
+                  :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/limits`"
                   @fetch-account-data="fetchAccountData"
                 />
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Credit Card Account Transactions API (/open-banking /credit-cards-accounts /v1/accounts /{creditCardAccountId} /transactions)"
+                  title="Credit Card Account Transactions API"
+                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/transactions"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
+                  :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/transactions`"
                   @fetch-account-data="fetchAccountData"
                 />
               </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
-                  title="Credit Card Account Bills API (/open-banking /credit-cards-accounts /v1/accounts /{creditCardAccountId} /bills)"
+                  title="Credit Card Account Bills API"
+                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/bills"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
+                  :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/bills`"
                   @fetch-account-data="fetchAccountData"
                 />

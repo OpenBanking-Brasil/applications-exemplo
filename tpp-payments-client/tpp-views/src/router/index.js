@@ -12,6 +12,7 @@ import ConsentResponseMenu from '../views/ConsentResponseMenu.vue'
 import AccountsMenu from '../views/AccountsMenu.vue'
 import ResourcesResponse from '../views/ResourcesResponse.vue'
 import CreditCardAccounts from '../views/CreditCardAccounts.vue'
+import CustomersMenu from '../views/Customers.vue'
 
 Vue.use(VueRouter)
 
@@ -75,6 +76,11 @@ const routes = [
     path: '/credit-card-accounts',
     name: 'credit-card-accounts',
     component: CreditCardAccounts
+  },
+  {
+    path: '/customers',
+    name: 'customers',
+    component: CustomersMenu
   }
 ]
 

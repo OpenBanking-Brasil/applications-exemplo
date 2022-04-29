@@ -3,35 +3,41 @@
     <v-card class="text-center" max-width="344" outlined>
       <v-list-item>
         <v-list-item-content>
-          <div class="text-overline mb-2">
+          <v-row>
+            <v-col class="d-flex" cols="12" sm="12" right>
+              <v-icon :title="fullPath" medium color="darken-2" class="ml-17">
+                mdi-information
+              </v-icon>
+            </v-col>
+          </v-row>
+          <h1 class="text-overline mb-5 ml-3">
             {{ title }}
-          </div>
-          <v-text-field dense outlined placeholder="Resource ID" :value="resourceId"></v-text-field>
+          </h1>
+          <v-text-field
+            v-if="displayTextField"
+            dense
+            outlined
+            placeholder="Resource ID"
+            :value="resourceId"
+          ></v-text-field>
         </v-list-item-content>
       </v-list-item>
 
-      <v-card-actions class="mt-n5">
-        <v-btn outlined rounded text @click="onClickAccount"> {{ btnText }} </v-btn>
+      <v-card-actions class="justify-center mt-n5 mb-3">
+        <v-btn outlined rounded text @click="onClickAccount">
+          {{ btnText }}
+        </v-btn>
       </v-card-actions>
     </v-card>
-    <v-snackbar
-        v-model="snackbar"
-        :multi-line="multiLine"
+    <v-snackbar v-model="snackbar" :multi-line="multiLine">
+      {{ text }}
 
-      >
-        {{ text }}
-  
-        <template v-slot:action="{ attrs }">
-          <v-btn
-            color="white"
-            text
-            v-bind="attrs"
-            @click="snackbar = false"
-          >
-            Close
-          </v-btn>
-        </template>
-      </v-snackbar>
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -45,29 +51,35 @@ export default {
       type: String,
     },
     resourceId: {
-      type: String
+      type: String,
     },
     path: {
-      type: String
-    }
+      type: String,
+    },
+    displayTextField: {
+      type: Boolean,
+    },
+    fullPath: {
+      type: String,
+    },
   },
   name: "CardComponent",
 
-  data(){
+  data() {
     return {
       multiLine: true,
       snackbar: false,
-      text: "You must provide resource ID"
-    }
+      text: "You must provide resource ID",
+    };
   },
   methods: {
-    onClickAccount(){
-      if(!this.resourceId){
+    onClickAccount() {
+      if (this.displayTextField && !this.resourceId) {
         this.snackbar = true;
         return;
       }
-      this.$emit("fetch-account-data", this.path)
-    }
-  }
+      this.$emit("fetch-account-data", this.path);
+    },
+  },
 };
 </script>

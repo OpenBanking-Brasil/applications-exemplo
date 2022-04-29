@@ -99,8 +99,8 @@
             <div class="pa-2"></div>
             <v-divider class="mt-5"></v-divider>
             <h3 class="ma-3 mt-5">What do you want to do: </h3>
-            <v-btn color="primary" class="ma-3 mt-5">
-              1. Register
+            <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('customers')">
+              1. Customers
             </v-btn>
             <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('accounts')">
               2. Accounts
@@ -194,24 +194,47 @@ export default {
           });
         });
 
-        const consentObj = {
-          category: "",
-          permissionsArray: [],
-        };
-        consentsList.forEach((item) => {
-          consentObj.category = item.dataCategory;
-          consentObj.permissionsArray.push({
-            group: item.group,
-            permissions: this.convertArrayToString(item.permissions)
-          });
-        });
+        const myArr = [];
+        for(let item of consentsList){
+
+          const consentObj = {
+            category: "",
+            permissionsArray: [],
+          };
+
+          if(myArr.length > 0){
+            myArr.forEach((consentItem) => {
+              if(item.dataCategory === consentItem.category){
+                consentItem.permissionsArray.push({
+                  group: item.group,
+                  permissions: this.convertArrayToString(item.permissions)
+                });
+              } else {
+                  if(myArr.length === duplicates.length) return;
+                  consentObj.category = item.dataCategory;
+                  consentObj.permissionsArray.push({
+                    group: item.group,
+                    permissions: this.convertArrayToString(item.permissions)
+                  });
+                  myArr.push(consentObj);
+              }
+            });
+          } else {
+            consentObj.category = item.dataCategory;
+            consentObj.permissionsArray.push({
+              group: item.group,
+              permissions: this.convertArrayToString(item.permissions)
+            });
+            myArr.push(consentObj);
+          }
+        }
 
         //Get all consents except the consents with duplicate categories
         consentsArr = consentsArr.filter((consent) => {
-          for(let dupConsentCategory of duplicates){
-            return consent.dataCategory !== dupConsentCategory;
-          }
+          return !duplicates.includes(consent.dataCategory);
         });
+
+        console.log(consentsArr);
 
         //Standarise the consent objects format
         consentsArr = consentsArr.map((item) => {
@@ -224,8 +247,8 @@ export default {
           }
         });
 
-        consentsArr.push(consentObj);
-        this.grantedConsents = consentsArr;
+        //consentsArr.push(consentObj);
+        this.grantedConsents = [...consentsArr, ...myArr];
         this.loading = false;
       });
   }

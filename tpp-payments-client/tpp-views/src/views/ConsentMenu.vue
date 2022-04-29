@@ -64,7 +64,7 @@
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import axios from "../util/axios.js";
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "ConsentMenu",
@@ -77,6 +77,7 @@ export default {
       cadastroOptions: ['PF', 'PJ'],
       selectedOption: "PF",
       consentsArr: [],
+      consentsDeepCopy: [],
       headers: [
         {
           text: "CATEGORIA DE DADOS",
@@ -93,7 +94,7 @@ export default {
 
   watch: {
     selectedOption(val){
-      this.consentsArr = this.consents.filter((consent) => {
+      this.consentsArr = this.consentsDeepCopy.filter((consent) => {
         if(val === "PF"){
           return consent.id !== 3 && consent.id !== 4; 
         } else if(val === "PJ"){
@@ -108,12 +109,16 @@ export default {
   },
 
   created(){
-    this.consentsArr = [...this.consents];
-    this.consentsArr = this.consents.filter((consent) => consent.id !== 3 && consent.id !== 4);
+    this.setCadastroOption(this.selectedOption);
+    this.consentsDeepCopy = JSON.parse(JSON.stringify(this.consents));
+    this.consentsArr = this.consentsDeepCopy.filter((consent) => consent.id !== 3 && consent.id !== 4);
+    
   },
 
   methods: {
+    ...mapActions(["setCadastroOption"]),
     continueConsent() {
+      this.setCadastroOption(this.selectedOption);
       this.loading = true;
       axios.defaults.withCredentials = true;
       const selectedConsents = this.consentsArr.filter(
@@ -140,7 +145,7 @@ export default {
           this.loading = false;
         });
     },
-  },
+  }
 };
 </script>
 

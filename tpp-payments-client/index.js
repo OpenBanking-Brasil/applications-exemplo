@@ -151,7 +151,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const { FAPI1Client } = localIssuer;
     
     let fapiClient;
-    if(selectedDcrOption === "Use Existing DCR"){
+    if(selectedDcrOption === "Provide An Existing Client Configuration"){
       try {
         dcrLog("Get the existing client from the Bank");
         //try and get the existing client and set the private keys
@@ -1287,7 +1287,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       }
     );
 
-    res.json(payload);
+    res.status(response.statusCode).json(payload);
   });
 
   //Fetch data for the given API
@@ -1321,7 +1321,12 @@ let config = JSON.parse(JSON.stringify(configuration));
       req.session.accessToken
     );
 
-    return JSON.parse(response.body.toString());
+    if(!response.body){
+      return {responseBody: "undefined", statusCode: response.statusCode};
+    }
+
+
+    return {responseBody: JSON.parse(response.body.toString()), statusCode: response.statusCode};
   }
 
   const accountsApiFamily = "accounts";
@@ -1329,7 +1334,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const response = await fetchData(req, accountsApiFamily, accountsApiFamily);
 
-    return res.send(response);
+    return res.send(response.responseBody);
 
   });
 
@@ -1338,7 +1343,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const accountId = req.params.accountId;
     const response = await fetchData(req, accountsApiFamily, "account", accountId);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/accounts/:accountId/overdraft-limits', async (req, res) => {
@@ -1348,7 +1353,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const response = await fetchData(req, accountsApiFamily, "overdraft limits", path);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/accounts/:accountId/balances', async (req, res) => {
@@ -1358,7 +1363,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const response = await fetchData(req, accountsApiFamily, "balances", path);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/accounts/:accountId/transactions', async (req, res) => {
@@ -1368,14 +1373,14 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const response = await fetchData(req, accountsApiFamily, "transactions", path);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/resources', async (req, res) => {
 
     const response = await fetchData(req, "resources", "resources");
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   const creditCardAccountAPIFamily = "credit-cards-accounts";
@@ -1383,7 +1388,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts");
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/credit-cards-accounts/:creditCardAccountId', async (req, res) => {
@@ -1391,7 +1396,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const creditCardAccountId = req.params.creditCardAccountId;
     const response = await fetchData(req, creditCardAccountAPIFamily, "credit card account", creditCardAccountId);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/credit-cards-accounts/:creditCardAccountId/limits', async (req, res) => {
@@ -1400,7 +1405,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const path = `${creditCardAccountId}/limits`;
     const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts limits", path);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/credit-cards-accounts/:creditCardAccountId/transactions', async (req, res) => {
@@ -1409,7 +1414,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const path = `${creditCardAccountId}/transactions`;
     const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts transactions", path);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/credit-cards-accounts/:creditCardAccountId/bills', async (req, res) => {
@@ -1418,7 +1423,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const path = `${creditCardAccountId}/bills`;
     const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts bills", path);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/credit-cards-accounts/:creditCardAccountId/bills/:billId/transactions', async (req, res) => {
@@ -1428,21 +1433,21 @@ let config = JSON.parse(JSON.stringify(configuration));
     const path = `${creditCardAccountId}/bills/${billId}/transactions`;
     const response = await fetchData(req, creditCardAccountAPIFamily, "credit cards accounts transactions", path);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
   
   app.get('/customers-business/:apiType', async (req, res) => {
 
     const response = await fetchData(req, "customers-business", req.params.apiType);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   app.get('/customers-personal/:apiType', async (req, res) => {
 
     const response = await fetchData(req, "customers-personal", req.params.apiType);
 
-    return res.send(response);
+    return res.status(response.statusCode).send(response.responseBody);
   });
 
   https

@@ -18,7 +18,7 @@
             dense
             outlined
             placeholder="Resource ID"
-            :value="resourceId"
+            v-model="theResourceId"
           ></v-text-field>
         </v-list-item-content>
       </v-list-item>
@@ -64,12 +64,14 @@ export default {
     },
   },
   name: "CardComponent",
+  emits: ["fetch-data", "resource-id-change"],
 
   data() {
     return {
       multiLine: true,
       snackbar: false,
       text: "You must provide resource ID",
+      theResourceId: ""
     };
   },
   methods: {
@@ -78,8 +80,22 @@ export default {
         this.snackbar = true;
         return;
       }
-      this.$emit("fetch-account-data", this.path);
+      this.$emit("fetch-data", this.path);
     },
   },
+
+  watch: {
+    resourceId(resourceId){
+      this.theResourceId = resourceId;
+    },
+    theResourceId(resourceId){
+      this.$emit("resource-id-change", resourceId);
+    }
+  },
+  
+  created(){
+    this.theResourceId = this.resourceId;
+  }
+
 };
 </script>

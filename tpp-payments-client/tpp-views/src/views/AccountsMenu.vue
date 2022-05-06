@@ -11,7 +11,7 @@
             <v-row>
               <v-col cols="12" md="12">
                 <v-card elevation="2" outlined>
-                  <v-card-title style="color: white; background-color: #004c50"
+                  <v-card-title class="white--text cyan darken-4"
                     >Account API Response</v-card-title
                   >
                   <v-card-text>
@@ -31,7 +31,8 @@
                   :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedAccountId}`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
               <v-col cols="12" sm="3">
@@ -42,7 +43,8 @@
                   :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedAccountId}/overdraft-limits`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
               <v-col cols="12" sm="3">
@@ -53,7 +55,8 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedAccountId}/balances`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
               <v-col cols="12" sm="3">
@@ -64,7 +67,8 @@
                   :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedAccountId}/transactions`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
             </v-row>
@@ -89,7 +93,7 @@
               </v-col>
               <v-col cols="12" sm="8">
                 <v-card elevation="2" outlined>
-                  <v-card-title style="color: white; background-color: #004c50"
+                  <v-card-title :class="resBannerStyle"
                     >Response</v-card-title
                   >
                   <v-card-text>
@@ -125,7 +129,8 @@ export default {
       accountsResponse: "",
       accountIDs: [],
       selectedAccountId: "",
-      accountDataResponse: ""
+      accountDataResponse: "",
+      resBannerStyle: "white--text cyan darken-4"
     };
   },
   created(){
@@ -145,8 +150,21 @@ export default {
     fetchAccountData(path){
       axios.get(`accounts/${path}`, {withCredentials: true})
       .then((response) => {
-        this.accountDataResponse = response.data;
+        if(response.status === 200){
+          this.accountDataResponse = response.data;
+          this.resBannerStyle = "white--text cyan darken-4";
+        }
+
+      }).catch((error) => {
+        if(error.response.status !== 200){
+          this.resBannerStyle = "white--text red darken-1";
+          this.accountDataResponse = error.response.data;
+        }
       });
+    },
+
+    changeResourceId(accountId){
+      this.selectedAccountId = accountId;
     }
   }
 };

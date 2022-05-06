@@ -11,7 +11,7 @@
             <v-row>
               <v-col cols="12" md="12">
                 <v-card elevation="2" outlined>
-                  <v-card-title style="color: white; background-color: #004c50">Resources Response</v-card-title
+                  <v-card-title class="white--text cyan darken-4">Resources Response</v-card-title
                   >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">

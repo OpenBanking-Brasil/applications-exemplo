@@ -579,16 +579,6 @@ let config = JSON.parse(JSON.stringify(configuration));
     res.json(req.session.availableBanks);
   });
 
-  //TODO
-  app.get('/', async (req, res) => {
-    //Clear stale cookies on page load
-    res.clearCookie('state');
-    res.clearCookie('nonce');
-    res.clearCookie('code_verifier');
-
-    res.send("success");
-  });
-
   app.post('/payment', async (req, res) => {
     consentLog('Starting a new payment consent');
     let date = new Date();
@@ -709,7 +699,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       }
     );
 
-    res.json({...payload, selectedBank: req.session.selectedBank});
+    res.status(response.statusCode).json({...payload, selectedBank: req.session.selectedBank});
   });
 
   app.use(express.urlencoded());
@@ -1132,7 +1122,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       }
     );
 
-    res.json(payload);
+    res.status(response.statusCode).json(payload);
   });
 
   app.post('/consent', async (req, res) => {
@@ -1204,9 +1194,12 @@ let config = JSON.parse(JSON.stringify(configuration));
       secure: true,
     });
 
-    consentLog('Send customer to bank to give consent to the customer data');
-    res.send({authUrl});
+    if(!authUrl){
+      return res.status(400).send({message: "Bad Request"});
+    }
 
+    consentLog('Send customer to bank to give consent to the customer data');
+    return res.status(201).send({authUrl});
   });
 
   app.patch('/revoke-payment', async (req, res) => {

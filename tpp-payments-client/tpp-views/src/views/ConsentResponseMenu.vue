@@ -117,7 +117,9 @@
           </v-container>
         </v-sheet>
       </v-col>
-      <v-col cols="12" sm="2"> </v-col>
+      <v-col cols="12" sm="2">
+        <BackButton path="consent-menu"/>
+      </v-col>
     </v-row>
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="100"></v-progress-circular>
@@ -128,6 +130,7 @@
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
+import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
 import { mapGetters } from "vuex";
 
@@ -135,6 +138,7 @@ export default {
   name: "ConsentResponseMenu",
   components: {
     SheetAppBar,
+    BackButton
   },
   data() {
     return {

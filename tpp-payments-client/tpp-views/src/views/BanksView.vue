@@ -1,8 +1,8 @@
 <template>
   <v-main class="banks">
     <v-row>
-      <v-col> </v-col>
-      <v-col :cols="7">
+      <v-col cols="12" sm="2"> </v-col>
+      <v-col cols="12" sm="8">
         <v-sheet min-height="70vh" elevation="20" rounded="lg">
           <SheetAppBar header="Mock TPP" />
           <v-row>
@@ -124,7 +124,9 @@
           </v-row>
         </v-sheet>
       </v-col>
-      <v-col> </v-col>
+      <v-col cols="12" sm="2">
+        <BackButton path="/" />
+      </v-col>
     </v-row>
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="100"></v-progress-circular>
@@ -145,6 +147,7 @@
 // @ is an alias to /src
 
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
+import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
 import { v1 as uuid } from "uuid";
 import { mapGetters } from "vuex";
@@ -153,6 +156,7 @@ export default {
   name: "BankView",
   components: {
     SheetAppBar,
+    BackButton
   },
   data: () => ({
     dcrOptions: ["Dynamically Register A New Client", "Provide An Existing Client Configuration"],

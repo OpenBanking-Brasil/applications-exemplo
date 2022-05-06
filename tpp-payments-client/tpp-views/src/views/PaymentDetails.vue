@@ -8,7 +8,7 @@
           <v-sheet min-height="70vh" rounded="lg">
             <v-container class="pa-md-12">
               <v-card elevation="2" outlined color="">
-                <v-card-title style="color: white; background-color: #004d40"
+                <v-card-title class="white--text cyan darken-4"
                   >Debtor</v-card-title
                 >
                 <v-card-text>
@@ -575,7 +575,9 @@
           </v-sheet>
         </v-form>
       </v-col>
-      <v-col cols="12" sm="2"> </v-col>
+      <v-col cols="12" sm="2">
+        <BackButton path="payment-menu"/>
+      </v-col>
     </v-row>
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="100"></v-progress-circular>
@@ -604,12 +606,14 @@
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
+import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
 
 export default {
   name: "PaymentDetail",
   components: {
     SheetAppBar,
+    BackButton
   },
   data: () => ({
     multiLine: true,

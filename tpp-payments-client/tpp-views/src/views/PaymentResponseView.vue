@@ -73,7 +73,7 @@
       </v-col>
 
       <v-col cols="12" sm="2">
-        <BackButton />
+        <BackButton path="payment-menu"/>
       </v-col>
     </v-row>
   </v-main>

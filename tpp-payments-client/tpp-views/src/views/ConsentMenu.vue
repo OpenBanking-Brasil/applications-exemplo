@@ -138,7 +138,6 @@ export default {
         )
         .then((res) => {
           bankConsent.location.href = res.data.authUrl;
-          this.loading = false;
         })
         .catch((err) => {
           console.log(err.message);

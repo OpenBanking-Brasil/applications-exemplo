@@ -11,7 +11,7 @@
             <v-row>
               <v-col cols="12" md="8">
                 <v-card elevation="2" outlined>
-                  <v-card-title style="color: white; background-color: #004c50">Consent Response</v-card-title
+                  <v-card-title class="white--text cyan darken-4">Consent Response</v-card-title
                   >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
@@ -21,7 +21,7 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="3">
-                <h3>Consents Granted</h3>
+                <h3 class="grey--text text--darken-1">Consents Granted</h3>
                 <v-dialog transition="dialog-bottom-transition" max-width="800">
                   <template v-slot:activator="{ on, attrs }">
                     <v-btn
@@ -98,9 +98,9 @@
             </v-row>
             <div class="pa-2"></div>
             <v-divider class="mt-5"></v-divider>
-            <h3 class="ma-3 mt-5">What do you want to do: </h3>
+            <h3 class="ma-3 mt-5 grey--text text--darken-1">Select which API to call with the consents that have been granted: </h3>
             <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('customers')">
-              1. Customers
+              1. Personal/Business Info
             </v-btn>
             <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('accounts')">
               2. Accounts

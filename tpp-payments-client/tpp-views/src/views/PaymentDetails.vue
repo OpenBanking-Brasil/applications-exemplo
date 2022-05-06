@@ -121,7 +121,7 @@
               </v-card>
               <div class="pa-2"></div>
               <v-card elevation="2" outlined color="">
-                <v-card-title style="color: white; background-color: #004c50"
+                <v-card-title class="white--text cyan darken-4"
                   >Logged User</v-card-title
                 >
                 <v-card-text>
@@ -176,7 +176,7 @@
               </v-card>
               <div class="pa-2"></div>
               <v-card elevation="2" outlined color="">
-                <v-card-title style="color: white; background-color: #004c50"
+                <v-card-title class="white--text cyan darken-4"
                   >Creditor</v-card-title
                 >
                 <v-card-text>
@@ -259,7 +259,7 @@
               </v-card>
               <div class="pa-2"></div>
               <v-card elevation="2" outlined color="">
-                <v-card-title style="color: white; background-color: #004c50"
+                <v-card-title class="white--text cyan darken-4"
                   >Payment</v-card-title
                 >
                 <v-card-text class="pa-6">

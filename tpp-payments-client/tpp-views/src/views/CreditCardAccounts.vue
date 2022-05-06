@@ -11,7 +11,7 @@
             <v-row>
               <v-col cols="12" md="12">
                 <v-card elevation="2" outlined>
-                  <v-card-title style="color: white; background-color: #004c50"
+                  <v-card-title class="white--text cyan darken-4"
                     >Account API Response</v-card-title
                   >
                   <v-card-text>
@@ -31,7 +31,8 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/bills/${selectedBillId}/transactions`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="(billId) => changeResourceId(billId, true)"
                 />
               </v-col>
             </v-row>
@@ -44,7 +45,8 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
               <v-col cols="12" sm="3">
@@ -55,7 +57,8 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/limits`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
               <v-col cols="12" sm="3">
@@ -66,7 +69,8 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/transactions`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
               <v-col cols="12" sm="3">
@@ -77,7 +81,8 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/bills`"
-                  @fetch-account-data="fetchAccountData"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
             </v-row>
@@ -144,7 +149,7 @@
               </v-col>
               <v-col cols="12" sm="8">
                 <v-card elevation="2" outlined>
-                  <v-card-title style="color: white; background-color: #004c50"
+                  <v-card-title :class="resBannerStyle"
                     >Response</v-card-title
                   >
                   <v-card-text>
@@ -187,6 +192,7 @@ export default {
       selectedBillId: "",
       creditCardAccountResponse: "",
       billIDs: [],
+      resBannerStyle: "white--text cyan darken-4"
     };
   },
   created() {
@@ -201,6 +207,7 @@ export default {
   },
   methods: {
     setAccountId(creditCardAccountId) {
+      console.log("hello", creditCardAccountId);
       this.creditCardAccountResponse = "";
       this.selectedCreditCardAccountId = creditCardAccountId;
       this.acccountIdSelected = true;
@@ -221,15 +228,34 @@ export default {
       axios
         .get(`credit-cards-accounts/${path}`, { withCredentials: true })
         .then((response) => {
-          this.creditCardAccountResponse = response.data;
-          console.log(this.creditCardAccountResponse);
-          if (path === `${this.selectedCreditCardAccountId}/bills`) {
-            response.data.data.forEach((bill) => {
-              this.billIDs.push(bill.billId);
-            });
+
+          if(response.status === 200){
+            this.creditCardAccountResponse = response.data;
+            this.resBannerStyle = "white--text cyan darken-4";
+
+            if (path === `${this.selectedCreditCardAccountId}/bills`) {
+              response.data.data.forEach((bill) => {
+                this.billIDs.push(bill.billId);
+              });
+            }
+          }
+
+          
+        }).catch((error) => {
+          if(error.response.status !== 200){
+            this.resBannerStyle = "white--text red darken-1";
+            this.creditCardAccountResponse = error.response.data;
           }
         });
     },
+
+    changeResourceId(resourceId, billdIdProvided = false){
+      if(billdIdProvided){
+        this.selectedBillId = resourceId;
+      } else {
+        this.selectedCreditCardAccountId = resourceId;
+      }
+    }
   },
 };
 </script>

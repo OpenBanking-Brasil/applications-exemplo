@@ -15,7 +15,7 @@
                   :displayTextField="false"
                   btnText="RUN"
                   path="identifications"
-                  @fetch-account-data="fetchCustomersData"
+                  @fetch-data="fetchCustomersData"
                 />
               </v-col>
               <v-col cols="12" sm="4">
@@ -25,7 +25,7 @@
                   :displayTextField="false"
                   btnText="RUN"
                   path="financial-relations"
-                  @fetch-account-data="fetchCustomersData"
+                  @fetch-data="fetchCustomersData"
                 />
               </v-col>
               <v-col cols="12" sm="4">
@@ -35,7 +35,7 @@
                   :displayTextField="false"
                   btnText="RUN"
                   path="qualifications"
-                  @fetch-account-data="fetchCustomersData"
+                  @fetch-data="fetchCustomersData"
                 />
               </v-col>
             </v-row>
@@ -43,7 +43,7 @@
             <v-row>
               <v-col cols="12" sm="12">
                 <v-card elevation="2" outlined>
-                  <v-card-title style="color: white; background-color: #004c50"
+                  <v-card-title :class="resBannerStyle"
                     >Customers Data Response</v-card-title
                   >
                   <v-card-text>
@@ -73,7 +73,7 @@ export default {
   name: "CustomersMenu",
   components: {
     SheetAppBar,
-    CardComponent
+    CardComponent,
   },
   data() {
     return {
@@ -82,47 +82,64 @@ export default {
       qualificationTitle: "",
       customersDataResponse: "",
       apiFamilyType: "",
-
+      resBannerStyle: "white--text cyan darken-4",
       identificationsFullPath: "",
       financialRelationsFullPath: "",
-      qualificationFullPath: ""
+      qualificationFullPath: "",
     };
   },
 
   computed: {
-    ...mapGetters(["cadastroOption"])
+    ...mapGetters(["cadastroOption"]),
   },
 
   methods: {
-    fetchCustomersData(path){
+    fetchCustomersData(path) {
       axios
         .get(`${this.apiFamilyType}/${path}`, { withCredentials: true })
         .then((response) => {
-          this.customersDataResponse = response.data;
+          if (response.status === 200) {
+            this.customersDataResponse = response.data;
+            this.resBannerStyle = "white--text cyan darken-4";
+          }
+        })
+        .catch((error) => {
+          if (error.response.status !== 200) {
+            this.resBannerStyle = "white--text red darken-1";
+            this.customersDataResponse = error.response.data;
+          }
         });
     },
   },
 
-  created(){
-    if(this.cadastroOption === "PF"){
+  created() {
+    if (this.cadastroOption === "PF") {
       this.apiFamilyType = "customers-personal";
       this.identificationTitle = "Customers Personal Identifications API";
-      this.financialRelationTitle = "Customers Personal Financial Relations API";
+      this.financialRelationTitle =
+        "Customers Personal Financial Relations API";
       this.qualificationTitle = "Customers Personal Qualifications API";
 
-      this.identificationsFullPath = "/open-banking/customers/v1/personal/identifications";
-      this.financialRelationsFullPath = "/open-banking/customers/v1/personal/financial-relations";
-      this.qualificationFullPath = "/open-banking/customers/v1/personal/qualifications";
+      this.identificationsFullPath =
+        "/open-banking/customers/v1/personal/identifications";
+      this.financialRelationsFullPath =
+        "/open-banking/customers/v1/personal/financial-relations";
+      this.qualificationFullPath =
+        "/open-banking/customers/v1/personal/qualifications";
     } else {
       this.apiFamilyType = "customers-business";
       this.identificationTitle = "Customers Business Identifications API";
-      this.financialRelationTitle = "Customers Business Financial Relations API";
+      this.financialRelationTitle =
+        "Customers Business Financial Relations API";
       this.qualificationTitle = "Customers Business Qualifications API";
-      this.identificationsFullPath = "/open-banking/customers/v1/business/identifications";
-      this.financialRelationsFullPath = "/open-banking/customers/v1/business/financial-relations";
-      this.qualificationFullPath = "/open-banking/customers/v1/business/qualifications";
+      this.identificationsFullPath =
+        "/open-banking/customers/v1/business/identifications";
+      this.financialRelationsFullPath =
+        "/open-banking/customers/v1/business/financial-relations";
+      this.qualificationFullPath =
+        "/open-banking/customers/v1/business/qualifications";
     }
-  }
+  },
 };
 </script>
 

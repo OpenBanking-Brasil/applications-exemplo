@@ -9,7 +9,7 @@
             <v-col> </v-col>
             <v-col cols="10">
               <div class="pa-md-4 transition-swing text-h6" align="center">
-                Payment Provider Details
+                {{ headerText }}
               </div>
               <v-text-field
                 label="Search"
@@ -62,7 +62,7 @@
               </template>
               <v-card>
                 <v-card-title>
-                  <span class="text-h5">DCR Options</span>
+                  <span class="text-h5">Client Options</span>
                 </v-card-title>
                 <v-card-text>
                   <v-container>
@@ -71,7 +71,7 @@
                         <v-col class="d-flex" cols="12" sm="12">
                           <v-select
                             :items="dcrOptions"
-                            label="DCR Options"
+                            label="Client Options"
                             dense
                             outlined
                             v-model="selectedDcrOption"
@@ -79,7 +79,7 @@
                         </v-col>
 
                         <template
-                          v-if="selectedDcrOption === 'Use Existing DCR'"
+                          v-if="selectedDcrOption === this.dcrOptions[1]"
                         >
                           <v-col cols="12" sm="6">
                             <v-text-field
@@ -155,8 +155,8 @@ export default {
     SheetAppBar,
   },
   data: () => ({
-    dcrOptions: ["Perform New DCR", "Use Existing DCR"],
-    selectedDcrOption: "Perform New DCR",
+    dcrOptions: ["Dynamically Register A New Client", "Provide An Existing Client Configuration"],
+    selectedDcrOption: "Dynamically Register A New Client",
     clientIdRules: [(v) => !!v || "client ID is required"],
     registrationAccessTokenRules: [
       (v) => !!v || "Registration Access Token is required",
@@ -176,7 +176,7 @@ export default {
       this.selectedBank = bankTitle;
     },
     confirmSelectedBank() {
-      if ((this.selectedDcrOption === "Use Existing DCR") && (!this.clientId || !this.registrationAccessToken)) {
+      if ((this.selectedDcrOption === this.dcrOptions[1]) && (!this.clientId || !this.registrationAccessToken)) {
         this.$refs.form.validate();
         return;
       }
@@ -233,6 +233,13 @@ export default {
   },
 
   computed: {
+    headerText(){
+      if(this.selectedOption === "payments"){
+        return "Payment Providers Details";
+      } else {
+        return "Authorisation Servers List";
+      }
+    },
     searchBank() {
       return this.banks.filter((bank) => {
         return bank.title.toLowerCase().includes(this.search.toLowerCase());

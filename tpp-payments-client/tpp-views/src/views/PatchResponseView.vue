@@ -8,7 +8,7 @@
           <v-container class="pa-md-12">
             <div class="pa-2"></div>
             <v-card elevation="2" outlined color="">
-              <v-card-title style="color: white; background-color: #004c50"
+              <v-card-title class="white--text cyan darken-4"
                 >Information</v-card-title
               >
               <v-card-text>
@@ -34,19 +34,9 @@
               </v-card-text>
             </v-card>
             <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
-              <v-card-title style="color: white; background-color: #9ccc65"
-                >Consent Response Payload</v-card-title
-              >
-              <v-card-text>
-                <pre class="pt-4">
-                  {{ consentResponse }}
-                </pre>
-              </v-card-text>
-            </v-card>
             <div class="pa-2"></div>
             <v-card elevation="2" outlined color="">
-              <v-card-title style="color: white; background-color: #3949ab"
+              <v-card-title :class="resBannerStyle"
                 >Patch Response Payload</v-card-title
               >
               <v-card-text>
@@ -56,16 +46,6 @@
               </v-card-text>
             </v-card>
             <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
-              <v-card-title style="color: white; background-color: #ff5252"
-                >Error Response Payload</v-card-title
-              >
-              <v-card-text>
-                <pre class="pt-4">
-                  {{ errorResponse }}
-                </pre>
-              </v-card-text>
-            </v-card>
           </v-container>
         </v-sheet>
       </v-col>
@@ -91,14 +71,19 @@ export default {
   },
 
   data: () => ({
-    consentResponse: {},
     patchResponse: {},
-    errorResponse: {},
+    resBannerStyle: "white--text cyan darken-4",
     amount: null,
   }),
 
   created(){
-    this.patchResponse = this.$route.params.patchResponse;
+    if(this.$route.params.status === 200){
+      this.patchResponse = this.$route.params.patchResponse;
+      this.resBannerStyle = "white--text cyan darken-4";
+    } else {
+      this.patchResponse = this.$route.params.patchErrorResponse;
+      this.resBannerStyle = "white--text red darken-1";
+    }
   }
 };
 </script>

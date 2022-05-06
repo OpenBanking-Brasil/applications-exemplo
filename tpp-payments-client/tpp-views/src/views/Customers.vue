@@ -3,7 +3,7 @@
     <v-row>
       <v-col cols="12" sm="2"> </v-col>
       <v-col cols="12" sm="8">
-        <SheetAppBar header="Customers Menu" />
+        <SheetAppBar header="Customers" />
 
         <v-sheet min-height="70vh" rounded="lg">
           <v-container class="pa-md-12">
@@ -57,7 +57,9 @@
           </v-container>
         </v-sheet>
       </v-col>
-      <v-col cols="12" sm="2"> </v-col>
+      <v-col cols="12" sm="2">
+        <BackButton path="consent-response-menu"/>
+      </v-col>
     </v-row>
   </v-main>
 </template>
@@ -66,6 +68,7 @@
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import CardComponent from "@/components/GeneralAppComponents/CardComponent.vue";
+import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import { mapGetters } from "vuex";
 import axios from "../util/axios.js";
 
@@ -74,6 +77,7 @@ export default {
   components: {
     SheetAppBar,
     CardComponent,
+    BackButton
   },
   data() {
     return {

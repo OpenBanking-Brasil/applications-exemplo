@@ -165,7 +165,9 @@
         </v-sheet>
       </v-col>
 
-      <v-col cols="12" sm="2"> </v-col>
+      <v-col cols="12" sm="2">
+        <BackButton path="payment-menu"/>
+      </v-col>
     </v-row>
   </v-main>
 </template>
@@ -173,12 +175,14 @@
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
+import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
 
 export default {
   name: "PatchView",
   components: {
     SheetAppBar,
+    BackButton
   },
 
   data: () => ({

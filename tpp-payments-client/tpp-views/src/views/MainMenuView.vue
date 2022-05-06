@@ -1,8 +1,8 @@
 <template>
   <v-main class="main">
     <v-row>
-      <v-col> </v-col>
-      <v-col :cols="7">
+      <v-col cols="12" sm="2"> </v-col>
+      <v-col cols="12" sm="8">
         <v-sheet
           min-height="70vh"
           elevation="20"
@@ -146,6 +146,11 @@
                                   </v-list-item-content>
                                 </v-list-item>
                               </v-list>
+                                <v-progress-linear
+                                v-if="loading"
+                                indeterminate
+                                color="primary"
+                              ></v-progress-linear>
                             </v-card>
                           </v-col>
                         </v-row>
@@ -174,8 +179,19 @@
           </v-row>
         </v-sheet>
       </v-col>
-      <v-col> </v-col>
+      <v-col cols="12" sm="2">
+        <BackButton />
+      </v-col>
     </v-row>
+    <v-snackbar v-model="snackbar" :multi-line="multiLine">
+      {{ snackbarMessage }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-main>
 </template>
 
@@ -183,6 +199,7 @@
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import Button from "@/components/Buttons/Button.vue";
+import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
 
 export default {
@@ -190,16 +207,20 @@ export default {
   components: {
     SheetAppBar,
     Button,
+    BackButton
   },
 
   data: () => ({
+    multiLine: true,
+    snackbar: false,
+    loading: false,
+    snackbarMessage: "",
     bankName: "",
     clientID: "",
     refreshToken: "",
     consentID: "",
     paymentID: "",
     paymentIsScheduled: false,
-
     paymentAmount: 0,
     status: "",
     currency: "",
@@ -209,6 +230,7 @@ export default {
 
   methods: {
     getPayment() {
+      this.loading = true;
       axios
         .get(`/payment/${this.paymentID}`, {
           withCredentials: true,
@@ -224,8 +246,24 @@ export default {
               withCredentials: true,
             })
             .then((response) => {
-              this.scheduledDate = response.data.data.payment.schedule.single.date;
+              this.scheduledDate =
+                response.data.data.payment.schedule.single.date;
+                this.loading = false;
+            })
+            .catch((error) => {
+              if (error.response.status !== 200) {
+                this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
+                this.snackbar = true;
+                this.loading = false;
+              }
             });
+        })
+        .catch((error) => {
+          if (error.response.status !== 200) {
+            this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
+            this.snackbar = true;
+            this.loading = false;
+          }
         });
     },
     createPayment() {

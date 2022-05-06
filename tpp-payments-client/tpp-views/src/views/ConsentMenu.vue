@@ -52,17 +52,29 @@
           </v-col>
         </v-container>
       </v-col>
-      <v-col cols="12" sm="2"> </v-col>
+      <v-col cols="12" sm="2">
+        <BackButton path="banks"/>
+      </v-col>
     </v-row>
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="100"></v-progress-circular>
     </v-overlay>
+    <v-snackbar v-model="snackbar" :multi-line="multiLine">
+      {{ snackbarMessage }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-main>
 </template>
 
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
+import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
 import { mapGetters, mapActions } from "vuex";
 
@@ -70,9 +82,13 @@ export default {
   name: "ConsentMenu",
   components: {
     SheetAppBar,
+    BackButton
   },
   data() {
     return {
+      multiLine: true,
+      snackbar: false,
+      snackbarMessage: "",
       loading: false,
       cadastroOptions: ['PF', 'PJ'],
       selectedOption: "PF",
@@ -137,10 +153,15 @@ export default {
           }
         )
         .then((res) => {
-          bankConsent.location.href = res.data.authUrl;
+          if(res.status === 201){
+            bankConsent.location.href = res.data.authUrl;
+          }
         })
-        .catch((err) => {
-          console.log(err.message);
+        .catch((error) => {
+          if(error.response.status !== 201){
+            this.snackbarMessage = `Error ${error.response.status} - ${error.message}`
+            this.snackbar = true;
+          }
           this.loading = false;
         });
     },

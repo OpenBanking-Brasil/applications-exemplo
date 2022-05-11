@@ -9,7 +9,7 @@
           <v-col
             class="d-flex"
             cols="12"
-            sm="6"
+            sm="4"
           >
             <v-select
               :items="cadastroOptions"
@@ -19,6 +19,28 @@
               v-model="selectedOption"
             ></v-select>
           </v-col>
+          
+          <v-col cols="12" sm="4">
+            <v-text-field
+              dense
+              outlined
+              label="Identification"
+              v-model="identification"
+              required
+              :rules="identificationRules"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="4">
+            <v-text-field
+              dense
+              outlined
+              label="Rel"
+              v-model="rel"
+              required
+              :rules="relRules"
+            ></v-text-field>
+          </v-col>
+
         </v-row>
           <v-data-table
             :hide-default-footer="true"
@@ -94,6 +116,10 @@ export default {
       selectedOption: "PF",
       consentsArr: [],
       consentsDeepCopy: [],
+      identificationRules: [(v) => !!v || "Identification is required"],
+      relRules: [(v) => !!v || "Rel is required"],
+      rel: "CPF",
+      identification: "76109277673",
       headers: [
         {
           text: "CATEGORIA DE DADOS",
@@ -145,7 +171,7 @@ export default {
       axios
         .post(
           "/consent",
-          { permissionsArr: selectedConsents },
+          { permissionsArr: selectedConsents, identification: this.identification, rel: this.rel },
           {
             headers: {
               "Content-Type": "application/json",

@@ -5,9 +5,12 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "concurrently \"DEBUG=tpp* node index.js\" \"cd tpp-views && npm run serve\"",
+    "start": "concurrently \"DEBUG=tpp* node index.js\" \"npm run serve\"",
     "start-server": "DEBUG=tpp* node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
   },
   "author": "",
   "dependencies": {
@@ -16,6 +19,7 @@
     "axios": "^0.25.0",
     "body-parser": "^1.19.2",
     "cookie-parser": "^1.4.5",
+    "core-js": "^3.8.3",
     "cors": "^2.8.5",
     "debug": "^4.3.3",
     "dotenv": "^16.0.0",
@@ -31,10 +35,47 @@
     "node-cache": "^5.1.2",
     "node-jose": "^2.0.0",
     "openid-client": "^5.1.3",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "prettier": "^2.6.2",
+    "uuid": "^8.3.2",
+    "vue": "^2.6.14",
+    "vue-router": "^3.5.1",
+    "vuetify": "^2.6.0",
+    "vuex": "^3.6.2",
+    "vuex-persistedstate": "^4.1.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.16",
+    "@babel/eslint-parser": "^7.12.16",
+    "@vue/cli-plugin-babel": "~5.0.0",
+    "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-plugin-router": "^5.0.1",
+    "@vue/cli-service": "~5.0.0",
     "concurrently": "^7.1.0",
-    "eslint": "^8.8.0"
-  }
+    "eslint": "^8.8.0",
+    "eslint-plugin-vue": "^8.0.3",
+    "sass": "~1.32.0",
+    "sass-loader": "^10.0.0",
+    "vue-cli-plugin-vuetify": "~2.4.6",
+    "vue-template-compiler": "^2.6.14",
+    "vuetify-loader": "^1.7.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/base"
+    ],
+    "parserOptions": {
+      "parser": "@babel/eslint-parser"
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
 }

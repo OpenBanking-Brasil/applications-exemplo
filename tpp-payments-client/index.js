@@ -28,7 +28,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   const cors = require("cors");
   const session = require("express-session");
 
-  app.use(cors({credentials: true, origin: "https://localhost:8080"}));
+  app.use(cors({credentials: true, origin: "https://tpp.localhost:8080"}));
 
   
   //A lot of oauth 2 bodies are form url encoded
@@ -117,8 +117,10 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   //This configures a FAPI Client for the Bank that you have selected from the UI
   async function setupClient(bank, selectedDcrOption, req, clientId = "", registrationAccessToken = "") {
-    //deep copy config to avoid modifying the orginal config
-    req.session.config = JSON.parse(JSON.stringify(configuration));
+    //Use the default config if no custom configuration is provided
+    if(!req.session.useCustomConfig){
+      req.session.config = JSON.parse(JSON.stringify(configuration));
+    }
     setupLog('Begin Client Setup for Target Bank');
     req.session.selectedOrganisation = req.session.availableBanks.find((server) => {
       if (
@@ -579,6 +581,45 @@ let config = JSON.parse(JSON.stringify(configuration));
     res.json(req.session.availableBanks);
   });
 
+  app.post('/change-config', async (req, res) => {
+
+    req.session.useCustomConfig = true;
+    req.session.config = {
+      data: {
+        client: {
+          application_type: req.body.application_type,
+          grant_types: [
+            'client_credentials',
+            'authorization_code',
+            'refresh_token',
+            'implicit'
+          ],
+          id_token_signed_response_alg: req.body.id_token_signed_response_alg,
+          require_auth_time: JSON.parse(req.body.require_auth_time),
+          response_types: [
+            'code id_token',
+            'code'
+          ],
+          subject_type: req.body.subject_type,
+          token_endpoint_auth_method: req.body.token_endpoint_auth_method,
+          request_object_signing_alg: req.body.request_object_signing_alg,
+          require_signed_request_object: JSON.parse(req.body.require_signed_request_object),
+          require_pushed_authorization_requests: JSON.parse(req.body.require_pushed_authorization_requests),
+          tls_client_certificate_bound_access_tokens: JSON.parse(req.body.tls_client_certificate_bound_access_tokens),
+          client_id: req.body.client_id, 
+          jwks_uri: req.body.jwks_uri, 
+          tls_client_auth_subject_dn: req.body.tls_client_auth_subject_dn,
+          authorization_signed_response_alg: req.body.authorization_signed_response_alg,
+        },
+          signing_kid: req.body.signing_kid,
+          software_statement_id: req.body.software_statement_id,
+          organisation_id: req.body.organisation_id
+      }
+    };
+
+    return res.status(302).redirect("https://tpp.localhost:8080");
+  });
+
   app.post('/payment', async (req, res) => {
     consentLog('Starting a new payment consent');
     let date = new Date();
@@ -827,7 +868,7 @@ let config = JSON.parse(JSON.stringify(configuration));
           claims: tokenSet.claims(), 
           errorPayload, 
         };
-        return res.status(302).redirect("https://localhost:8080/payment-response");
+        return res.status(302).redirect("https://tpp.localhost:8080/payment-response");
       }
 
     }
@@ -906,7 +947,7 @@ let config = JSON.parse(JSON.stringify(configuration));
             errorPayload, 
             paymentInfo
           };
-          return res.status(302).redirect("https://localhost:8080/payment-response");
+          return res.status(302).redirect("https://tpp.localhost:8080/payment-response");
       }
   
       let x = 0;
@@ -956,7 +997,7 @@ let config = JSON.parse(JSON.stringify(configuration));
             consentPayload
           };
             
-          return res.status(302).redirect("https://localhost:8080/payment-response");
+          return res.status(302).redirect("https://tpp.localhost:8080/payment-response");
         }
       }
   
@@ -974,11 +1015,11 @@ let config = JSON.parse(JSON.stringify(configuration));
       };
   
       paymentLog('Payment execution complete');
-      return res.status(302).redirect("https://localhost:8080/payment-response");
+      return res.status(302).redirect("https://tpp.localhost:8080/payment-response");
     }
 
     paymentLog('Consent execution complete');
-    return res.status(302).redirect("https://localhost:8080/consent-response-menu");
+    return res.status(302).redirect("https://tpp.localhost:8080/consent-response-menu");
   });
 
   app.get("/consent", (req, res) => {
@@ -1058,7 +1099,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         errorPayload, 
         paymentInfo
       };
-      return res.status(302).redirect("https://localhost:8080/payment-response");
+      return res.status(302).redirect("https://tpp.localhost:8080/payment-response");
     }
 
     res.cookie('state', state, { path, sameSite: 'none', secure: true });
@@ -1127,6 +1168,8 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   app.post('/consent', async (req, res) => {
 
+    const identification = req.body.identification;
+    const rel = req.body.rel;
     const grantedPermissions = req.body.permissionsArr.map((permissionData) => {
         return permissionData.permissions;
     });
@@ -1150,8 +1193,8 @@ let config = JSON.parse(JSON.stringify(configuration));
       data: {
         loggedUser: {
           document: {
-            identification: "76109277673",
-            rel: "CPF"
+            identification: identification,
+            rel: rel
           }
         },
         permissions,
@@ -1183,7 +1226,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         errorPayload, 
         consentInfo
       };
-      return res.status(302).redirect("https://localhost:8080/consent-response-menu");
+      return res.status(302).redirect("https://tpp.localhost:8080/consent-response-menu");
     }
 
     res.cookie('state', state, { path, sameSite: 'none', secure: true });

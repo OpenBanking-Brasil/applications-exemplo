@@ -241,22 +241,26 @@ export default {
           this.currency = response.data.data.payment.currency;
           this.creationDateTime = response.data.data.creationDateTime;
           this.bankName = response.data.selectedBank;
-          axios
-            .get(`/payment-consent/${this.consentID}`, {
-              withCredentials: true,
-            })
-            .then((response) => {
-              this.scheduledDate =
-                response.data.data.payment.schedule.single.date;
-                this.loading = false;
-            })
-            .catch((error) => {
-              if (error.response.status !== 200) {
-                this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
-                this.snackbar = true;
-                this.loading = false;
-              }
+          if(this.paymentIsScheduled){
+            axios
+              .get(`/payment-consent/${this.consentID}`, {
+                withCredentials: true,
+              })
+              .then((response) => {
+                this.scheduledDate =
+                  response.data.data.payment.schedule.single.date;
+                  this.loading = false;
+              })
+              .catch((error) => {
+                if (error.response.status !== 200) {
+                  this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
+                  this.snackbar = true;
+                  this.loading = false;
+                }
             });
+          } else {
+              this.loading = false;
+          }
         })
         .catch((error) => {
           if (error.response.status !== 200) {

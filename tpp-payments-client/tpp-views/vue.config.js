@@ -5,7 +5,7 @@ const { defineConfig } = require("@vue/cli-service");
 
 module.exports = {
   devServer: {
-    host: 'localhost',
+    host: 'tpp.localhost',
     port: 8080,
     https: true,
   },

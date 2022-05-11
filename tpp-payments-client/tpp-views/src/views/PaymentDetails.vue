@@ -618,7 +618,7 @@ export default {
   data: () => ({
     multiLine: true,
     snackbar: false,
-    text: `Payment schedule date cannot be today, it must be in the future`,
+    text: `Payment schedule date must be in the future`,
     loading: false,
     modal: false,
     bankName: "",

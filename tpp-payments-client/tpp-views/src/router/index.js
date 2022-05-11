@@ -81,7 +81,7 @@ const routes = [
     path: '/customers',
     name: 'customers',
     component: CustomersMenu
-  }
+  },
 ]
 
 const router = new VueRouter({

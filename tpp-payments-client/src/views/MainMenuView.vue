@@ -11,6 +11,65 @@
         >
           <SheetAppBar header="Mock TPP" />
           <v-container class="pa-md-12">
+            <v-dialog
+              transition="dialog-bottom-transition"
+              max-width="800"
+              v-model="dialog"
+              v-if="$route.params.data"
+            >
+              <template v-slot:default="dialog">
+                <v-card>
+                  <v-toolbar class="blue-grey darken-4 font-weight-bold" dark
+                    >Client Details</v-toolbar
+                  >
+                  <v-card-text>
+                    <div>
+                      <v-row>
+                        <v-col>
+                          <v-alert dense text type="success" class="mt-5">
+                            {{ messageText }}
+                          </v-alert>
+                          <v-card class="mt-5">
+                            <v-list dense>
+                              <v-list-item>
+                                <v-list-item-content
+                                  >Client ID:</v-list-item-content
+                                >
+                                <v-list-item-content class="align-end">
+                                  {{ clientID }}
+                                </v-list-item-content>
+                              </v-list-item>
+
+                              <v-list-item>
+                                <v-list-item-content
+                                  >Registration Access
+                                  Token:</v-list-item-content
+                                >
+                                <v-list-item-content class="align-end">
+                                  {{ registrationAccessToken }}
+                                </v-list-item-content>
+                              </v-list-item>
+
+                              <v-list-item>
+                                <v-list-item-content
+                                  >Granted Scopes:</v-list-item-content
+                                >
+                                <v-list-item-content class="align-end">
+                                  {{ scopes }}
+                                </v-list-item-content>
+                              </v-list-item>
+                            </v-list>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                    </div>
+                  </v-card-text>
+                  <v-card-actions class="justify-end">
+                    <v-btn text @click="dialog.value = false">OK</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </template>
+            </v-dialog>
             <v-row>
               <v-col cols="12" sm="6" md="3">
                 <b>Client ID</b>
@@ -201,6 +260,7 @@ import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import Button from "@/components/Buttons/Button.vue";
 import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
+import { mapGetters } from "vuex";
 
 export default {
   name: "MainMenuView",
@@ -211,12 +271,13 @@ export default {
   },
 
   data: () => ({
+    dialog: true,
     multiLine: true,
     snackbar: false,
     loading: false,
     snackbarMessage: "",
     bankName: "",
-    clientID: "",
+    clientId: "",
     refreshToken: "",
     consentID: "",
     paymentID: "",
@@ -226,7 +287,12 @@ export default {
     currency: "",
     creationDateTime: "",
     scheduledDate: "",
+    messageText: ""
   }),
+
+  computed: {
+    ...mapGetters(["scopes", "clientID", "registrationAccessToken"]),
+  },
 
   methods: {
     getPayment() {
@@ -284,19 +350,20 @@ export default {
   },
 
   created() {
-    //this.bankName = this.$route.params.data?.selectedBank;
-    this.clientID = this.$route.params.data?.clientId;
+    const selectedDcrOption = this.$route.params.data?.selectedDcrOption;
+    this.messageText = selectedDcrOption === "USE_EXISTING_CLIENT" ? "Obtained the registered client's details successfully" : "Dynamic client registeration has been done successfully";
+    this.clientId = this.$route.params.data?.clientId;
     axios
       .get("/payment-response-data", {
         withCredentials: true,
       })
       .then((response) => {
         if (response.data.clientId) {
-          this.clientID = response.data.clientId;
-          this.refreshToken = response.data.refreshToken;
-          this.consentID = response.data.payload.data.consentId;
-          this.paymentID = response.data.payload.data.paymentId;
-          this.paymentIsScheduled = response.data.scheduled ? true : false;
+          this.clientId = response.data?.clientId;
+          this.refreshToken = response.data?.refreshToken;
+          this.consentID = response.data.payload?.data.consentId;
+          this.paymentID = response.data.payload?.data.paymentId;
+          this.paymentIsScheduled = response?.data.scheduled ? true : false;
         }
       });
   },

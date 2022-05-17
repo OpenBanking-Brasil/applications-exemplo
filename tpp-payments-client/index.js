@@ -29,6 +29,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   const { nanoid } = require("nanoid");
   const cors = require("cors");
   const session = require("express-session");
+  const uploadFile = require("express-fileupload");
 
   app.use(cors({ credentials: true, origin: "https://tpp.localhost:8080" }));
 
@@ -52,72 +53,81 @@ let config = JSON.parse(JSON.stringify(configuration));
   but for now we use an array to store the fapiClients with associated session IDs*/
   const fapiClientSpecificData = [];
 
-  //We need to confirm our private key into a jwks for local signing
-  const key = crypto.createPrivateKey(
-    fs.readFileSync(certsPath + "signing.key")
-  );
-  const privateJwk = await jose.exportJWK(key);
-  privateJwk.kid = config.data.signing_kid;
-  setupLog("Create private jwk key %O", privateJwk);
-  const keyset = {
-    keys: [privateJwk],
-  };
+  app.use(async (req, res, next) => {
 
-  //We need to setup an mtls certificate httpsAgent
-  //NOTE: Do NOT leave rejectUnauthorized as 'false' as this disables certificate chain verification
-  const httpsAgent = new https.Agent({
-    ca: fs.readFileSync(certsPath + "ca.pem"),
-    key: fs.readFileSync(certsPath + "transport.key"),
-    cert: fs.readFileSync(certsPath + "transport.pem"),
-    rejectUnauthorized: false,
-  });
+    //We need to confirm our private key into a jwks for local signing
+    req.session.key = crypto.createPrivateKey(
+      fs.readFileSync(certsPath + "signing.key")
+    );
+    req.session.privateJwk = await jose.exportJWK(req.session.key);
+    req.session.privateJwk.kid = config.data.signing_kid;
+    setupLog("Create private jwk key %O", req.session.privateJwk);
+    req.session.keyset = {
+      keys: [req.session.privateJwk],
+    };
 
-  //Set some logging options so that we log evrey request and response in an easy to use pattern
-  custom.setHttpOptionsDefaults({
-    hooks: {
-      beforeRequest: [
-        (options) => {
-          commsLog("--> %s %s", options.method.toUpperCase(), options.url.href);
-          commsLog("--> HEADERS %o", options.headers);
-          if (options.body) {
-            commsLog("--> BODY %s", options.body);
-          }
-          if (options.form) {
-            commsLog("--> FORM %s", options.form);
-          }
-        },
-      ],
-      afterResponse: [
-        (response) => {
-          commsLog(
-            "<-- %i FROM %s %s",
-            response.statusCode,
-            response.request.options.method.toUpperCase(),
-            response.request.options.url.href
-          );
-          commsLog("<-- HEADERS %o", response.headers);
-          if (response.body) {
-            commsLog("<-- BODY %s", response.body);
-          }
-          return response;
-        },
-      ],
-    },
-    timeout: 20000,
-    https: {
-      certificateAuthority: fs.readFileSync(certsPath + "ca.pem"),
-      certificate: fs.readFileSync(certsPath + "transport.pem"),
+    //We need to setup an mtls certificate httpsAgent
+    //NOTE: Do NOT leave rejectUnauthorized as 'false' as this disables certificate chain verification
+    const httpsAgent = new https.Agent({
+      ca: fs.readFileSync(certsPath + "ca.pem"),
       key: fs.readFileSync(certsPath + "transport.key"),
+      cert: fs.readFileSync(certsPath + "transport.pem"),
       rejectUnauthorized: false,
-    },
-  });
+    });
 
-  //Retrieve the information from the open banking brazil directory of participants on launch
-  const instance = axios.create({ httpsAgent });
-  setupLog("Retrieving Banks from Directory of Participants");
-  const axiosResponse = await instance.get(
-    "https://data.sandbox.directory.openbankingbrasil.org.br/participants"
-  );
+    //Set some logging options so that we log evrey request and response in an easy to use pattern
+    req.session.loggingOptions = {
+      hooks: {
+        beforeRequest: [
+          (options) => {
+            commsLog("--> %s %s", options.method.toUpperCase(), options.url.href);
+            commsLog("--> HEADERS %o", options.headers);
+            if (options.body) {
+              commsLog("--> BODY %s", options.body);
+            }
+            if (options.form) {
+              commsLog("--> FORM %s", options.form);
+            }
+          },
+        ],
+        afterResponse: [
+          (response) => {
+            commsLog(
+              "<-- %i FROM %s %s",
+              response.statusCode,
+              response.request.options.method.toUpperCase(),
+              response.request.options.url.href
+            );
+            commsLog("<-- HEADERS %o", response.headers);
+            if (response.body) {
+              commsLog("<-- BODY %s", response.body);
+            }
+            return response;
+          },
+        ],
+      },
+      timeout: 20000,
+      https: {
+        certificateAuthority: fs.readFileSync(certsPath + "ca.pem"),
+        certificate: fs.readFileSync(certsPath + "transport.pem"),
+        key: fs.readFileSync(certsPath + "transport.key"),
+        rejectUnauthorized: false,
+      },
+    };
+    custom.setHttpOptionsDefaults(req.session.loggingOptions);
+
+    //Retrieve the information from the open banking brazil directory of participants on launch
+    req.session.instance = axios.create({ httpsAgent });
+    setupLog("Retrieving Banks from Directory of Participants");
+    const axiosResponse = await req.session.instance.get(
+      "https://data.sandbox.directory.openbankingbrasil.org.br/participants"
+    );
+
+    req.session.axiosResponse = axiosResponse.data;
+
+    next();
+
+  });
 
   //This configures a FAPI Client for the Bank that you have selected from the UI
   async function setupClient(
@@ -127,8 +137,9 @@ let config = JSON.parse(JSON.stringify(configuration));
     clientId = "",
     registrationAccessToken = ""
   ) {
+    const useCustomConfig = req.session.useCustomConfig;
     //Use the default config if no custom configuration is provided
-    if (!req.session.useCustomConfig) {
+    if (!useCustomConfig) {
       req.session.config = JSON.parse(JSON.stringify(configuration));
     }
     setupLog("Begin Client Setup for Target Bank");
@@ -174,17 +185,21 @@ let config = JSON.parse(JSON.stringify(configuration));
           // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
           const result = {};
 
-          result.cert = fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-          result.key = fs.readFileSync(certsPath + "transport.key");
-          result.ca = fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+          result.cert = useCustomConfig ? req.session.certificates["transport.pem"] : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
+          result.key = useCustomConfig ? req.session.certificates["transport.key"] : fs.readFileSync(certsPath + "transport.key");
+          result.ca = useCustomConfig ? req.session.certificates["ca.pem"] : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
           return result;
         };
 
-        fapiClient = await FAPI1Client.fromUri(
-          `https://matls-auth.mockbank.poc.raidiam.io/reg/${clientId}`,
-          registrationAccessToken,
-          keyset
-        );
+        try {
+          fapiClient = await FAPI1Client.fromUri(
+            `https://matls-auth.mockbank.poc.raidiam.io/reg/${clientId}`,
+            registrationAccessToken,
+            req.session.keyset
+          );
+        } catch(error) {
+          throw error;
+        }
 
         req.session.fapiClient = fapiClient;
         dcrLog("The existing client obtained successfully");
@@ -203,9 +218,9 @@ let config = JSON.parse(JSON.stringify(configuration));
         // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
         const result = {};
 
-        result.cert = fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-        result.key = fs.readFileSync(certsPath + "transport.key");
-        result.ca = fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+        result.cert = useCustomConfig ? req.session.certificates["transport.pem"] : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
+        result.key = useCustomConfig ? req.session.certificates["transport.key"] : fs.readFileSync(certsPath + "transport.key");
+        result.ca = useCustomConfig ? req.session.certificates["ca.pem"] : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
         return result;
       };
 
@@ -241,9 +256,9 @@ let config = JSON.parse(JSON.stringify(configuration));
     directoryFapiClient[custom.http_options] = function (url, options) {
       const result = {};
 
-      result.cert = fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-      result.key = fs.readFileSync(certsPath + "transport.key");
-      result.ca = fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+      result.cert = useCustomConfig ? req.session.certificates["transport.pem"] : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
+      result.key = useCustomConfig ? req.session.certificates["transport.key"] : fs.readFileSync(certsPath + "transport.key");
+      result.ca = useCustomConfig ? req.session.certificates["ca.pem"] : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
       return result;
     };
 
@@ -336,14 +351,14 @@ let config = JSON.parse(JSON.stringify(configuration));
         // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
         const result = {};
 
-        result.cert = fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-        result.key = fs.readFileSync(certsPath + "transport.key");
-        result.ca = fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+        result.cert = useCustomConfig ? req.session.certificates["transport.pem"] : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
+        result.key = useCustomConfig ? req.session.certificates["transport.key"] : fs.readFileSync(certsPath + "transport.key");
+        result.ca = useCustomConfig ? req.session.certificates["ca.pem"] : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
         return result;
       };
 
       fapiClient = await FAPI1Client.register(req.session.config.data.client, {
-        jwks: keyset,
+        jwks: req.session.keyset,
       });
       req.session.fapiClient = fapiClient;
       dcrLog("New client created successfully");
@@ -361,9 +376,9 @@ let config = JSON.parse(JSON.stringify(configuration));
       // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
       const result = {};
 
-      result.cert = fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-      result.key = fs.readFileSync(certsPath + "transport.key");
-      result.ca = fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+      result.cert = useCustomConfig ? req.session.certificates["transport.pem"] : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
+      result.key = useCustomConfig ? req.session.certificates["transport.key"] : fs.readFileSync(certsPath + "transport.key");
+      result.ca = useCustomConfig ? req.session.certificates["ca.pem"] : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
       return result;
     };
 
@@ -442,13 +457,13 @@ let config = JSON.parse(JSON.stringify(configuration));
       consentLog("Log presigning payment consent object");
       consentLog(payloadData);
       signedPayload = await new jose.SignJWT({ data: payloadData })
-        .setProtectedHeader({ alg: "PS256", typ: "JWT", kid: privateJwk.kid })
+        .setProtectedHeader({ alg: "PS256", typ: "JWT", kid: req.session.privateJwk.kid })
         .setIssuedAt()
         .setIssuer(req.session.config.data.organisation_id)
         .setJti(nanoid())
         .setAudience(consentEndpoint)
         .setExpirationTime("5m")
-        .sign(key);
+        .sign(req.session.key);
 
       consentLog("Log post signing payment consent JWT");
       consentLog(signedPayload);
@@ -637,7 +652,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         ? "payments-consents"
         : "customers-personal";
 
-    const TotalBanks = axiosResponse.data;
+    const TotalBanks = req.session.axiosResponse;
     req.session.availableBanks = TotalBanks.filter((e) =>
       e.AuthorisationServers.some((as) =>
         as.ApiResources.some(
@@ -645,7 +660,6 @@ let config = JSON.parse(JSON.stringify(configuration));
         )
       )
     );
-    //setupLog(req.session.availableBanks);
 
     consentLog(
       "Providing a list of banks to the customer for them to choose from the UI"
@@ -653,8 +667,72 @@ let config = JSON.parse(JSON.stringify(configuration));
     res.json(req.session.availableBanks);
   });
 
+  app.use(uploadFile());
   app.post("/change-config", async (req, res) => {
+    
+    const certs = ["ca.pem", "signing.key", "signing.pem", "transport.key", "transport.pem"];
+
+    if(!Array.isArray(req.files.certificates)){
+      return res.status(400).send(`The following certificates are required: ${certs.join(", ")}.`);
+    }
+
+    const uploadedCerts = req.files.certificates.map(cert => (cert.name));
+    const missingCerts = [];
+    for(let cert of certs){
+      const includesCert = uploadedCerts.includes(cert);
+      if(!includesCert){
+        missingCerts.push(cert);
+      }
+    }
+
+    if(missingCerts.length > 0){
+      return res.status(400).send(`The following certificate(s) is/are missing: ${missingCerts.join(", ")}.`);
+    }
+
     req.session.useCustomConfig = true;
+
+    const certsObj = {};
+    req.files.certificates.forEach((cert) => {
+      certsObj[cert.name] = cert.data.toString();
+    });
+
+    req.session.certificates = certsObj;
+
+    req.session.key = crypto.createPrivateKey(
+      req.session.certificates["signing.key"]
+    );
+    req.session.privateJwk = await jose.exportJWK(req.session.key);
+    req.session.privateJwk.kid = config.data.signing_kid;
+    setupLog("Create private jwk key %O", req.session.privateJwk);
+    req.session.keyset = {
+      keys: [req.session.privateJwk],
+    };
+
+    const httpsAgent = new https.Agent({
+      ca: req.session.certificates["ca.pem"],
+      key: req.session.certificates["transport.key"],
+      cert: req.session.certificates["transport.pem"],
+      rejectUnauthorized: false,
+    });
+
+    req.session.instance = axios.create({ httpsAgent });
+    setupLog("Retrieving Banks from Directory of Participants");
+    const axiosResponse = await req.session.instance.get(
+      "https://data.sandbox.directory.openbankingbrasil.org.br/participants"
+    );
+
+    req.session.axiosResponse = axiosResponse.data;
+
+
+    req.session.loggingOptions.https = {
+      certificateAuthority: req.session.certificates["ca.pem"],
+      certificate: req.session.certificates["transport.pem"],
+      key: req.session.certificates["transport.key"],
+      rejectUnauthorized: false,
+    };
+
+    custom.setHttpOptionsDefaults(req.session.loggingOptions);
+
     req.session.config = {
       data: {
         client: {
@@ -692,7 +770,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       },
     };
 
-    return res.status(302).redirect("https://tpp.localhost:8080");
+    return res.status(201).json({message: "Form Submitted Successfully"});
   });
 
   app.post("/payment", async (req, res) => {
@@ -996,13 +1074,13 @@ let config = JSON.parse(JSON.stringify(configuration));
       paymentLog("Create payment object %O", payment);
       paymentLog("Signing payment");
       const jwt = await new jose.SignJWT({ data: payment })
-        .setProtectedHeader({ alg: "PS256", typ: "JWT", kid: privateJwk.kid })
+        .setProtectedHeader({ alg: "PS256", typ: "JWT", kid: req.session.privateJwk.kid })
         .setIssuedAt()
         .setIssuer(req.session.config.data.organisation_id)
         .setJti(nanoid())
         .setAudience(paymentEndpoint)
         .setExpirationTime("5m")
-        .sign(key);
+        .sign(req.session.key);
       paymentLog("Signed payment JWT %O", jwt);
       paymentLog("Create payment resource using the signed payment JWT ");
       let paymentResponse = await client.requestResource(
@@ -1180,16 +1258,22 @@ let config = JSON.parse(JSON.stringify(configuration));
         "Customer has select bank issuer to use %O",
         req.session.selectedBank
       );
-      const { fapiClient, localIssuer } = await setupClient(
-        req.session.selectedBank,
-        selectedDcrOption,
-        req,
-        clientId,
-        registrationAccessToken
-      );
-      consentLog("Client is ready to talk to the chosen bank");
-      client = fapiClient;
-      issuer = localIssuer;
+
+
+      try{        
+        const { fapiClient, localIssuer } = await setupClient(
+          req.session.selectedBank,
+          selectedDcrOption,
+          req,
+          clientId,
+          registrationAccessToken
+        );
+        consentLog("Client is ready to talk to the chosen bank");
+        client = fapiClient;
+        issuer = localIssuer;
+      } catch (error){
+        return res.status(500).send(error);
+      }
     } else {
       throw Error("No bank was selected");
     }
@@ -1431,13 +1515,13 @@ let config = JSON.parse(JSON.stringify(configuration));
     };
 
     const jwt = await new jose.SignJWT({ data: payment })
-      .setProtectedHeader({ alg: "PS256", typ: "JWT", kid: privateJwk.kid })
+      .setProtectedHeader({ alg: "PS256", typ: "JWT", kid: req.session.privateJwk.kid })
       .setIssuedAt()
       .setIssuer(req.session.config.data.organisation_id)
       .setJti(nanoid())
       .setAudience(patchEndpoint)
       .setExpirationTime("5m")
-      .sign(key);
+      .sign(req.session.key);
     consentLog("Log patch signing payment consent JWT");
     consentLog(jwt);
 

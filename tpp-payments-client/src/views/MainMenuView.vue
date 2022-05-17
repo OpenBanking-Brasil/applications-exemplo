@@ -351,7 +351,7 @@ export default {
 
   created() {
     const selectedDcrOption = this.$route.params.data?.selectedDcrOption;
-    this.messageText = selectedDcrOption === "USE_EXISTING_CLIENT" ? "Obtained the registered client's details successfully" : "Dynamic client registeration has been done successfully";
+    this.messageText = selectedDcrOption === "USE_EXISTING_CLIENT" ? "Obtained the registered client's details successfully" : "Dynamic client registration has been done successfully";
     this.clientId = this.$route.params.data?.clientId;
     axios
       .get("/payment-response-data", {

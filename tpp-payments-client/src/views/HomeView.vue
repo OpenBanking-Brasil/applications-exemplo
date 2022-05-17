@@ -398,7 +398,13 @@
                           </v-col>
 
                           <v-col cols="12" sm="12" md="12">
-                            <b> Upload Certificates </b>
+                            <b> Upload Certificates - Certificate authority (ca.pem), Signing (signing.pem/signing.key) and Transport (transport.pem/transport.key) </b>
+                            <v-icon
+                              small
+                              title="Upload your own certificates. If empty, will use the default ones from the Mock TPP."
+                            >
+                              mdi-information
+                            </v-icon>
                             <v-file-input
                               v-model="files"
                               small-chips

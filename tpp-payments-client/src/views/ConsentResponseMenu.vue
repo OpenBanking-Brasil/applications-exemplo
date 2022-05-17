@@ -265,7 +265,6 @@ export default {
     ]),
   },
   created() {
-    console.log("Hello", this.clientID);
     axios.get("/consent", { withCredentials: true }).then((response) => {
       this.consentPayload = response.data.consent;
       this.grantedConsents = response.data.permissionsData;

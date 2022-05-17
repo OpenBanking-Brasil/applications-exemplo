@@ -94,8 +94,6 @@
                   </v-btn>
                 </template>
                 <v-form
-                  action="https://tpp.localhost:443/change-config"
-                  method="POST"
                 >
                   <v-card>
                     <v-card-title>
@@ -128,7 +126,7 @@
                               dense
                               name="application_type"
                               id="application_type"
-                              v-model="application_type"
+                              v-model="theFormData.application_type"
                             ></v-text-field>
                           </v-col>
 
@@ -146,7 +144,7 @@
                               dense
                               name="id_token_signed_response_alg"
                               id="id_token_signed_response_alg"
-                              v-model="id_token_signed_response_alg"
+                              v-model="theFormData.id_token_signed_response_alg"
                             ></v-text-field>
                           </v-col>
 
@@ -159,7 +157,7 @@
                               mdi-information
                             </v-icon>
                             <v-select
-                              v-model="require_auth_time"
+                              v-model="theFormData.require_auth_time"
                               :items="[true, false]"
                               outlined
                               dense
@@ -182,7 +180,7 @@
                               dense
                               name="subject_type"
                               id="subject_type"
-                              v-model="subject_type"
+                              v-model="theFormData.subject_type"
                             ></v-text-field>
                           </v-col>
 
@@ -200,7 +198,7 @@
                               dense
                               name="token_endpoint_auth_method"
                               id="token_endpoint_auth_method"
-                              v-model="token_endpoint_auth_method"
+                              v-model="theFormData.token_endpoint_auth_method"
                             ></v-text-field>
                           </v-col>
 
@@ -218,7 +216,7 @@
                               dense
                               name="request_object_signing_alg"
                               id="request_object_signing_alg"
-                              v-model="request_object_signing_alg"
+                              v-model="theFormData.request_object_signing_alg"
                             ></v-text-field>
                           </v-col>
 
@@ -231,7 +229,7 @@
                               mdi-information
                             </v-icon>
                             <v-select
-                              v-model="require_signed_request_object"
+                              v-model="theFormData.require_signed_request_object"
                               :items="[true, false]"
                               outlined
                               dense
@@ -249,7 +247,7 @@
                               mdi-information
                             </v-icon>
                             <v-select
-                              v-model="require_pushed_authorization_requests"
+                              v-model="theFormData.require_pushed_authorization_requests"
                               :items="[true, false]"
                               outlined
                               dense
@@ -267,9 +265,7 @@
                               mdi-information
                             </v-icon>
                             <v-select
-                              v-model="
-                                tls_client_certificate_bound_access_tokens
-                              "
+                              v-model="theFormData.tls_client_certificate_bound_access_tokens"
                               :items="[true, false]"
                               outlined
                               dense
@@ -286,7 +282,7 @@
                               dense
                               name="client_id"
                               id="client_id"
-                              v-model="client_id"
+                              v-model="theFormData.client_id"
                             ></v-text-field>
                           </v-col>
 
@@ -304,7 +300,7 @@
                               dense
                               name="jwks_uri"
                               id="jwks_uri"
-                              v-model="jwks_uri"
+                              v-model="theFormData.jwks_uri"
                             ></v-text-field>
                           </v-col>
 
@@ -322,7 +318,7 @@
                               dense
                               name="tls_client_auth_subject_dn"
                               id="tls_client_auth_subject_dn"
-                              v-model="tls_client_auth_subject_dn"
+                              v-model="theFormData.tls_client_auth_subject_dn"
                             ></v-text-field>
                           </v-col>
 
@@ -340,7 +336,7 @@
                               dense
                               name="authorization_signed_response_alg"
                               id="authorization_signed_response_alg"
-                              v-model="authorization_signed_response_alg"
+                              v-model="theFormData.authorization_signed_response_alg"
                             ></v-text-field>
                           </v-col>
 
@@ -373,7 +369,7 @@
                               dense
                               name="signing_kid"
                               id="signing_kid"
-                              v-model="signing_kid"
+                              v-model="theFormData.signing_kid"
                             ></v-text-field>
                           </v-col>
 
@@ -385,7 +381,7 @@
                               dense
                               name="software_statement_id"
                               id="software_statement_id"
-                              v-model="software_statement_id"
+                              v-model="theFormData.software_statement_id"
                             ></v-text-field>
                           </v-col>
 
@@ -397,8 +393,43 @@
                               dense
                               name="organisation_id"
                               id="organisation_id"
-                              v-model="organisation_id"
+                              v-model="theFormData.organisation_id"
                             ></v-text-field>
+                          </v-col>
+
+                          <v-col cols="12" sm="12" md="12">
+                            <b> Upload Certificates - Certificate authority (ca.pem), Signing (signing.pem/signing.key) and Transport (transport.pem/transport.key) </b>
+                            <v-icon
+                              small
+                              title="Upload your own certificates. If empty, will use the default ones from the Mock TPP."
+                            >
+                              mdi-information
+                            </v-icon>
+                            <v-file-input
+                              v-model="files"
+                              small-chips
+                              show-size
+                              multiple
+                              clearable
+                              outlined
+                              dense
+                              name="certificates"
+                              id="certificates"
+                              @change="onFileChange"
+                              @click:clear="clearFilesInput"
+                            >
+                              <template v-slot:selection="{ text, index }">
+                                <v-chip
+                                  small
+                                  text-color="#ffffff"
+                                  color="primary"
+                                  close
+                                  @click:close="remove(index)"
+                                >
+                                  {{ text }}
+                                </v-chip>
+                              </template>
+                            </v-file-input>
                           </v-col>
                         </v-row>
                       </v-container>
@@ -411,10 +442,8 @@
                       <v-btn
                         color="blue darken-1"
                         text
-                        @click="dialog = false"
+                        @click.prevent="submitConfigForm"
                         type="submit"
-                        action="https://tpp.localhost:443/change-config"
-                        method="POST"
                       >
                         Save
                       </v-btn>
@@ -428,11 +457,22 @@
       </v-col>
       <v-col> </v-col>
     </v-row>
+    <v-snackbar v-model="snackbar" :multi-line="multiLine" :color="statusColour">
+      {{ messageText }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-main>
 </template>
 
 <script>
 import { mapActions } from "vuex";
+import axios from "../util/axios.js";
+import { FormData } from "formdata-node";
 
 export default {
   name: "HomeView",
@@ -441,30 +481,100 @@ export default {
   data: () => {
     return {
       dialog: false,
+      files: [],
+      currFiles: [],
 
-      application_type: "web",
-      id_token_signed_response_alg: "PS256",
-      require_auth_time: false,
-      subject_type: "public",
-      token_endpoint_auth_method: "tls_client_auth",
-      request_object_signing_alg: "PS256",
-      require_signed_request_object: true,
-      require_pushed_authorization_requests: false,
-      tls_client_certificate_bound_access_tokens: true,
-      client_id: "7nrwPCGZjkx03v4PqErZJ",
-      jwks_uri:
-        "https://keystore.sandbox.directory.openbankingbrasil.org.br/74e929d9-33b6-4d85-8ba7-c146c867a817/7218e1af-195f-42b5-a44b-8c7828470f5a/application.jwks",
-      tls_client_auth_subject_dn:
-        "CN=7218e1af-195f-42b5-a44b-8c7828470f5a,OU=74e929d9-33b6-4d85-8ba7-c146c867a817,O=Open Banking,C=BR",
-      authorization_signed_response_alg: "PS256",
-      signing_kid: "8o-O3VSFOPE8TrULXUTHxhxJcdADKIBmsfE0KWYkHik",
-      software_statement_id: "7218e1af-195f-42b5-a44b-8c7828470f5a",
-      organisation_id: "74e929d9-33b6-4d85-8ba7-c146c867a817",
+      multiLine: true,
+      snackbar: false,
+      messageText: "",
+      statusColour: "red accent-2",
+
+      theFormData: {
+        application_type: "web",
+        id_token_signed_response_alg: "PS256",
+        require_auth_time: false,
+        subject_type: "public",
+        token_endpoint_auth_method: "tls_client_auth",
+        request_object_signing_alg: "PS256",
+        require_signed_request_object: true,
+        require_pushed_authorization_requests: false,
+        tls_client_certificate_bound_access_tokens: true,
+        client_id: "7nrwPCGZjkx03v4PqErZJ",
+        jwks_uri:
+          "https://keystore.sandbox.directory.openbankingbrasil.org.br/74e929d9-33b6-4d85-8ba7-c146c867a817/7218e1af-195f-42b5-a44b-8c7828470f5a/application.jwks",
+        tls_client_auth_subject_dn:
+          "CN=7218e1af-195f-42b5-a44b-8c7828470f5a,OU=74e929d9-33b6-4d85-8ba7-c146c867a817,O=Open Banking,C=BR",
+        authorization_signed_response_alg: "PS256",
+        signing_kid: "8o-O3VSFOPE8TrULXUTHxhxJcdADKIBmsfE0KWYkHik",
+        software_statement_id: "7218e1af-195f-42b5-a44b-8c7828470f5a",
+        organisation_id: "74e929d9-33b6-4d85-8ba7-c146c867a817",
+      }
     };
   },
 
   methods: {
     ...mapActions(["setOption"]),
+
+    remove(index) {
+      this.files.splice(index, 1);
+    },
+
+    clearFilesInput(){
+      this.currFiles = [];
+      this.files = [];
+    },
+
+    onFileChange() {
+
+      for(let file of this.files){
+        let fileAlreadyExist = false;
+        for(let currFile of this.currFiles){
+          if(file.name === currFile.name){
+            fileAlreadyExist = true;
+            break;
+          }
+        }
+        if(!fileAlreadyExist){
+          this.currFiles.push(file);
+        }
+      }
+
+      this.files = structuredClone(this.currFiles);
+    },
+
+    submitConfigForm(){
+
+      this.dialog = false;
+
+      var formData = new FormData();
+      for(let file of this.files){
+        formData.append("certificates", file);
+      }
+
+      for(let recordName in this.theFormData){
+        formData.append(recordName, this.theFormData[recordName]);
+      }
+
+      axios.defaults.withCredentials = true;
+      axios
+        .post("/change-config", formData , {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          },
+        })
+        .then((res) => {
+          if(res.status === 201){
+            this.messageText = res.data.message;
+            this.statusColour = "success";
+            this.snackbar = true;
+          }
+        }).catch((error) => {
+          this.messageText = error.response.data;
+          this.statusColour = "red accent-2";
+          this.snackbar = true;
+        });
+    },
+
     optionChoice(option) {
       this.setOption(option);
       this.$router.push({

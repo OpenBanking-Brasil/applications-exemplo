@@ -5,6 +5,65 @@
       <v-col cols="12" sm="8">
         <SheetAppBar header="Consent Menu" />
         <v-container class="pa-md-12" style="background: #ffffff">
+          <v-dialog
+            transition="dialog-bottom-transition"
+            max-width="800"
+            v-model="dialog"
+            v-if="$route.params.data"
+          >
+            <template v-slot:default="dialog">
+              <v-card>
+                <v-toolbar class="blue-grey darken-4 font-weight-bold" dark
+                  >Client Details</v-toolbar
+                >
+                <v-card-text>
+                  <div>
+                    <v-row>
+                      <v-col>
+                        <v-alert dense text type="success" class="mt-5">
+                          {{ messageText }}
+                        </v-alert>
+                        <v-card class="mt-5">
+                          <v-list dense>
+                            <v-list-item>
+                              <v-list-item-content
+                                >Client ID:</v-list-item-content
+                              >
+                              <v-list-item-content class="align-end">
+                                {{ clientID }}
+                              </v-list-item-content>
+                            </v-list-item>
+
+                            <v-list-item>
+                              <v-list-item-content
+                                >Registration Access Token:</v-list-item-content
+                              >
+                              <v-list-item-content class="align-end">
+                                {{ registrationAccessToken }}
+                              </v-list-item-content>
+                            </v-list-item>
+
+                            <v-list-item>
+                              <v-list-item-content
+                                >Granted Scopes:</v-list-item-content
+                              >
+                              <v-list-item-content class="align-end">
+                                {{ scopes }}
+                              </v-list-item-content>
+                            </v-list-item>
+                          </v-list>
+                        </v-card>
+                      </v-col>
+                    </v-row>
+                  </div>
+                </v-card-text>
+                <v-card-actions class="justify-end">
+                  <v-btn text @click="dialog.value = false">OK</v-btn>
+                </v-card-actions>
+              </v-card>
+            </template>
+          </v-dialog>
+
           <v-row align="center">
             <v-col class="d-flex" cols="12" sm="4">
               <v-select
@@ -103,6 +162,7 @@ export default {
   },
   data() {
     return {
+      dialog: true,
       multiLine: true,
       snackbar: false,
       snackbarMessage: "",
@@ -126,6 +186,7 @@ export default {
         { text: "PERMISSIONS", value: "permissions" },
         { text: "GIVE CONSENT", value: "consent" },
       ],
+      messageText: ""
     };
   },
 
@@ -142,10 +203,12 @@ export default {
   },
 
   computed: {
-    ...mapGetters(["consents"]),
+    ...mapGetters(["consents", "scopes", "clientID", "registrationAccessToken"]),
   },
 
   created() {
+    const selectedDcrOption = this.$route.params.data?.selectedDcrOption;
+    this.messageText = selectedDcrOption === "USE_EXISTING_CLIENT" ? "Obtained the registered client's details successfully" : "Dynamic client registration has been done successfully";
     this.setCadastroOption(this.selectedOption);
     this.consentsDeepCopy = JSON.parse(JSON.stringify(this.consents));
     this.consentsArr = this.consentsDeepCopy.filter(

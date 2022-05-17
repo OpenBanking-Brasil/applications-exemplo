@@ -18,7 +18,13 @@
                 v-model="search"
               ></v-text-field>
 
-              <v-card class="mx-auto">
+                <v-skeleton-loader
+                  class="mx-auto"
+                  type="list-item-avatar, list-item-avatar, list-item-avatar, list-item-avatar"
+                  v-if="loadingBanks"
+                ></v-skeleton-loader>
+
+              <v-card class="mx-auto" else>
                 <v-list-item-group
                   style="max-height: 300px"
                   class="overflow-y-auto"
@@ -131,7 +137,7 @@
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="100"></v-progress-circular>
     </v-overlay>
-    <v-snackbar v-model="snackbar" :multi-line="multiLine">
+    <v-snackbar v-model="snackbar" :multi-line="multiLine" color="red accent-2">
       {{ text }}
 
       <template v-slot:action="{ attrs }">
@@ -177,6 +183,7 @@ export default {
     selectedBank: "Mock Bank",
     banks: [],
     search: "",
+    loadingBanks: true,
   }),
   methods: {
     ...mapActions(["setScopes"]),
@@ -218,6 +225,7 @@ export default {
               name: "payment-menu",
               params: {
                 data: {
+                  selectedDcrOption: this.dcrOption,
                   selectedBank: this.selectedBank,
                   clientId: res.data.clientId,
                 },
@@ -226,11 +234,17 @@ export default {
           } else {
             this.$router.push({
               name: "consent-menu",
+              params: {
+                data: {
+                  selectedDcrOption: this.dcrOption,
+                }
+              }
             });
           }
         })
-        .catch((err) => {
-          console.log(err);
+        .catch((error) => {
+          this.text = error.response.data.error_description;
+          this.snackbar = true;
           this.loading = false;
         });
     },
@@ -250,6 +264,15 @@ export default {
   },
 
   computed: {
+
+    dcrOption(){
+      if(this.selectedDcrOption === "Dynamically Register A New Client"){
+        return "REGISTER_NEW_CLIENT";
+      } else {
+        return "USE_EXISTING_CLIENT";
+      }
+    },
+
     headerText() {
       if (this.selectedOption === "payments") {
         return "Payment Providers Details";
@@ -291,6 +314,7 @@ export default {
     axios
       .get(`/banks/${this.selectedOption}`, { withCredentials: true })
       .then((response) => {
+        this.loadingBanks = false;
         this.getBanks(response.data);
       });
   },

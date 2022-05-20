@@ -186,7 +186,7 @@ export default {
         { text: "PERMISSIONS", value: "permissions" },
         { text: "GIVE CONSENT", value: "consent" },
       ],
-      messageText: ""
+      messageText: "",
     };
   },
 
@@ -203,12 +203,20 @@ export default {
   },
 
   computed: {
-    ...mapGetters(["consents", "scopes", "clientID", "registrationAccessToken"]),
+    ...mapGetters([
+      "consents",
+      "scopes",
+      "clientID",
+      "registrationAccessToken",
+    ]),
   },
 
   created() {
     const selectedDcrOption = this.$route.params.data?.selectedDcrOption;
-    this.messageText = selectedDcrOption === "USE_EXISTING_CLIENT" ? "Obtained the registered client's details successfully" : "Dynamic client registration has been done successfully";
+    this.messageText =
+      selectedDcrOption === "USE_EXISTING_CLIENT"
+        ? "Obtained the registered client's details successfully"
+        : "Dynamic client registration has been done successfully";
     this.setCadastroOption(this.selectedOption);
     this.consentsDeepCopy = JSON.parse(JSON.stringify(this.consents));
     this.consentsArr = this.consentsDeepCopy.filter(

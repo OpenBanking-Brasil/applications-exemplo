@@ -5,12 +5,12 @@ const { defineConfig } = require("@vue/cli-service");
 
 module.exports = {
   devServer: {
-    host: 'tpp.localhost',
+    host: "tpp.localhost",
     port: 8080,
     https: true,
   },
   transpileDependencies: ["vuetify"],
-}
+};
 
 // module.exports = {
 //   configureWebpack: {

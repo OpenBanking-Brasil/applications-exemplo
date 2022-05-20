@@ -93,8 +93,7 @@
                     Configurations
                   </v-btn>
                 </template>
-                <v-form
-                >
+                <v-form>
                   <v-card>
                     <v-card-title>
                       <span class="text-h5"> Configuration Settings</span>
@@ -229,7 +228,9 @@
                               mdi-information
                             </v-icon>
                             <v-select
-                              v-model="theFormData.require_signed_request_object"
+                              v-model="
+                                theFormData.require_signed_request_object
+                              "
                               :items="[true, false]"
                               outlined
                               dense
@@ -247,7 +248,9 @@
                               mdi-information
                             </v-icon>
                             <v-select
-                              v-model="theFormData.require_pushed_authorization_requests"
+                              v-model="
+                                theFormData.require_pushed_authorization_requests
+                              "
                               :items="[true, false]"
                               outlined
                               dense
@@ -265,7 +268,9 @@
                               mdi-information
                             </v-icon>
                             <v-select
-                              v-model="theFormData.tls_client_certificate_bound_access_tokens"
+                              v-model="
+                                theFormData.tls_client_certificate_bound_access_tokens
+                              "
                               :items="[true, false]"
                               outlined
                               dense
@@ -336,7 +341,9 @@
                               dense
                               name="authorization_signed_response_alg"
                               id="authorization_signed_response_alg"
-                              v-model="theFormData.authorization_signed_response_alg"
+                              v-model="
+                                theFormData.authorization_signed_response_alg
+                              "
                             ></v-text-field>
                           </v-col>
 
@@ -397,8 +404,50 @@
                             ></v-text-field>
                           </v-col>
 
+                          <v-col cols="12" sm="4" md="4">
+                            <b> Loop Pause Time (ms) </b>
+                            <v-text-field
+                              placeholder=""
+                              outlined
+                              dense
+                              type="number"
+                              name="loop_pause_time"
+                              id="loop_pause_time"
+                              v-model="theFormData.loop_pause_time"
+                            ></v-text-field>
+                          </v-col>
+
+                          <v-col cols="12" sm="4" md="4">
+                            <b> Number of Check Loops </b>
+                            <v-text-field
+                              placeholder=""
+                              outlined
+                              dense
+                              type="number"
+                              name="number_of_check_loops"
+                              id="number_of_check_loops"
+                              v-model="theFormData.number_of_check_loops"
+                            ></v-text-field>
+                          </v-col>
+
+                          <v-col cols="12" sm="4" md="4">
+                            <b> Preferred Token Auth Mechanism </b>
+                            <v-text-field
+                              placeholder=""
+                              outlined
+                              dense
+                              name="preferred_token_auth_mech"
+                              id="preferred_token_auth_mech"
+                              v-model="theFormData.preferred_token_auth_mech"
+                            ></v-text-field>
+                          </v-col>
+
                           <v-col cols="12" sm="12" md="12">
-                            <b> Upload Certificates - Certificate authority (ca.pem), Signing (signing.pem/signing.key) and Transport (transport.pem/transport.key) </b>
+                            <b>
+                              Upload Certificates - Certificate authority
+                              (ca.pem), Signing (signing.pem/signing.key) and
+                              Transport (transport.pem/transport.key)
+                            </b>
                             <v-icon
                               small
                               title="Upload your own certificates. If empty, will use the default ones from the Mock TPP."
@@ -457,7 +506,11 @@
       </v-col>
       <v-col> </v-col>
     </v-row>
-    <v-snackbar v-model="snackbar" :multi-line="multiLine" :color="statusColour">
+    <v-snackbar
+      v-model="snackbar"
+      :multi-line="multiLine"
+      :color="statusColour"
+    >
       {{ messageText }}
 
       <template v-slot:action="{ attrs }">
@@ -508,7 +561,10 @@ export default {
         signing_kid: "8o-O3VSFOPE8TrULXUTHxhxJcdADKIBmsfE0KWYkHik",
         software_statement_id: "7218e1af-195f-42b5-a44b-8c7828470f5a",
         organisation_id: "74e929d9-33b6-4d85-8ba7-c146c867a817",
-      }
+        loop_pause_time: 2000,
+        number_of_check_loops: 5,
+        preferred_token_auth_mech: "private_key_jwt",
+      },
     };
   },
 
@@ -519,22 +575,21 @@ export default {
       this.files.splice(index, 1);
     },
 
-    clearFilesInput(){
+    clearFilesInput() {
       this.currFiles = [];
       this.files = [];
     },
 
     onFileChange() {
-
-      for(let file of this.files){
+      for (let file of this.files) {
         let fileAlreadyExist = false;
-        for(let currFile of this.currFiles){
-          if(file.name === currFile.name){
+        for (let currFile of this.currFiles) {
+          if (file.name === currFile.name) {
             fileAlreadyExist = true;
             break;
           }
         }
-        if(!fileAlreadyExist){
+        if (!fileAlreadyExist) {
           this.currFiles.push(file);
         }
       }
@@ -542,33 +597,33 @@ export default {
       this.files = structuredClone(this.currFiles);
     },
 
-    submitConfigForm(){
-
+    submitConfigForm() {
       this.dialog = false;
 
       var formData = new FormData();
-      for(let file of this.files){
+      for (let file of this.files) {
         formData.append("certificates", file);
       }
 
-      for(let recordName in this.theFormData){
+      for (let recordName in this.theFormData) {
         formData.append(recordName, this.theFormData[recordName]);
       }
 
       axios.defaults.withCredentials = true;
       axios
-        .post("/change-config", formData , {
+        .post("/change-config", formData, {
           headers: {
-            "Content-Type": "multipart/form-data"
+            "Content-Type": "multipart/form-data",
           },
         })
         .then((res) => {
-          if(res.status === 201){
+          if (res.status === 201) {
             this.messageText = res.data.message;
             this.statusColour = "success";
             this.snackbar = true;
           }
-        }).catch((error) => {
+        })
+        .catch((error) => {
           this.messageText = error.response.data;
           this.statusColour = "red accent-2";
           this.snackbar = true;

@@ -243,7 +243,8 @@ export default {
           }
         })
         .catch((error) => {
-          this.text = error.response.data.error_description;
+          console.log(error);
+          this.text = error.response.statusText;
           this.snackbar = true;
           this.loading = false;
         });

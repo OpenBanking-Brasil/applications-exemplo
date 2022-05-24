@@ -11,9 +11,9 @@ Open Banking Brasil Mock Payments Client
 2. Add the following mappings to your /etc/hosts file:
 
 
-- **127.0.0.1       mongo1**
-- **127.0.0.1       mongo2**
-- **127.0.0.1       mongo3**
+- **127.0.0.1   &nbsp; &nbsp; &nbsp; &nbsp;    mongo1**
+- **127.0.0.1   &nbsp; &nbsp; &nbsp; &nbsp;    mongo2**
+- **127.0.0.1   &nbsp; &nbsp; &nbsp; &nbsp;    mongo3**
 
 3. To do step 2, follow these instructions:
     1. Launch Terminal
@@ -35,21 +35,27 @@ Open Banking Brasil Mock Payments Client
 npm install
 ```
 
-5. Run the following command to start the front-end and the back-end at once
+5. Open docker and run the following command in your terminal:
+
+```
+docker-compose up
+```
+
+6. Run the following command to start the front-end and the back-end both at the same time
 
 ```
 npm start
 ```
 
-Setep 6 and 7 are alternative to step 5 (optional)
-6. If you want to run the front-end and back-end on seperate terminals (get colourful logs), run the following commands:
+Setep 7 and 8 are alternative to step 6 (optional)
+7. If you want to run the front-end and back-end on seperate terminals (get colourful logs), run the following commands:
 Front-End
 
 ```
 npm run serve
 ```
 
-7. Back-End
+8. Back-End
 
 ```
 npm DEBUG=tpp* node index.js

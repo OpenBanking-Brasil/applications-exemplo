@@ -112,11 +112,9 @@ export default {
           this.status = response.data.payload.data.status;
         } else {
           this.errorResponse = response.data.errorPayload;
+          console.log(response.data);
         }
       });
-  },
-  mounted() {
-    console.log("h", this.amount);
-  },
+  }
 };
 </script>

@@ -18,11 +18,11 @@
                 v-model="search"
               ></v-text-field>
 
-                <v-skeleton-loader
-                  class="mx-auto"
-                  type="list-item-avatar, list-item-avatar, list-item-avatar, list-item-avatar"
-                  v-if="loadingBanks"
-                ></v-skeleton-loader>
+              <v-skeleton-loader
+                class="mx-auto"
+                type="list-item-avatar, list-item-avatar, list-item-avatar, list-item-avatar"
+                v-if="loadingBanks"
+              ></v-skeleton-loader>
 
               <v-card class="mx-auto" else>
                 <v-list-item-group
@@ -237,8 +237,8 @@ export default {
               params: {
                 data: {
                   selectedDcrOption: this.dcrOption,
-                }
-              }
+                },
+              },
             });
           }
         })
@@ -264,9 +264,8 @@ export default {
   },
 
   computed: {
-
-    dcrOption(){
-      if(this.selectedDcrOption === "Dynamically Register A New Client"){
+    dcrOption() {
+      if (this.selectedDcrOption === "Dynamically Register A New Client") {
         return "REGISTER_NEW_CLIENT";
       } else {
         return "USE_EXISTING_CLIENT";

@@ -5,23 +5,52 @@
 Open Banking Brasil Mock Payments Client
 
 ### Getting started
-Run the following command to install all the required packages
+
+1. Install mongoDB and Docker if you don't have them installed
+
+2. Add the following mappings to your /etc/hosts file:
+
+
+- **127.0.0.1       mongo1**
+- **127.0.0.1       mongo2**
+- **127.0.0.1       mongo3**
+
+3. To do step 2, follow these instructions:
+    1. Launch Terminal
+    2. Type the following command at the prompt:
+
+    ```
+    sudo nano /private/etc/hosts
+    ```
+
+    3. sudo nano /private/etc/hosts
+
+    4. Enter the administrator password when requested
+    5. Once the hosts file is loaded within nano, use the arrow keys to navigate to the bottom of the hosts file to make your modifications
+    6. When finished, hit Control+O followed by ENTER/RETURN to save changes to /private/etc/hosts, then hit Control+X to exit out of nano
+
+4. Run the following command to install all the required packages
+
 ```
 npm install
 ```
 
-Run the following command to start the front-end and the back-end at once
+5. Run the following command to start the front-end and the back-end at once
+
 ```
 npm start
 ```
 
-If you want to run the front-end and back-end on seperate terminals (get colourful logs), run the following commands:
+Setep 6 and 7 are alternative to step 5 (optional)
+6. If you want to run the front-end and back-end on seperate terminals (get colourful logs), run the following commands:
 Front-End
+
 ```
 npm run serve
 ```
 
-Back-End
+7. Back-End
+
 ```
 npm DEBUG=tpp* node index.js
 ```

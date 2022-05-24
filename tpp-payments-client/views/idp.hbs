@@ -1,147 +1,135 @@
-<!DOCTYPE html>
 <html>
-<title>Open Banking Mock TPP</title>
+  <title>Open Banking Mock TPP</title>
 
-<head>
-  <meta charset="utf-8">
-  <title>Select Bank</title>
+  <head>
+    <meta charset="utf-8" />
+    <title>Select Bank</title>
+    <style>
+      body { font-size: 12px; font-family: Arial; }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+  </head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+    crossorigin="anonymous"
+  />
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
+  <link
+    rel="stylesheet"
+    href="https://www.w3schools.com/lib/w3-theme-blue-grey.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Open+Sans"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+  />
   <style>
-    body {
-      font-size: 12px;
-      font-family: Arial;
-    }
+    html, body, h1, h2, h3, h4, h5 { font-family: "Open Sans", sans-serif; }
   </style>
-  <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
-</head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet"
-  integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous" />
-<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
-<link rel="stylesheet" href="https://www.w3schools.com/lib/w3-theme-blue-grey.css" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
-<style>
-  html,
-  body,
-  h1,
-  h2,
-  h3,
-  h4,
-  h5 {
-    font-family: "Open Sans", sans-serif;
-  }
-</style>
 
-<body class="w3-theme-l5">
-  <!-- Navbar -->
-  <div class="w3-top">
-    <nav class="w3-bar w3-theme-d2 w3-left-align w3-large">
-      <a href="/" class="w3-bar-item w3-button w3-padding-large w3-theme-d4"><i
-          class="fa fa-home w3-margin-right"></i>Mock TPP</a>
-    </nav>
-  </div>
-
-  <!-- Page Container -->
-  <div class="w3-container w3-content" style="max-width: 1400px; margin-top: 80px">
-    <!-- The Grid -->
-    <div class="w3-row">
-      <!-- Left Column -->
-      <div class="w3-col m4">
-        <div class="w3-center">
-          <!-- Profile -->
-          <div class="w3-container">
-            <h5 style="align-items: center;">
-              Select your Bank
-            </h5>
-            <hr />
-            <input id="searchbar" onkeyup="search_bank()" type="text"
-            name="search" placeholder="Search banks..">
-            <p>
-            <div id="placeholder">
-            </div>
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Middle Column -->
-      <div class="w3-col m8" style="padding: 20px;">
-        <div class="w3-container w3-card w3-white w3-margin-bottom" style="padding: 20px;">
-        <div class="w3-container">
-          <p style="align-items: center;">
-            You need to select your bank from the list, so that we can redirect you there for authentication using
-            your banking credentials.
-          </p>
-          <p style="align-items: center;">
-            You will get to see what payment details are being requested and decide whether to complete the payment.
-          </p>
-          </div>
-        </div>
-        <!-- End Middle Column -->
-      </div>
-
-      <!-- End Grid -->
+  <body class="w3-theme-l5">
+    <!-- Navbar -->
+    <div class="w3-top">
+      <nav class="w3-bar w3-theme-d2 w3-left-align w3-large">
+        <a
+          href="/"
+          class="w3-bar-item w3-button w3-padding-large w3-theme-d4"
+        ><i class="fa fa-home w3-margin-right"></i>Mock TPP</a>
+      </nav>
     </div>
 
-    <!-- End Page Container -->
-  </div>
-</body>
-<script>
-  fetch('/banks')
-    .then(function (response) {
-      return response.json();
-    })
-    .then(function (data) {
-      appendData(data);
-    })
-    .catch(function (err) {
-      console.log(err);
-    });
+    <!-- Page Container -->
+    <div
+      class="w3-container w3-content"
+      style="max-width: 1400px; margin-top: 80px"
+    >
+      <!-- The Grid -->
+      <div class="w3-row">
+        <!-- Left Column -->
+        <div class="w3-col m4">
+          <div class="w3-center">
+            <!-- Profile -->
+            <div class="w3-container">
+              <h5 style="align-items: center;">
+                Select your Bank
+              </h5>
+              <hr />
+              <input
+                id="searchbar"
+                onkeyup="search_bank()"
+                type="text"
+                name="search"
+                placeholder="Search banks.."
+              />
+              <p>
+                <div id="placeholder">
+                </div>
+              </p>
+            </div>
+          </div>
+        </div>
 
-  function appendData(data) {
-    var mainContainer = document.getElementById("placeholder");
-    for (var i = 0; i < data.length; i++) {
-      if (data[i].AuthorisationServers) {
-        for (y = 0; y < data[i].AuthorisationServers.length; y++) {
-          var div = document.createElement("div");
-          //div.innerHTML = 'CustomerFriendlyName: ' + data[i].AuthorisationServers[y].CustomerFriendlyName;
-          div.innerHTML = '<form action="/makepayment" method="POST"><button class="w3-button w3-block w3-theme-l4" type="submit" formaction="/makepayment"><img src="' + data[i].AuthorisationServers[y].CustomerFriendlyLogoUri + '" alt="bank" width="50px"> ' + data[i].AuthorisationServers[y].CustomerFriendlyName + '</button><input type="hidden" name="bank" value="' + data[i].AuthorisationServers[y].CustomerFriendlyName + '" /> </form>'
-          mainContainer.appendChild(div);
-        }
-      }
-    }
-  }
+        <!-- Middle Column -->
+        <div class="w3-col m8" style="padding: 20px;">
+          <div
+            class="w3-container w3-card w3-white w3-margin-bottom"
+            style="padding: 20px;"
+          >
+            <div class="w3-container">
+              <p style="align-items: center;">
+                You need to select your bank from the list, so that we can
+                redirect you there for authentication using your banking
+                credentials.
+              </p>
+              <p style="align-items: center;">
+                You will get to see what payment details are being requested and
+                decide whether to complete the payment.
+              </p>
+            </div>
+          </div>
+          <!-- End Middle Column -->
+        </div>
 
-  function search_bank() {
-    let input = document.getElementById('searchbar').value
-    input=input.toLowerCase();
-    let x = document.getElementsByClassName('w3-button w3-block w3-theme-l4');
-      
-    for (i = 0; i < x.length; i++) { 
-        if (!x[i].innerHTML.toLowerCase().includes(input)) {
-            x[i].style.display="none";
-        }
-        else {
-            x[i].style.display="list-item";                 
-        }
-    }
-}
-</script>
+        <!-- End Grid -->
+      </div>
 
-<style>
+      <!-- End Page Container -->
+    </div>
+  </body>
+  <script>
+    fetch('/banks') .then(function (response) { return response.json(); })
+    .then(function (data) { appendData(data); }) .catch(function (err) {
+    console.log(err); }); function appendData(data) { var mainContainer =
+    document.getElementById("placeholder"); for (var i = 0; i < data.length;
+    i++) { if (data[i].AuthorisationServers) { for (y = 0; y <
+    data[i].AuthorisationServers.length; y++) { var div =
+    document.createElement("div"); //div.innerHTML = 'CustomerFriendlyName: ' +
+    data[i].AuthorisationServers[y].CustomerFriendlyName; div.innerHTML = '<form
+    action="/makepayment" method="POST"><button class="w3-button w3-block
+    w3-theme-l4" type="submit" formaction="/makepayment"><img src="' +
+    data[i].AuthorisationServers[y].CustomerFriendlyLogoUri + '" alt="bank"
+    width="50px"> ' + data[i].AuthorisationServers[y].CustomerFriendlyName +
+    '</button><input type="hidden" name="bank" value="' +
+    data[i].AuthorisationServers[y].CustomerFriendlyName + '" /> </form>'
+    mainContainer.appendChild(div); } } } } function search_bank() { let input =
+    document.getElementById('searchbar').value input=input.toLowerCase(); let x
+    = document.getElementsByClassName('w3-button w3-block w3-theme-l4'); for (i
+    = 0; i < x.length; i++) { if (!x[i].innerHTML.toLowerCase().includes(input))
+    { x[i].style.display="none"; } else { x[i].style.display="list-item"; } } }
+  </script>
 
-  #searchbar {
-  padding: 5px;
-  font-size: 17px;
-  border: 1px solid grey;
-  float: left;
-  width: 100%;
-  background: #f1f1f1;
-}
+  <style>
 
+    #searchbar { padding: 5px; font-size: 17px; border: 1px solid grey; float:
+    left; width: 100%; background: #f1f1f1; }
 
-
-</style>
+  </style>
 
 </html>

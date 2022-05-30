@@ -442,7 +442,7 @@
                             ></v-text-field>
                           </v-col>
 
-                          <v-col cols="12" sm="12" md="12">
+                          <v-col cols="12" sm="8" md="8">
                             <b>
                               Upload Certificates - Certificate authority
                               (ca.pem), Signing (signing.pem/signing.key) and
@@ -480,6 +480,20 @@
                               </template>
                             </v-file-input>
                           </v-col>
+
+
+
+                        <v-col cols="12" sm="4" md="4">
+                          <v-checkbox
+                            class="mt-12"
+                            v-model="theFormData.replace_existing_certs"
+                            label="Replace Existing Certificates"
+                            color="primary"
+                            hide-details
+                          ></v-checkbox>
+                        </v-col>
+
+
                         </v-row>
                       </v-container>
                     </v-card-text>
@@ -564,6 +578,7 @@ export default {
         loop_pause_time: 2000,
         number_of_check_loops: 5,
         preferred_token_auth_mech: "private_key_jwt",
+        replace_existing_certs: false,
       },
     };
   },
@@ -583,9 +598,10 @@ export default {
     onFileChange() {
       for (let file of this.files) {
         let fileAlreadyExist = false;
-        for (let currFile of this.currFiles) {
-          if (file.name === currFile.name) {
+        for (let i = 0; i < this.currFiles.length; i++) {
+          if (file.name === this.currFiles[i].name) {
             fileAlreadyExist = true;
+            this.currFiles[i] = file;
             break;
           }
         }
@@ -600,7 +616,7 @@ export default {
     submitConfigForm() {
       this.dialog = false;
 
-      var formData = new FormData();
+      let formData = new FormData();
       for (let file of this.files) {
         formData.append("certificates", file);
       }
@@ -622,11 +638,14 @@ export default {
             this.statusColour = "success";
             this.snackbar = true;
           }
+          this.clearFilesInput();
         })
         .catch((error) => {
+          console.log("cannot post", error);
           this.messageText = error.response.data;
           this.statusColour = "red accent-2";
           this.snackbar = true;
+          this.clearFilesInput();
         });
     },
 
@@ -642,5 +661,13 @@ export default {
       });
     },
   },
+
+  created(){
+    axios
+      .get("/", { withCredentials: true })
+      .then((response) => {
+        console.log(response.status);
+      });
+  }
 };
 </script>

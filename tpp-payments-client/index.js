@@ -60,13 +60,38 @@ let config = JSON.parse(JSON.stringify(configuration));
   /*fapiClient object should be stored in a session db since object with methods cannot be stored in memory session,
   but for now we use an array to store the fapiClients with associated session IDs*/
 
-  app.use(async (req, res, next) => {
+  async function initConfig(req, res, next, flag = "") {
+    if (!req.session.certificates) {
+      req.session.certificates = {};
+    }
+
+    req.session.certAuthority = req.session.certificates.hasOwnProperty(
+      "ca.pem"
+    )
+      ? req.session.certificates["ca.pem"]
+      : fs.readFileSync(certsPath + "ca.pem");
+    req.session.transportKey = req.session.certificates.hasOwnProperty(
+      "transport.key"
+    )
+      ? req.session.certificates["transport.key"]
+      : fs.readFileSync(certsPath + "transport.key");
+    req.session.transportPem = req.session.certificates.hasOwnProperty(
+      "transport.pem"
+    )
+      ? req.session.certificates["transport.pem"]
+      : fs.readFileSync(certsPath + "transport.pem");
+    req.session.signingKey = req.session.certificates.hasOwnProperty(
+      "signing.key"
+    )
+      ? req.session.certificates["signing.key"]
+      : fs.readFileSync(certsPath + "signing.key");
+
     //We need to confirm our private key into a jwks for local signing
-    req.session.key = crypto.createPrivateKey(
-      fs.readFileSync(certsPath + "signing.key")
-    );
+    req.session.key = crypto.createPrivateKey(req.session.signingKey);
     req.session.privateJwk = await jose.exportJWK(req.session.key);
-    req.session.privateJwk.kid = config.data.signing_kid;
+    req.session.privateJwk.kid = req.session.config
+      ? req.session.config.data.signing_kid
+      : config.data.signing_kid;
     setupLog("Create private jwk key %O", req.session.privateJwk);
     req.session.keyset = {
       keys: [req.session.privateJwk],
@@ -75,9 +100,9 @@ let config = JSON.parse(JSON.stringify(configuration));
     //We need to setup an mtls certificate httpsAgent
     //NOTE: Do NOT leave rejectUnauthorized as 'false' as this disables certificate chain verification
     const httpsAgent = new https.Agent({
-      ca: fs.readFileSync(certsPath + "ca.pem"),
-      key: fs.readFileSync(certsPath + "transport.key"),
-      cert: fs.readFileSync(certsPath + "transport.pem"),
+      ca: req.session.certAuthority,
+      key: req.session.transportKey,
+      cert: req.session.transportPem,
       rejectUnauthorized: false,
     });
 
@@ -118,9 +143,9 @@ let config = JSON.parse(JSON.stringify(configuration));
       },
       timeout: 20000,
       https: {
-        certificateAuthority: fs.readFileSync(certsPath + "ca.pem"),
-        certificate: fs.readFileSync(certsPath + "transport.pem"),
-        key: fs.readFileSync(certsPath + "transport.key"),
+        certificateAuthority: req.session.certAuthority,
+        certificate: req.session.transportPem,
+        key: req.session.transportKey,
         rejectUnauthorized: false,
       },
     };
@@ -135,8 +160,14 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     req.session.axiosResponse = axiosResponse.data;
 
+    if (flag === "CUSTOM") {
+      return;
+    }
+
     next();
-  });
+  }
+
+  app.use("/", initConfig);
 
   //This configures a FAPI Client for the Bank that you have selected from the UI
   async function setupClient(
@@ -150,6 +181,8 @@ let config = JSON.parse(JSON.stringify(configuration));
     //Use the default config if no custom configuration is provided
     if (!useCustomConfig) {
       req.session.config = JSON.parse(JSON.stringify(configuration));
+    } else {
+      req.session.config = JSON.parse(JSON.stringify(req.session.customConfig));
     }
     setupLog("Begin Client Setup for Target Bank");
     req.session.selectedOrganisation = req.session.availableBanks.find(
@@ -194,13 +227,13 @@ let config = JSON.parse(JSON.stringify(configuration));
           // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
           const result = {};
 
-          result.cert = useCustomConfig
+          result.cert = req.session.certificates.hasOwnProperty("transport.pem")
             ? req.session.certificates["transport.pem"]
             : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-          result.key = useCustomConfig
+          result.key = req.session.certificates.hasOwnProperty("transport.key")
             ? req.session.certificates["transport.key"]
             : fs.readFileSync(certsPath + "transport.key");
-          result.ca = useCustomConfig
+          result.ca = req.session.certificates.hasOwnProperty("ca.pem")
             ? req.session.certificates["ca.pem"]
             : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
           return result;
@@ -232,13 +265,13 @@ let config = JSON.parse(JSON.stringify(configuration));
         // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
         const result = {};
 
-        result.cert = useCustomConfig
+        result.cert = req.session.certificates.hasOwnProperty("transport.pem")
           ? req.session.certificates["transport.pem"]
           : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-        result.key = useCustomConfig
+        result.key = req.session.certificates.hasOwnProperty("transport.key")
           ? req.session.certificates["transport.key"]
           : fs.readFileSync(certsPath + "transport.key");
-        result.ca = useCustomConfig
+        result.ca = req.session.certificates.hasOwnProperty("ca.pem")
           ? req.session.certificates["ca.pem"]
           : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
         return result;
@@ -276,13 +309,13 @@ let config = JSON.parse(JSON.stringify(configuration));
     directoryFapiClient[custom.http_options] = function (url, options) {
       const result = {};
 
-      result.cert = useCustomConfig
+      result.cert = req.session.certificates.hasOwnProperty("transport.pem")
         ? req.session.certificates["transport.pem"]
         : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-      result.key = useCustomConfig
+      result.key = req.session.certificates.hasOwnProperty("transport.key")
         ? req.session.certificates["transport.key"]
         : fs.readFileSync(certsPath + "transport.key");
-      result.ca = useCustomConfig
+      result.ca = req.session.certificates.hasOwnProperty("ca.pem")
         ? req.session.certificates["ca.pem"]
         : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
       return result;
@@ -380,13 +413,13 @@ let config = JSON.parse(JSON.stringify(configuration));
         // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
         const result = {};
 
-        result.cert = useCustomConfig
+        result.cert = req.session.certificates.hasOwnProperty("transport.pem")
           ? req.session.certificates["transport.pem"]
           : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-        result.key = useCustomConfig
+        result.key = req.session.certificates.hasOwnProperty("transport.key")
           ? req.session.certificates["transport.key"]
           : fs.readFileSync(certsPath + "transport.key");
-        result.ca = useCustomConfig
+        result.ca = req.session.certificates.hasOwnProperty("ca.pem")
           ? req.session.certificates["ca.pem"]
           : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
         return result;
@@ -410,13 +443,13 @@ let config = JSON.parse(JSON.stringify(configuration));
       // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
       const result = {};
 
-      result.cert = useCustomConfig
+      result.cert = req.session.certificates.hasOwnProperty("transport.pem")
         ? req.session.certificates["transport.pem"]
         : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-      result.key = useCustomConfig
+      result.key = req.session.certificates.hasOwnProperty("transport.key")
         ? req.session.certificates["transport.key"]
         : fs.readFileSync(certsPath + "transport.key");
-      result.ca = useCustomConfig
+      result.ca = req.session.certificates.hasOwnProperty("ca.pem")
         ? req.session.certificates["ca.pem"]
         : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
       return result;
@@ -711,84 +744,49 @@ let config = JSON.parse(JSON.stringify(configuration));
     res.json(req.session.availableBanks);
   });
 
-  app.use(uploadFile());
-  app.post("/change-config", async (req, res) => {
-    const certs = [
-      "ca.pem",
-      "signing.key",
-      "signing.pem",
-      "transport.key",
-      "transport.pem",
-    ];
-
-    if (!Array.isArray(req.files.certificates)) {
-      return res
-        .status(400)
-        .send(`The following certificates are required: ${certs.join(", ")}.`);
-    }
-
-    const uploadedCerts = req.files.certificates.map((cert) => cert.name);
-    const missingCerts = [];
-    for (let cert of certs) {
-      const includesCert = uploadedCerts.includes(cert);
-      if (!includesCert) {
-        missingCerts.push(cert);
+  //replace the default certs if the user wants to
+  function saveFile(file) {
+    const filename = file.name;
+    file.mv("./certs/" + filename, function (error) {
+      if (error) {
+        return false;
+      } else {
+        return true;
       }
-    }
+    });
+  }
 
-    if (missingCerts.length > 0) {
-      return res
-        .status(400)
-        .send(
-          `The following certificate(s) is/are missing: ${missingCerts.join(
-            ", "
-          )}.`
-        );
+  app.use(uploadFile());
+  app.post("/change-config", async (req, res, next) => {
+
+    if (req.files && JSON.parse(req.body.replace_existing_certs)) {
+      if (req.files && !Array.isArray(req.files.certificates)) {
+        saveFile(req.files.certificates);
+      } else {
+        req.files.certificates.forEach((cert) => {
+          saveFile(cert);
+        });
+      }
     }
 
     req.session.useCustomConfig = true;
 
     const certsObj = {};
-    req.files.certificates.forEach((cert) => {
-      certsObj[cert.name] = cert.data.toString();
-    });
+
+    if (req.files) {
+      if (req.files && !Array.isArray(req.files.certificates)) {
+        certsObj[req.files.certificates.name] =
+          req.files.certificates.data.toString();
+      } else {
+        req.files.certificates.forEach((cert) => {
+          certsObj[cert.name] = cert.data.toString();
+        });
+      }
+    }
+
     req.session.certificates = certsObj;
 
-    req.session.key = crypto.createPrivateKey(
-      req.session.certificates["signing.key"]
-    );
-    req.session.privateJwk = await jose.exportJWK(req.session.key);
-    req.session.privateJwk.kid = config.data.signing_kid;
-    setupLog("Create private jwk key %O", req.session.privateJwk);
-    req.session.keyset = {
-      keys: [req.session.privateJwk],
-    };
-
-    const httpsAgent = new https.Agent({
-      ca: req.session.certificates["ca.pem"],
-      key: req.session.certificates["transport.key"],
-      cert: req.session.certificates["transport.pem"],
-      rejectUnauthorized: false,
-    });
-
-    req.session.instance = axios.create({ httpsAgent });
-    setupLog("Retrieving Banks from Directory of Participants");
-    const axiosResponse = await req.session.instance.get(
-      "https://data.sandbox.directory.openbankingbrasil.org.br/participants"
-    );
-
-    req.session.axiosResponse = axiosResponse.data;
-
-    req.session.loggingOptions.https = {
-      certificateAuthority: req.session.certificates["ca.pem"],
-      certificate: req.session.certificates["transport.pem"],
-      key: req.session.certificates["transport.key"],
-      rejectUnauthorized: false,
-    };
-
-    custom.setHttpOptionsDefaults(req.session.loggingOptions);
-
-    req.session.config = {
+    req.session.customConfig = {
       data: {
         client: {
           application_type: req.body.application_type,
@@ -830,6 +828,8 @@ let config = JSON.parse(JSON.stringify(configuration));
       number_of_check_loops: req.body.number_of_check_loops,
       preferred_token_auth_mech: req.body.preferred_token_auth_mech,
     };
+
+    await initConfig(req, res, next, "CUSTOM");
 
     return res.status(201).json({ message: "Form Submitted Successfully" });
   });

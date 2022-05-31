@@ -30,6 +30,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   const cors = require("cors");
   const session = require("express-session");
   const MongoDBStore = require("connect-mongodb-session")(session);
+  const { connectToDb, getDb } = require("./db");
   const uploadFile = require("express-fileupload");
 
   app.use(cors({ credentials: true, origin: "https://tpp.localhost:8080" }));
@@ -41,6 +42,31 @@ let config = JSON.parse(JSON.stringify(configuration));
   const store = new MongoDBStore({
     uri: "mongodb://localhost:27017/MockTPP",
     collection: "sessions",
+  });
+
+  // connct to mongoDB
+  let db;
+  connectToDb((error) => {
+    if(!error){
+      db = getDb();
+
+      https
+      .createServer(
+        {
+          // ...
+          key: fs.readFileSync(certsPath + "transport.key"),
+          cert: fs.readFileSync(certsPath + "transport.pem"),
+          // ...
+        },
+        app
+      )
+      .listen(443);
+  
+      console.log("Node.js web server at port 443 is running..");
+
+    } else {
+      throw new Error("Failed to connect to the mongoDB database");
+    }
   });
 
   //secret should be a lnog string value in production
@@ -57,38 +83,52 @@ let config = JSON.parse(JSON.stringify(configuration));
   // parse various different custom JSON types as JSON
   app.use(express.json({ type: "application/json" }));
 
-  /*fapiClient object should be stored in a session db since object with methods cannot be stored in memory session,
+  /*fapiClient object should be stored in a session db because object with methods cannot be stored in memory session,
   but for now we use an array to store the fapiClients with associated session IDs*/
+  const fapiClientSpecificData = [];
 
-  async function initConfig(req, res, next, flag = "") {
-    if (!req.session.certificates) {
-      req.session.certificates = {};
-    }
+  function getCerts(certificates = {}){
 
-    req.session.certAuthority = req.session.certificates.hasOwnProperty(
+    const certAuthority = certificates.hasOwnProperty(
       "ca.pem"
     )
-      ? req.session.certificates["ca.pem"]
+      ? certificates["ca.pem"]
       : fs.readFileSync(certsPath + "ca.pem");
-    req.session.transportKey = req.session.certificates.hasOwnProperty(
+
+    const transportKey = certificates.hasOwnProperty(
       "transport.key"
     )
-      ? req.session.certificates["transport.key"]
+      ? certificates["transport.key"]
       : fs.readFileSync(certsPath + "transport.key");
-    req.session.transportPem = req.session.certificates.hasOwnProperty(
+
+    const transportPem = certificates.hasOwnProperty(
       "transport.pem"
     )
-      ? req.session.certificates["transport.pem"]
+      ? certificates["transport.pem"]
       : fs.readFileSync(certsPath + "transport.pem");
-    req.session.signingKey = req.session.certificates.hasOwnProperty(
+
+    const signingKey = certificates.hasOwnProperty(
       "signing.key"
     )
-      ? req.session.certificates["signing.key"]
+      ? certificates["signing.key"]
       : fs.readFileSync(certsPath + "signing.key");
 
+      return {certAuthority, transportKey, transportPem, signingKey};
+  }
+
+  function getPrivateKey(signingKey){
+    const key = crypto.createPrivateKey(signingKey);
+    return key;
+  }
+
+  async function initConfig(req, res, flag = "") {
+
+    const {certAuthority, transportKey, transportPem, signingKey} =  getCerts(req.session.certificates);
+
+
     //We need to confirm our private key into a jwks for local signing
-    req.session.key = crypto.createPrivateKey(req.session.signingKey);
-    req.session.privateJwk = await jose.exportJWK(req.session.key);
+    const key = getPrivateKey(signingKey);
+    req.session.privateJwk = await jose.exportJWK(key);
     req.session.privateJwk.kid = req.session.config
       ? req.session.config.data.signing_kid
       : config.data.signing_kid;
@@ -100,9 +140,9 @@ let config = JSON.parse(JSON.stringify(configuration));
     //We need to setup an mtls certificate httpsAgent
     //NOTE: Do NOT leave rejectUnauthorized as 'false' as this disables certificate chain verification
     const httpsAgent = new https.Agent({
-      ca: req.session.certAuthority,
-      key: req.session.transportKey,
-      cert: req.session.transportPem,
+      ca: certAuthority,
+      key: transportKey,
+      cert: transportPem,
       rejectUnauthorized: false,
     });
 
@@ -143,9 +183,9 @@ let config = JSON.parse(JSON.stringify(configuration));
       },
       timeout: 20000,
       https: {
-        certificateAuthority: req.session.certAuthority,
-        certificate: req.session.transportPem,
-        key: req.session.transportKey,
+        certificateAuthority: certAuthority,
+        certificate: transportPem,
+        key: transportKey,
         rejectUnauthorized: false,
       },
     };
@@ -160,14 +200,14 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     req.session.axiosResponse = axiosResponse.data;
 
-    if (flag === "CUSTOM") {
+    if(flag === "CUSTOM_CERTS"){
       return;
     }
 
-    next();
+    res.send("success");
   }
 
-  app.use("/", initConfig);
+  app.get("/", initConfig);
 
   //This configures a FAPI Client for the Bank that you have selected from the UI
   async function setupClient(
@@ -217,6 +257,8 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const { FAPI1Client } = localIssuer;
 
+    const {certAuthority, transportKey, transportPem } =  getCerts(req.session.certificates);
+
     let fapiClient;
     if (selectedDcrOption === "Provide An Existing Client Configuration") {
       try {
@@ -227,15 +269,9 @@ let config = JSON.parse(JSON.stringify(configuration));
           // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
           const result = {};
 
-          result.cert = req.session.certificates.hasOwnProperty("transport.pem")
-            ? req.session.certificates["transport.pem"]
-            : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-          result.key = req.session.certificates.hasOwnProperty("transport.key")
-            ? req.session.certificates["transport.key"]
-            : fs.readFileSync(certsPath + "transport.key");
-          result.ca = req.session.certificates.hasOwnProperty("ca.pem")
-            ? req.session.certificates["ca.pem"]
-            : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+          result.cert = transportPem; // <string> | <string[]> | <Buffer> | <Buffer[]>
+          result.key = transportKey;
+          result.ca = certAuthority; // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
           return result;
         };
 
@@ -265,15 +301,9 @@ let config = JSON.parse(JSON.stringify(configuration));
         // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
         const result = {};
 
-        result.cert = req.session.certificates.hasOwnProperty("transport.pem")
-          ? req.session.certificates["transport.pem"]
-          : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-        result.key = req.session.certificates.hasOwnProperty("transport.key")
-          ? req.session.certificates["transport.key"]
-          : fs.readFileSync(certsPath + "transport.key");
-        result.ca = req.session.certificates.hasOwnProperty("ca.pem")
-          ? req.session.certificates["ca.pem"]
-          : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+        result.cert = transportPem; // <string> | <string[]> | <Buffer> | <Buffer[]>
+        result.key = transportKey;
+        result.ca = certAuthority; // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
         return result;
       };
 
@@ -309,15 +339,9 @@ let config = JSON.parse(JSON.stringify(configuration));
     directoryFapiClient[custom.http_options] = function (url, options) {
       const result = {};
 
-      result.cert = req.session.certificates.hasOwnProperty("transport.pem")
-        ? req.session.certificates["transport.pem"]
-        : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-      result.key = req.session.certificates.hasOwnProperty("transport.key")
-        ? req.session.certificates["transport.key"]
-        : fs.readFileSync(certsPath + "transport.key");
-      result.ca = req.session.certificates.hasOwnProperty("ca.pem")
-        ? req.session.certificates["ca.pem"]
-        : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+      result.cert = transportPem; // <string> | <string[]> | <Buffer> | <Buffer[]>
+      result.key = transportKey;
+      result.ca = certAuthority; // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
       return result;
     };
 
@@ -413,15 +437,9 @@ let config = JSON.parse(JSON.stringify(configuration));
         // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
         const result = {};
 
-        result.cert = req.session.certificates.hasOwnProperty("transport.pem")
-          ? req.session.certificates["transport.pem"]
-          : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-        result.key = req.session.certificates.hasOwnProperty("transport.key")
-          ? req.session.certificates["transport.key"]
-          : fs.readFileSync(certsPath + "transport.key");
-        result.ca = req.session.certificates.hasOwnProperty("ca.pem")
-          ? req.session.certificates["ca.pem"]
-          : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+        result.cert = transportPem; // <string> | <string[]> | <Buffer> | <Buffer[]>
+        result.key = transportKey;
+        result.ca = certAuthority; // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
         return result;
       };
 
@@ -432,6 +450,8 @@ let config = JSON.parse(JSON.stringify(configuration));
       dcrLog(fapiClient);
       req.session.clientId = fapiClient.client_id;
       dcrLog("TODO: Save client For Later Use");
+      const result = await db.collection("clients").insertOne({bank: bank, clientId: fapiClient.client_id, registrationAccessToken: fapiClient.registration_access_token});
+      dcrLog("Client added to the database", result);
     } catch (err) {
       console.log(err);
       dcrLog("Error registering client at bank");
@@ -443,15 +463,9 @@ let config = JSON.parse(JSON.stringify(configuration));
       // see https://github.com/sindresorhus/got/tree/v11.8.0#advanced-https-api
       const result = {};
 
-      result.cert = req.session.certificates.hasOwnProperty("transport.pem")
-        ? req.session.certificates["transport.pem"]
-        : fs.readFileSync(certsPath + "transport.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]>
-      result.key = req.session.certificates.hasOwnProperty("transport.key")
-        ? req.session.certificates["transport.key"]
-        : fs.readFileSync(certsPath + "transport.key");
-      result.ca = req.session.certificates.hasOwnProperty("ca.pem")
-        ? req.session.certificates["ca.pem"]
-        : fs.readFileSync(certsPath + "ca.pem"); // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
+      result.cert = transportPem; // <string> | <string[]> | <Buffer> | <Buffer[]>
+      result.key = transportKey;
+      result.ca = certAuthority; // <string> | <string[]> | <Buffer> | <Buffer[]> | <Object[]>
       return result;
     };
 
@@ -529,6 +543,8 @@ let config = JSON.parse(JSON.stringify(configuration));
       );
       consentLog("Log presigning payment consent object");
       consentLog(payloadData);
+      const { signingKey } =  getCerts(req.session.certificates);
+      const key = getPrivateKey(signingKey);
       signedPayload = await new jose.SignJWT({ data: payloadData })
         .setProtectedHeader({
           alg: "PS256",
@@ -540,7 +556,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         .setJti(nanoid())
         .setAudience(consentEndpoint)
         .setExpirationTime("5m")
-        .sign(req.session.key);
+        .sign(key);
 
       consentLog("Log post signing payment consent JWT");
       consentLog(signedPayload);
@@ -829,7 +845,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       preferred_token_auth_mech: req.body.preferred_token_auth_mech,
     };
 
-    await initConfig(req, res, next, "CUSTOM");
+    await initConfig(req, res, "CUSTOM_CERTS");
 
     return res.status(201).json({ message: "Form Submitted Successfully" });
   });
@@ -912,13 +928,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     "Find payment endpoint with the specified ID for the selected bank from the directory of participants"
   );
   app.get("/payment/:paymentId", async (req, res) => {
-    let client;
-    try {
-      const { fapiClient } = await getFapiClient(req);
-      client = fapiClient;
-    } catch (error) {
-      return res.status(500).send(error);
-    }
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
     const paymentId = req.params.paymentId;
 
@@ -969,15 +979,10 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   //This is used for response mode form_post, query and form_post are the most common
   app.post("/cb", async (req, res) => {
-    let client;
-    let issuer;
-    try {
-      const { fapiClient, localIssuer } = await getFapiClient(req);
-      client = fapiClient;
-      issuer = localIssuer;
-    } catch (error) {
-      return res.status(500).send(error);
-    }
+
+    const fapiClient = fapiClientSpecificData.find(client => client.sessionId === req.session.id);
+    const client = fapiClient.client;
+    const issuer = fapiClient.issuer;
 
     consentLog("Received redirect from the bank");
     const callbackParams = client.callbackParams(req);
@@ -1121,6 +1126,13 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     consentLog("Consent process finished");
     if (req.session.flag === "PAYMENTS") {
+      let consentPayload = req.session.createdConsent;
+      consentPayload.stringify = JSON.stringify(
+        req.session.createdConsent,
+        null,
+        2
+      );
+
       paymentLog(
         "Find payment endpoint for the selected bank from the directory of participants"
       );
@@ -1149,6 +1161,8 @@ let config = JSON.parse(JSON.stringify(configuration));
       };
       paymentLog("Create payment object %O", payment);
       paymentLog("Signing payment");
+      const { signingKey } =  getCerts(req.session.certificates);
+      const key = getPrivateKey(signingKey);
       const jwt = await new jose.SignJWT({ data: payment })
         .setProtectedHeader({
           alg: "PS256",
@@ -1160,7 +1174,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         .setJti(nanoid())
         .setAudience(paymentEndpoint)
         .setExpirationTime("5m")
-        .sign(req.session.key);
+        .sign(key);
       paymentLog("Signed payment JWT %O", jwt);
       paymentLog("Create payment resource using the signed payment JWT ");
       let paymentResponse = await client.requestResource(
@@ -1205,6 +1219,7 @@ let config = JSON.parse(JSON.stringify(configuration));
           claims: tokenSet.claims(),
           errorPayload,
           paymentInfo,
+          consentPayload
         };
         return res
           .status(302)
@@ -1258,7 +1273,7 @@ let config = JSON.parse(JSON.stringify(configuration));
           payload = { msg: "Unable To Complete Payment", payload: payload };
           payload.stringify = JSON.stringify(payload, null, 2);
 
-          const consentPayload = {
+          consentPayload = {
             msg: "Unable To Complete Payment",
             payload: req.session.createdConsent,
           };
@@ -1284,7 +1299,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       paymentLog(payload);
       payload.stringify = JSON.stringify(payload, null, 2);
 
-      const consentPayload = req.session.createdConsent;
+      consentPayload = req.session.createdConsent;
       consentPayload.stringify = JSON.stringify(
         req.session.createdConsent,
         null,
@@ -1327,21 +1342,15 @@ let config = JSON.parse(JSON.stringify(configuration));
     return res.json(paymentResponse);
   });
 
-  async function getFapiClient(req) {
-    try {
-      const { fapiClient, localIssuer } = await setupClient(
-        req.session.selectedBank,
-        req.session.selectedDcrOption,
-        req,
-        req.session.theClientId,
-        req.session.registrationAccessToken
-      );
-      consentLog("The client is setup and ready");
-      return { fapiClient, localIssuer };
-    } catch (error) {
-      throw new Error("Failed to setup the client");
-    }
-  }
+  app.get("/clients", async (req, res) => {
+    const clients = [];
+    await db.collection("clients").find().forEach((client) => {
+      clients.push(client);
+    });
+
+    res.status(200).json(clients);
+  });
+
 
   app.post("/dcr", async (req, res) => {
     const selectedBank = req.body.bank;
@@ -1362,16 +1371,31 @@ let config = JSON.parse(JSON.stringify(configuration));
       );
 
       try {
-        const { fapiClient, localIssuer } = await getFapiClient(req);
+        const { fapiClient, localIssuer } = await setupClient(
+          req.session.selectedBank,
+          req.session.selectedDcrOption,
+          req,
+          req.session.theClientId,
+          req.session.registrationAccessToken
+        );
         consentLog("Client is ready to talk to the chosen bank");
         client = fapiClient;
         issuer = localIssuer;
       } catch (error) {
-        return res.status(500).send(error);
+        res.status(500).json({error: error});
       }
+
     } else {
       throw Error("No bank was selected");
     }
+
+    //Technically this should be saved into a session but we cannot because an object with methods cannot be stored in session memory
+    consentLog('Save fapi client with the session ID into the array');
+    fapiClientSpecificData.push({
+      sessionId: req.session.id,
+      client,
+      issuer
+    });
 
     return res.send({
       clientId: client.client_id,
@@ -1385,13 +1409,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   app.post("/makepayment", async (req, res) => {
     const path = "";
 
-    let client;
-    try {
-      const { fapiClient } = await getFapiClient(req);
-      client = fapiClient;
-    } catch (error) {
-      return res.status(500).send(error);
-    }
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
     //Setup the request
     const { authUrl, code_verifier, state, nonce, error } =
@@ -1438,13 +1456,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   app.get("/payment-consent/:consentId", async (req, res) => {
     const consentId = req.params.consentId;
 
-    let client;
-    try {
-      const { fapiClient } = await getFapiClient(req);
-      client = fapiClient;
-    } catch (error) {
-      return res.status(500).send(error);
-    }
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
     consentLog(
       "Find the patch consent endpoint for the payments consent from the selected authorisation server from the directory"
@@ -1530,13 +1542,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const path = "";
 
-    let client;
-    try {
-      const { fapiClient } = await getFapiClient(req);
-      client = fapiClient;
-    } catch (error) {
-      return res.status(500).send(error);
-    }
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
     //Setup the request
     const { authUrl, code_verifier, state, nonce, error } =
@@ -1586,13 +1592,8 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   app.patch("/revoke-payment", async (req, res) => {
     const consentId = req.session.createdConsent.data.consentId;
-    let client;
-    try {
-      const { fapiClient } = await getFapiClient(req);
-      client = fapiClient;
-    } catch (error) {
-      return res.status(500).send(error);
-    }
+
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
     consentLog(
       "Find the patch consent endpoint for the payments consent from the selected authorisation server from the directory"
@@ -1620,6 +1621,9 @@ let config = JSON.parse(JSON.stringify(configuration));
       },
     };
 
+    const { signingKey } =  getCerts(req.session.certificates);
+    const key = getPrivateKey(signingKey);
+
     const jwt = await new jose.SignJWT({ data: payment })
       .setProtectedHeader({
         alg: "PS256",
@@ -1631,7 +1635,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       .setJti(nanoid())
       .setAudience(patchEndpoint)
       .setExpirationTime("5m")
-      .sign(req.session.key);
+      .sign(key);
     consentLog("Log patch signing payment consent JWT");
     consentLog(jwt);
 
@@ -1672,13 +1676,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   //Fetch data for the given API
   async function fetchData(req, apiFamilyType, apiType, path = "") {
-    let client;
-    try {
-      const { fapiClient } = await getFapiClient(req);
-      client = fapiClient;
-    } catch (error) {
-      return res.status(500).send(error);
-    }
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
     let pathRegex;
     if (apiFamilyType === "accounts") {
@@ -1889,17 +1887,4 @@ let config = JSON.parse(JSON.stringify(configuration));
     return res.status(response.statusCode).send(response.responseBody);
   });
 
-  https
-    .createServer(
-      {
-        // ...
-        key: fs.readFileSync(certsPath + "transport.key"),
-        cert: fs.readFileSync(certsPath + "transport.pem"),
-        // ...
-      },
-      app
-    )
-    .listen(443);
-
-  console.log("Node.js web server at port 443 is running..");
 })();

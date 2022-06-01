@@ -36,7 +36,7 @@
               </v-card-text>
             </v-card>
             <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="" v-if="consentResponse">
+            <v-card elevation="2" outlined color="">
               <v-card-title style="color: white; background-color: #9ccc65"
                 >Consent Response Payload</v-card-title
               >
@@ -105,14 +105,19 @@ export default {
     axios
       .get("/payment-response-data", { withCredentials: true })
       .then((response) => {
-        if (response.data.consentPayload) {
+        console.log(response.data);
+        if (!response.data.errorPayload) {
           this.consentResponse = response.data.consentPayload;
           this.paymentResponse = response.data.payload;
           this.amount = response.data.payload.data.payment.amount;
           this.status = response.data.payload.data.status;
         } else {
           this.errorResponse = response.data.errorPayload;
-          console.log(response.data);
+          this.consentResponse = response.data.consentPayload;
+
+          this.amount = response.data.consentPayload.data.payment.amount;
+          this.status = response.data.payload.data.status;
+          console.log(response.data.consentPayload.data.payment.amount);
         }
       });
   }

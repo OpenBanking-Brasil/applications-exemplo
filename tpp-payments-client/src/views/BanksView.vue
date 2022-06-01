@@ -61,6 +61,7 @@
                   v-bind="attrs"
                   x-large
                   v-on="on"
+                  @click="getClients"
                   class="mb-10"
                 >
                   Continue
@@ -81,6 +82,21 @@
                             dense
                             outlined
                             v-model="selectedDcrOption"
+                          ></v-select>
+                        </v-col>
+
+                        <v-col
+                          class="d-flex"
+                          cols="12"
+                          sm="12"
+                          v-if="selectedDcrOption === this.dcrOptions[1]"
+                        >
+                          <v-select
+                            :items="clientIds"
+                            label="Client Ids"
+                            dense
+                            outlined
+                            v-model="selectedClientId"
                           ></v-select>
                         </v-col>
 
@@ -184,6 +200,9 @@ export default {
     banks: [],
     search: "",
     loadingBanks: true,
+    clients: [],
+    clientIds: [],
+    selectedClientId: "",
   }),
   methods: {
     ...mapActions(["setScopes"]),
@@ -262,6 +281,17 @@ export default {
         }
       }
     },
+
+    getClients() {
+      axios.get("clients", { withCredentials: true }).then((response) => {
+        this.clients = response.data;
+        this.clients.forEach((client) => {
+          if(client.bank === this.selectedBank){
+            this.clientIds.push(client.clientId);
+          }
+        });
+      });
+    },
   },
 
   computed: {
@@ -310,7 +340,22 @@ export default {
     ...mapGetters(["selectedOption", "clientID"]),
   },
 
+  watch: {
+    selectedClientId(clientId) {
+      this.clients.forEach((client) => {
+        if (clientId === client.clientId) {
+          this.clientId = client.clientId;
+          this.registrationAccessToken = client.registrationAccessToken;
+        }
+      });
+    },
+  },
+
   created() {
+
+    this.clientId = "";
+    this.registrationAccessToken = "";
+
     axios
       .get(`/banks/${this.selectedOption}`, { withCredentials: true })
       .then((response) => {

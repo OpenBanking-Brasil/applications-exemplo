@@ -23,11 +23,259 @@
         </v-list-item-content>
       </v-list-item>
 
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'ACCOUNT_TRANSACTIONS'">
+            <v-dialog v-model="dialog" persistent max-width="600px">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  color="primary"
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined rounded text
+                >
+                  Add Query Params
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title>
+                  <span class="text-h5">Add Query Params</span>
+                </v-card-title>
+                <v-card-text>
+                  <v-container>
+                    <v-form ref="form">
+                      <v-row>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="From Booking Date"
+                              v-model="queryParams['fromBookingDate']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="To Booking Date"
+                              v-model="queryParams['toBookingDate']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Page Size"
+                              v-model="queryParams['page-size']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Page"
+                              v-model="queryParams['page']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-select
+                              :items="['CREDIT', 'DEBIT']"
+                              label="Credit Debit Indicator"
+                              dense
+                              outlined
+                              v-model="queryParams['creditDebitIndicator']"
+                            ></v-select>
+                          </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-container>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeQueryParamsDialog">
+                    Close
+                  </v-btn>
+                  <v-btn
+                    color="blue darken-1"
+                    text
+                    @click="dialog = false"
+                  >
+                    Save
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </v-row>
+
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS'">
+            <v-dialog v-model="dialog" persistent max-width="600px">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  color="primary"
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined rounded text
+                >
+                  Add Query Params
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title>
+                  <span class="text-h5">Add Query Params</span>
+                </v-card-title>
+                <v-card-text>
+                  <v-container>
+                    <v-form ref="form">
+                      <v-row>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="From Transaction Date"
+                              v-model="queryParams['fromTransactionDate']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="To Transaction Date"
+                              v-model="queryParams['toTransactionDate']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Page Size"
+                              v-model="queryParams['page-size']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Page"
+                              v-model="queryParams['page']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Payee MCC"
+                              v-model="queryParams['payeeMCC']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-select
+                              :items="['PAGAMENTO', 'TARIFA', 'OPERACOES_CREDITO_CONTRATADAS_CARTAO', 'ESTORNO', 'CASHBACK', 'OUTROS']"
+                              label="Transaction Type"
+                              dense
+                              outlined
+                              v-model="queryParams['transactionType']"
+                            ></v-select>
+                          </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-container>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeQueryParamsDialog">
+                    Close
+                  </v-btn>
+                  <v-btn
+                    color="blue darken-1"
+                    text
+                    @click="dialog = false"
+                  >
+                    Save
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </v-row>
+
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_CARD_ACCOUNT_BILLS'">
+            <v-dialog v-model="dialog" persistent max-width="600px">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  color="primary"
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined rounded text
+                >
+                  Add Query Params
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title>
+                  <span class="text-h5">Add Query Params</span>
+                </v-card-title>
+                <v-card-text>
+                  <v-container>
+                    <v-form ref="form">
+                      <v-row>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="From Due Date"
+                              v-model="queryParams['fromDueDate']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="To Due Date"
+                              v-model="queryParams['toDueDate']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Page Size"
+                              v-model="queryParams['page-size']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Page"
+                              v-model="queryParams['page']"
+                            ></v-text-field>
+                          </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-container>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeQueryParamsDialog">
+                    Close
+                  </v-btn>
+                  <v-btn
+                    color="blue darken-1"
+                    text
+                    @click="dialog = false"
+                  >
+                    Save
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </v-row>
+
+
       <v-card-actions class="justify-center mt-n5 mb-3">
         <v-btn outlined rounded text @click="onClickAccount">
           {{ btnText }}
         </v-btn>
       </v-card-actions>
+
+          
     </v-card>
     <v-snackbar v-model="snackbar" :multi-line="multiLine">
       {{ text }}
@@ -62,6 +310,18 @@ export default {
     fullPath: {
       type: String,
     },
+    flag: {
+      type: String,
+    },
+    supportsQueryParam: {
+      type: Boolean,
+    },
+    queryParams: {
+      type: Object,
+    },
+    getPathWithQueryParams: {
+      type: Function,
+    }
   },
   name: "CardComponent",
   emits: ["fetch-data", "resource-id-change"],
@@ -72,6 +332,8 @@ export default {
       snackbar: false,
       text: "You must provide resource ID",
       theResourceId: "",
+      dialog: false,
+      textFieldLabel: ""
     };
   },
   methods: {
@@ -80,8 +342,22 @@ export default {
         this.snackbar = true;
         return;
       }
-      this.$emit("fetch-data", this.path);
+
+      let queryParams = "";
+      if(this.supportsQueryParam){
+        queryParams = this.getPathWithQueryParams(this.queryParams);
+      }
+      this.$emit("fetch-data", this.path + queryParams);
     },
+
+    closeQueryParamsDialog(){
+        this.queryParams.fromBookingDate =  null;
+        this.queryParams.toBookingDate = null;
+        this.queryParams["page-size"] = null;
+        this.queryParams.page = null;
+        this.queryParams.creditDebitIndicator = null;
+        this.dialog = false;
+    }
   },
 
   watch: {

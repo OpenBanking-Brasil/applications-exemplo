@@ -666,7 +666,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         ? `openid consent:${payload.data.consentId} payments`
         : `openid consent:${
             JSON.parse(response.body.toString()).data.consentId
-          } accounts resources`;
+          } accounts resources credit-cards-accounts unarranged-accounts-overdraft customers`;
     consentLog("Create the FAPI request object");
     const requestObject = await fapiClient.requestObject({
       scope,
@@ -1698,13 +1698,13 @@ let config = JSON.parse(JSON.stringify(configuration));
       req.session.selectedAuthServer,
       apiFamilyType,
       pathRegex
-    )}/${path}`;
+    )}${path}`;
     consentLog(`The ${apiType} endpoint found %O`, endpoint);
 
     paymentLog(`Getting ${apiType} response`);
     const response = await client.requestResource(
       endpoint,
-      req.session.accessToken
+      req.session.refreshToken
     );
 
     if (!response.body) {
@@ -1717,11 +1717,31 @@ let config = JSON.parse(JSON.stringify(configuration));
     };
   }
 
+  function getPathWithParams(queryParams){
+    let path = "";
+    let isFirstIteration = true;
+    for(let queryParam in queryParams){
+      if(queryParams[queryParam]){
+        if(!isFirstIteration){
+          path += `&${queryParam}=${queryParams[queryParam]}`;
+        } else {
+          isFirstIteration = false;
+          path = `?${queryParam}=${queryParams[queryParam]}`;
+        }
+      }
+    }
+
+    return path;
+  }
+
   const accountsApiFamily = "accounts";
   app.get("/accounts", async (req, res) => {
-    const response = await fetchData(req, accountsApiFamily, accountsApiFamily);
 
-    return res.send(response.responseBody);
+    const path = getPathWithParams(req.query);
+
+    const response = await fetchData(req, accountsApiFamily, accountsApiFamily, path);
+
+    return res.status(response.statusCode).json(response.responseBody);
   });
 
   app.get("/accounts/:accountId", async (req, res) => {
@@ -1730,7 +1750,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       req,
       accountsApiFamily,
       "account",
-      accountId
+      `/${accountId}`
     );
 
     return res.status(response.statusCode).send(response.responseBody);
@@ -1738,7 +1758,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   app.get("/accounts/:accountId/overdraft-limits", async (req, res) => {
     const accountId = req.params.accountId;
-    const path = `${accountId}/overdraft-limits`;
+    const path = `/${accountId}/overdraft-limits`;
 
     const response = await fetchData(
       req,
@@ -1752,7 +1772,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   app.get("/accounts/:accountId/balances", async (req, res) => {
     const accountId = req.params.accountId;
-    const path = `${accountId}/balances`;
+    const path = `/${accountId}/balances`;
 
     const response = await fetchData(req, accountsApiFamily, "balances", path);
 
@@ -1761,7 +1781,8 @@ let config = JSON.parse(JSON.stringify(configuration));
 
   app.get("/accounts/:accountId/transactions", async (req, res) => {
     const accountId = req.params.accountId;
-    const path = `${accountId}/transactions`;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${accountId}/transactions${queryParams}`;
 
     const response = await fetchData(
       req,
@@ -1774,17 +1795,21 @@ let config = JSON.parse(JSON.stringify(configuration));
   });
 
   app.get("/resources", async (req, res) => {
-    const response = await fetchData(req, "resources", "resources");
+    const path = getPathWithParams(req.query);
+
+    const response = await fetchData(req, "resources", "resources", path);
 
     return res.status(response.statusCode).send(response.responseBody);
   });
 
   const creditCardAccountAPIFamily = "credit-cards-accounts";
   app.get("/credit-cards-accounts", async (req, res) => {
+    const path = getPathWithParams(req.query);
     const response = await fetchData(
       req,
       creditCardAccountAPIFamily,
-      "credit cards accounts"
+      "credit cards accounts",
+      path
     );
 
     return res.status(response.statusCode).send(response.responseBody);
@@ -1796,7 +1821,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       req,
       creditCardAccountAPIFamily,
       "credit card account",
-      creditCardAccountId
+      `/${creditCardAccountId}`
     );
 
     return res.status(response.statusCode).send(response.responseBody);
@@ -1806,7 +1831,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     "/credit-cards-accounts/:creditCardAccountId/limits",
     async (req, res) => {
       const creditCardAccountId = req.params.creditCardAccountId;
-      const path = `${creditCardAccountId}/limits`;
+      const path = `/${creditCardAccountId}/limits`;
       const response = await fetchData(
         req,
         creditCardAccountAPIFamily,
@@ -1822,7 +1847,8 @@ let config = JSON.parse(JSON.stringify(configuration));
     "/credit-cards-accounts/:creditCardAccountId/transactions",
     async (req, res) => {
       const creditCardAccountId = req.params.creditCardAccountId;
-      const path = `${creditCardAccountId}/transactions`;
+      const queryParams = getPathWithParams(req.query);
+      const path = `/${creditCardAccountId}/transactions${queryParams}`;
       const response = await fetchData(
         req,
         creditCardAccountAPIFamily,
@@ -1838,7 +1864,8 @@ let config = JSON.parse(JSON.stringify(configuration));
     "/credit-cards-accounts/:creditCardAccountId/bills",
     async (req, res) => {
       const creditCardAccountId = req.params.creditCardAccountId;
-      const path = `${creditCardAccountId}/bills`;
+      const queryParams = getPathWithParams(req.query);
+      const path = `/${creditCardAccountId}/bills${queryParams}`;
       const response = await fetchData(
         req,
         creditCardAccountAPIFamily,
@@ -1855,7 +1882,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     async (req, res) => {
       const creditCardAccountId = req.params.creditCardAccountId;
       const billId = req.params.billId;
-      const path = `${creditCardAccountId}/bills/${billId}/transactions`;
+      const path = `/${creditCardAccountId}/bills/${billId}/transactions`;
       const response = await fetchData(
         req,
         creditCardAccountAPIFamily,

@@ -22,6 +22,49 @@
                 </v-card>
               </v-col>
             </v-row>
+
+            <h3 class="mb-3 mt-5 grey--text text--darken-1">
+              Add Query Parameters
+            </h3>
+
+            <v-row>
+              <v-col cols="3" md="3">
+                <v-text-field
+                  label="Page Size"
+                  placeholder="Page Size"
+                  v-model="accountsQueryParams['page-size']"
+                  outlined
+                ></v-text-field>
+              </v-col>
+              <v-col cols="3" md="3">
+                <v-text-field
+                  label="Page"
+                  placeholder="Page"
+                  outlined
+                  v-model="accountsQueryParams['page']"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="3" md="3">
+                <v-select
+                  :items="['VIEW_DEPOSIT_ACCOUNT', 'SAVINGS_ACCOUNT', 'ACCOUNT_PAGAMENTO_PRE_PAGA']"
+                  label="Account Type"
+                  outlined
+                  v-model="accountsQueryParams['accountType']"
+                ></v-select>
+              </v-col>
+              <v-col cols="3" md="3">
+                <v-btn
+                  depressed
+                  height="3.4rem"
+                  width="100%"
+                  color="primary"
+                  @click="getAccountsByQueryParams"
+                >
+                  Run
+                </v-btn>
+              </v-col>
+            </v-row>
+
             <v-row>
               <v-col cols="12" sm="3">
                 <CardComponent
@@ -67,6 +110,10 @@
                   :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedAccountId}/transactions`"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :queryParams="accountTransactionsQueryParams"
+                  flag="ACCOUNT_TRANSACTIONS"
                   @fetch-data="fetchAccountData"
                   @resource-id-change="changeResourceId"
                 />
@@ -141,17 +188,58 @@ export default {
       selectedAccountId: "",
       accountDataResponse: "",
       resBannerStyle: "white--text cyan darken-4",
+      accountsQueryParams: {
+        "page-size": null,
+        page: null,
+        accountType: ""
+      },
+      accountTransactionsQueryParams: {
+        fromBookingDate: null,
+        toBookingDate: null,
+        "page-size": null,
+        page: null,
+        creditDebitIndicator: null,
+      }
     };
   },
   created() {
-    axios.get("/accounts", { withCredentials: true }).then((response) => {
-      this.accountsResponse = response.data.data;
-      this.accountsResponse.forEach((account) => {
-        this.accountIDs.push(account.accountId);
-      });
-    });
+    this.getAccounts();
   },
   methods: {
+
+    getPathWithQueryParams(accountsQueryParams){
+      let path = "";
+      let isFirstIteration = true;
+      for(let queryParam in accountsQueryParams){
+        if(accountsQueryParams[queryParam]){
+          if(!isFirstIteration){
+            path += `&${queryParam}=${accountsQueryParams[queryParam]}`;
+          } else {
+            isFirstIteration = false;
+            path = `?${queryParam}=${accountsQueryParams[queryParam]}`;
+          }
+        }
+      }
+
+      return path;
+    },
+
+    getAccountsByQueryParams(){
+      this.accountIDs = [];
+      const path = this.getPathWithQueryParams(this.accountsQueryParams);
+
+      this.getAccounts(path);
+    },
+
+    getAccounts(path=""){
+      axios.get(`/accounts${path}`, { withCredentials: true }).then((response) => {
+        this.accountsResponse = response.data;
+        this.accountsResponse.data.forEach((account) => {
+          this.accountIDs.push(account.accountId);
+        });
+      });
+    },
+
     setAccountId(accountId) {
       this.selectedAccountId = accountId;
     },

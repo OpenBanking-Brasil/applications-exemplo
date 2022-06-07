@@ -22,6 +22,37 @@
                 </v-card>
               </v-col>
             </v-row>
+
+            <v-row>
+              <v-col cols="4" md="4">
+                <v-text-field
+                  label="Page Size"
+                  placeholder="Page Size"
+                  v-model="resourcesQueryParams['page-size']"
+                  outlined
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4" md="4">
+                <v-text-field
+                  label="Page"
+                  placeholder="Page"
+                  outlined
+                  v-model="resourcesQueryParams['page']"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4" md="4">
+                <v-btn
+                  depressed
+                  height="3.4rem"
+                  width="100%"
+                  color="primary"
+                  @click="getResourcesByQueryParams"
+                >
+                  Run
+                </v-btn>
+              </v-col>
+            </v-row>
+
           </v-container>
         </v-sheet>
       </v-col>
@@ -47,12 +78,40 @@ export default {
   data() {
     return {
       resourcesResponse: "",
+      resourcesQueryParams: {
+        "page-size": null,
+        "page": null,
+        "accountType": ""
+      }
     };
   },
+  methods: {
+    getResourcesByQueryParams(){
+      this.accountIDs = [];
+      let path = "";
+      let isFirstIteration = true;
+      for(let queryParam in this.resourcesQueryParams){
+        if(this.resourcesQueryParams[queryParam]){
+          if(!isFirstIteration){
+            path += `&${queryParam}=${this.resourcesQueryParams[queryParam]}`;
+          } else {
+            isFirstIteration = false;
+            path = `?${queryParam}=${this.resourcesQueryParams[queryParam]}`;
+          }
+        }
+      }
+
+      this.getResources(path);
+    },
+
+    getResources(path=""){
+      axios.get(`/resources${path}`, { withCredentials: true }).then((response) => {
+        this.resourcesResponse = response.data;
+      });
+    }
+  },
   created() {
-    axios.get("/resources", { withCredentials: true }).then((response) => {
-      this.resourcesResponse = response.data;
-    });
+    this.getResources();
   },
 };
 </script>

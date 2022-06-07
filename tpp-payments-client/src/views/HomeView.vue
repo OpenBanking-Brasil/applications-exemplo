@@ -653,11 +653,7 @@ export default {
       this.setOption(option);
       this.$router.push({
         name: "banks",
-        params: {
-          data: {
-            selectedOption: option,
-          },
-        },
+        query: { option: option },
       });
     },
   },

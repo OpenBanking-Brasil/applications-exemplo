@@ -22,6 +22,42 @@
                 </v-card>
               </v-col>
             </v-row>
+
+            <h3 class="mb-3 mt-5 grey--text text--darken-1">
+              Add Query Parameters
+            </h3>
+
+            <v-row>
+              <v-col cols="4" md="4">
+                <v-text-field
+                  label="Page Size"
+                  placeholder="Page Size"
+                  v-model="creditCardAccountsQueryParams['page-size']"
+                  outlined
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4" md="4">
+                <v-text-field
+                  label="Page"
+                  placeholder="Page"
+                  outlined
+                  v-model="creditCardAccountsQueryParams['page']"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="4" md="4">
+                <v-btn
+                  depressed
+                  height="3.4rem"
+                  width="100%"
+                  color="primary"
+                  @click="getCreditCardAccountsByQueryParams"
+                >
+                  Run
+                </v-btn>
+              </v-col>
+            </v-row>
+
+
             <v-row v-if="billIdSelected">
               <v-col cols="12" sm="3">
                 <CardComponent
@@ -71,6 +107,10 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/transactions`"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :queryParams="creditCardAccountTransactionsQueryParams"
+                  flag="CREDIT_CARD_ACCOUNT_TRANSACTIONS"
                   @fetch-data="fetchAccountData"
                   @resource-id-change="changeResourceId"
                 />
@@ -83,6 +123,10 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/bills`"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :queryParams="creditCardAccountBillsQueryParams"
+                  flag="CREDIT_CARD_ACCOUNT_BILLS"
                   @fetch-data="fetchAccountData"
                   @resource-id-change="changeResourceId"
                 />
@@ -197,21 +241,65 @@ export default {
       creditCardAccountResponse: "",
       billIDs: [],
       resBannerStyle: "white--text cyan darken-4",
+      creditCardAccountsQueryParams: {
+        "page-size": null,
+        page: null,
+      },
+      creditCardAccountTransactionsQueryParams: {
+        fromTransactionDate: null,
+        toTransactionDate: null,
+        "page-size": null,
+        page: null,
+        transactionType: null,
+        payeeMCC: null
+      },
+      creditCardAccountBillsQueryParams: {
+        fromDueDate: null,
+        toDueDate: null,
+        "page-size": null,
+        page: null
+      }
     };
   },
   created() {
-    axios
-      .get("/credit-cards-accounts", { withCredentials: true })
-      .then((response) => {
-        this.creditCardAccountsResponse = response.data.data;
-        this.creditCardAccountsResponse.forEach((creditCardAccount) => {
-          this.creditCardAccountIDs.push(creditCardAccount.creditCardAccountId);
-        });
-      });
+    this.getCreditCardAccounts();
   },
   methods: {
+    getPathWithQueryParams(queryParams){
+      let path = "";
+      let isFirstIteration = true;
+      for(let queryParam in queryParams){
+        if(queryParams[queryParam]){
+          if(!isFirstIteration){
+            path += `&${queryParam}=${queryParams[queryParam]}`;
+          } else {
+            isFirstIteration = false;
+            path = `?${queryParam}=${queryParams[queryParam]}`;
+          }
+        }
+      }
+
+      return path;
+    },
+
+    getCreditCardAccountsByQueryParams(){
+      this.creditCardAccountIDs = [];
+      const path = this.getPathWithQueryParams(this.creditCardAccountsQueryParams);
+
+      this.getCreditCardAccounts(path);
+    },
+
+    getCreditCardAccounts(path=""){
+      axios
+        .get(`/credit-cards-accounts${path}`, { withCredentials: true })
+        .then((response) => {
+          this.creditCardAccountsResponse = response.data;
+          this.creditCardAccountsResponse.data.forEach((creditCardAccount) => {
+            this.creditCardAccountIDs.push(creditCardAccount.creditCardAccountId);
+          });
+        });
+    },
     setAccountId(creditCardAccountId) {
-      console.log("hello", creditCardAccountId);
       this.creditCardAccountResponse = "";
       this.selectedCreditCardAccountId = creditCardAccountId;
       this.acccountIdSelected = true;

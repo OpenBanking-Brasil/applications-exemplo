@@ -1,5 +1,4 @@
 const state = {
-  selectedOption: "",
   clientID: "",
   registrationAccessToken: "",
   scopes: "",
@@ -135,7 +134,6 @@ const state = {
 };
 
 const getters = {
-  selectedOption: (state) => state.selectedOption,
   consents: (state) => state.consents,
   cadastroOption: (state) => state.cadastroOption,
   scopes: (state) => state.scopes,
@@ -144,9 +142,6 @@ const getters = {
 };
 
 const actions = {
-  setOption({ commit }, option) {
-    commit("setSelectedOption", option);
-  },
   setCadastroOption({ commit }, cadastroOption) {
     commit("setSelectedCadastroOption", cadastroOption);
   },
@@ -156,9 +151,6 @@ const actions = {
 };
 
 const mutations = {
-  setSelectedOption: (state, selectedOption) =>
-    (state.selectedOption = selectedOption),
-
   setClientID: (state, clientID) => (state.clientID = clientID),
   setRegistrationAccessToken: (state, registrationAccessToken) =>
     (state.registrationAccessToken = registrationAccessToken),

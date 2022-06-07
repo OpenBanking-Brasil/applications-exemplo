@@ -203,6 +203,7 @@ export default {
     clients: [],
     clientIds: [],
     selectedClientId: "",
+    selectedOption: "",
   }),
   methods: {
     ...mapActions(["setScopes"]),
@@ -337,7 +338,7 @@ export default {
       },
     },
 
-    ...mapGetters(["selectedOption", "clientID"]),
+    ...mapGetters(["clientID"]),
   },
 
   watch: {
@@ -353,9 +354,12 @@ export default {
 
   created() {
 
+    console.log(this.$route.query);
+
     this.clientId = "";
     this.registrationAccessToken = "";
 
+    this.selectedOption = this.$route.query.option;
     axios
       .get(`/banks/${this.selectedOption}`, { withCredentials: true })
       .then((response) => {

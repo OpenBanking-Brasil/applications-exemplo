@@ -79,6 +79,17 @@
             <v-row>
               <v-col cols="12" md="8">
                 <v-card elevation="2" outlined>
+                  <v-card-title class="white--text blue darken-4"
+                    >Consent Request</v-card-title
+                  >
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto"
+                      >{{ requestData }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+                <div class="pa-2"></div>
+                <v-card elevation="2" outlined>
                   <v-card-title class="white--text cyan darken-4"
                     >Consent Response</v-card-title
                   >
@@ -234,6 +245,7 @@ export default {
       selected: true,
       loading: true,
       consentPayload: "",
+      requestData: "",
       grantedConsents: [],
       grantedConsentsCategory: "",
       consentsArr: [],
@@ -267,6 +279,7 @@ export default {
   created() {
     axios.get("/consent", { withCredentials: true }).then((response) => {
       this.consentPayload = response.data.consent;
+      this.requestData = response.data.requestData;
       this.grantedConsents = response.data.permissionsData;
 
       let consentsArr = [];

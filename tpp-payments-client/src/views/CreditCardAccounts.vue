@@ -7,22 +7,6 @@
 
         <v-sheet min-height="70vh" rounded="lg">
           <v-container class="pa-md-12">
-            <div class="pa-2"></div>
-            <v-row>
-              <v-col cols="12" md="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text cyan darken-4"
-                    >Credit Card Accounts API Response</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                         {{ creditCardAccountsResponse }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-
             <h3 class="mb-3 mt-5 grey--text text--darken-1">
               Add Query Parameters
             </h3>
@@ -57,7 +41,32 @@
               </v-col>
             </v-row>
 
-
+            <v-row>
+              <v-col cols="12" md="12">
+                <v-card elevation="2" outlined>
+                  <v-card-title class="white--text blue darken-4"
+                    >Credit Card Accounts API Request</v-card-title
+                  >
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                         {{ creditCardAccountsRequest }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-card elevation="2" outlined>
+                  <v-card-title class="white--text cyan darken-4"
+                    >Credit Card Accounts API Response</v-card-title
+                  >
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                         {{ creditCardAccountsResponse }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
             <v-row v-if="billIdSelected">
               <v-col cols="12" sm="3">
                 <CardComponent
@@ -195,6 +204,15 @@
               </v-col>
               <v-col cols="12" sm="8">
                 <v-card elevation="2" outlined>
+                  <v-card-title class="white--text blue darken-4">Request</v-card-title>
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                        {{ creditCardAccountRequest }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+                <v-divider class="mt-5"></v-divider>
+                <v-card elevation="2" outlined>
                   <v-card-title :class="resBannerStyle">Response</v-card-title>
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
@@ -235,6 +253,8 @@ export default {
       acccountIdSelected: false,
       billIdSelected: false,
       creditCardAccountsResponse: "",
+      creditCardAccountsRequest: "",
+      creditCardAccountRequest: "",
       creditCardAccountIDs: [],
       selectedCreditCardAccountId: "",
       selectedBillId: "",
@@ -293,7 +313,8 @@ export default {
       axios
         .get(`/credit-cards-accounts${path}`, { withCredentials: true })
         .then((response) => {
-          this.creditCardAccountsResponse = response.data;
+          this.creditCardAccountsResponse = response.data.responseData;
+          this.creditCardAccountsRequest = response.data.requestData;
           this.creditCardAccountsResponse.data.forEach((creditCardAccount) => {
             this.creditCardAccountIDs.push(creditCardAccount.creditCardAccountId);
           });
@@ -321,7 +342,8 @@ export default {
         .get(`credit-cards-accounts/${path}`, { withCredentials: true })
         .then((response) => {
           if (response.status === 200) {
-            this.creditCardAccountResponse = response.data;
+            this.creditCardAccountResponse = response.data.responseData;
+            this.creditCardAccountRequest = response.data.requestData;
             this.resBannerStyle = "white--text cyan darken-4";
 
             if (path === `${this.selectedCreditCardAccountId}/bills`) {
@@ -334,7 +356,8 @@ export default {
         .catch((error) => {
           if (error.response.status !== 200) {
             this.resBannerStyle = "white--text red darken-1";
-            this.creditCardAccountResponse = error.response.data;
+            this.creditCardAccountResponse = error.response.data.responseData;
+            this.creditCardAccountRequest = error.response.data.requestData;
           }
         });
     },

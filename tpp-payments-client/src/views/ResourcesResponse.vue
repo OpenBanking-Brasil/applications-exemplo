@@ -7,22 +7,9 @@
 
         <v-sheet min-height="70vh" rounded="lg">
           <v-container class="pa-md-12">
-            <div class="pa-2"></div>
-            <v-row>
-              <v-col cols="12" md="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text cyan darken-4"
-                    >Resources Response</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                        {{ resourcesResponse }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-
+            <h3 class="mb-3 mt-5 grey--text text--darken-1">
+              Add Query Parameters
+            </h3>
             <v-row>
               <v-col cols="4" md="4">
                 <v-text-field
@@ -52,6 +39,32 @@
                 </v-btn>
               </v-col>
             </v-row>
+            <v-row>
+              <v-col cols="12" md="12">
+                <v-card elevation="2" outlined>
+                  <v-card-title class="white--text blue darken-4"
+                    >Resources Request</v-card-title
+                  >
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                        {{ resourcesRequest }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-card elevation="2" outlined>
+                  <v-card-title class="white--text cyan darken-4"
+                    >Resources Response</v-card-title
+                  >
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                        {{ resourcesResponse }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
 
           </v-container>
         </v-sheet>
@@ -78,6 +91,7 @@ export default {
   data() {
     return {
       resourcesResponse: "",
+      resourcesRequest: "",
       resourcesQueryParams: {
         "page-size": null,
         "page": null,
@@ -106,7 +120,8 @@ export default {
 
     getResources(path=""){
       axios.get(`/resources${path}`, { withCredentials: true }).then((response) => {
-        this.resourcesResponse = response.data;
+        this.resourcesResponse = response.data.responseData;
+        this.resourcesRequest = response.data.requestData;
       });
     }
   },

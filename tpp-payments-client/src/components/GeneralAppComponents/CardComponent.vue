@@ -41,7 +41,7 @@
                 </v-card-title>
                 <v-card-text>
                   <v-container>
-                    <v-form ref="form">
+                    <v-form ref="form" v-model="valid" lazy-validation>
                       <v-row>
                           <v-col cols="12" sm="6">
                             <v-text-field
@@ -49,6 +49,7 @@
                               outlined
                               label="From Booking Date"
                               v-model="queryParams['fromBookingDate']"
+                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -57,6 +58,7 @@
                               outlined
                               label="To Booking Date"
                               v-model="queryParams['toBookingDate']"
+                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -96,7 +98,7 @@
                   <v-btn
                     color="blue darken-1"
                     text
-                    @click="dialog = false"
+                    @click="saveParams"
                   >
                     Save
                   </v-btn>
@@ -123,7 +125,7 @@
                 </v-card-title>
                 <v-card-text>
                   <v-container>
-                    <v-form ref="form">
+                    <v-form ref="form" v-model="valid" lazy-validation>
                       <v-row>
                           <v-col cols="12" sm="6">
                             <v-text-field
@@ -131,6 +133,7 @@
                               outlined
                               label="From Transaction Date"
                               v-model="queryParams['fromTransactionDate']"
+                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -139,6 +142,7 @@
                               outlined
                               label="To Transaction Date"
                               v-model="queryParams['toTransactionDate']"
+                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -186,7 +190,7 @@
                   <v-btn
                     color="blue darken-1"
                     text
-                    @click="dialog = false"
+                    @click="saveParams"
                   >
                     Save
                   </v-btn>
@@ -213,7 +217,7 @@
                 </v-card-title>
                 <v-card-text>
                   <v-container>
-                    <v-form ref="form">
+                    <v-form ref="form" v-model="valid" lazy-validation>
                       <v-row>
                           <v-col cols="12" sm="6">
                             <v-text-field
@@ -221,6 +225,7 @@
                               outlined
                               label="From Due Date"
                               v-model="queryParams['fromDueDate']"
+                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -229,6 +234,7 @@
                               outlined
                               label="To Due Date"
                               v-model="queryParams['toDueDate']"
+                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -259,7 +265,7 @@
                   <v-btn
                     color="blue darken-1"
                     text
-                    @click="dialog = false"
+                    @click="saveParams"
                   >
                     Save
                   </v-btn>
@@ -333,7 +339,9 @@ export default {
       text: "You must provide resource ID",
       theResourceId: "",
       dialog: false,
-      textFieldLabel: ""
+      textFieldLabel: "",
+      valid: true,
+      dateRule: [(v) => /^(19|20)\d\d([-])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])$/.test(v) || "Data must be valid - yyyy-mm-dd"],
     };
   },
   methods: {
@@ -348,6 +356,15 @@ export default {
         queryParams = this.getPathWithQueryParams(this.queryParams);
       }
       this.$emit("fetch-data", this.path + queryParams);
+    },
+
+    async saveParams(){
+      this.$refs.form.validate();
+      await setTimeout(() => {}, 100);
+      if(!this.valid){
+        return;
+      }
+      this.dialog = false;
     },
 
     closeQueryParamsDialog(){

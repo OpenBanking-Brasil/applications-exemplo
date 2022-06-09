@@ -43,8 +43,22 @@
             <v-row>
               <v-col cols="12" sm="12">
                 <v-card elevation="2" outlined>
+                  <v-card-title class="white--text blue darken-4"
+                    >Request</v-card-title
+                  >
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                        {{ customersRequestData }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="12">
+                <v-card elevation="2" outlined>
                   <v-card-title :class="resBannerStyle"
-                    >Customers Data Response</v-card-title
+                    >Response</v-card-title
                   >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
@@ -85,6 +99,7 @@ export default {
       financialRelationTitle: "",
       qualificationTitle: "",
       customersDataResponse: "",
+      customersRequestData: "",
       apiFamilyType: "",
       resBannerStyle: "white--text cyan darken-4",
       identificationsFullPath: "",
@@ -103,14 +118,16 @@ export default {
         .get(`${this.apiFamilyType}/${path}`, { withCredentials: true })
         .then((response) => {
           if (response.status === 200) {
-            this.customersDataResponse = response.data;
+            this.customersRequestData = response.data.requestData;
+            this.customersDataResponse = response.data.responseData;
             this.resBannerStyle = "white--text cyan darken-4";
           }
         })
         .catch((error) => {
           if (error.response.status !== 200) {
             this.resBannerStyle = "white--text red darken-1";
-            this.customersDataResponse = error.response.data;
+            this.customersDataResponse = error.response.data.responseData;
+            this.customersRequestData = error.response.data.requestData;
           }
         });
     },

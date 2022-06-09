@@ -594,7 +594,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       ccToken,
       requestOptions
     );
-    //Errors processing a JWT are sent as a
+    
 
     let payload;
     if (flag === "PAYMENTS") {
@@ -1059,11 +1059,18 @@ let config = JSON.parse(JSON.stringify(configuration));
     while (!["AUTHORISED"].includes(req.session.createdConsent.data.status)) {
       //Create the consent
       consentLog("Get the consent record");
+      const consentId = req.session.createdConsent.data.consentId;
       req.session.createdConsent = await client.requestResource(
-        `${consentEndpoint}/${req.session.createdConsent.data.consentId}`,
+        `${consentEndpoint}/${consentId}`,
         ccToken,
         requestOptions
       );
+
+      req.session.consentRequestData = {
+        endpoint: `${consentEndpoint}/${consentId}`,
+        tokenSet: ccToken,
+        requestOptions
+      };
 
       let payload;
       if (req.session.flag === "PAYMENTS") {
@@ -1325,9 +1332,10 @@ let config = JSON.parse(JSON.stringify(configuration));
   });
 
   app.get("/consent", (req, res) => {
-    return res.send({
+    return res.json({
       consent: req.session.createdConsent,
       permissionsData: req.session.consentsArr,
+      requestData: req.session.consentRequestData
     });
   });
 
@@ -1704,16 +1712,22 @@ let config = JSON.parse(JSON.stringify(configuration));
     paymentLog(`Getting ${apiType} response`);
     const response = await client.requestResource(
       endpoint,
-      req.session.refreshToken
+      req.session.accessToken
     );
 
+    const requestData = {
+      endpoint,
+      accessToken: req.session.accessToken
+    };
+
     if (!response.body) {
-      return { responseBody: "undefined", statusCode: response.statusCode };
+      return { responseBody: "undefined", statusCode: response.statusCode, requestData };
     }
 
     return {
       responseBody: JSON.parse(response.body.toString()),
       statusCode: response.statusCode,
+      requestData
     };
   }
 
@@ -1741,7 +1755,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const response = await fetchData(req, accountsApiFamily, accountsApiFamily, path);
 
-    return res.status(response.statusCode).json(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   app.get("/accounts/:accountId", async (req, res) => {
@@ -1753,7 +1767,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       `/${accountId}`
     );
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   app.get("/accounts/:accountId/overdraft-limits", async (req, res) => {
@@ -1767,7 +1781,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       path
     );
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   app.get("/accounts/:accountId/balances", async (req, res) => {
@@ -1776,7 +1790,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const response = await fetchData(req, accountsApiFamily, "balances", path);
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   app.get("/accounts/:accountId/transactions", async (req, res) => {
@@ -1791,7 +1805,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       path
     );
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   app.get("/resources", async (req, res) => {
@@ -1799,7 +1813,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const response = await fetchData(req, "resources", "resources", path);
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   const creditCardAccountAPIFamily = "credit-cards-accounts";
@@ -1812,7 +1826,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       path
     );
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   app.get("/credit-cards-accounts/:creditCardAccountId", async (req, res) => {
@@ -1824,7 +1838,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       `/${creditCardAccountId}`
     );
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   app.get(
@@ -1839,7 +1853,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         path
       );
 
-      return res.status(response.statusCode).send(response.responseBody);
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
     }
   );
 
@@ -1856,7 +1870,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         path
       );
 
-      return res.status(response.statusCode).send(response.responseBody);
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
     }
   );
 
@@ -1873,7 +1887,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         path
       );
 
-      return res.status(response.statusCode).send(response.responseBody);
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
     }
   );
 
@@ -1890,7 +1904,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         path
       );
 
-      return res.status(response.statusCode).send(response.responseBody);
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
     }
   );
 
@@ -1901,7 +1915,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       req.params.apiType
     );
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
   app.get("/customers-personal/:apiType", async (req, res) => {
@@ -1911,7 +1925,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       req.params.apiType
     );
 
-    return res.status(response.statusCode).send(response.responseBody);
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
 
 })();

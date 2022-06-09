@@ -7,22 +7,6 @@
 
         <v-sheet min-height="70vh" rounded="lg">
           <v-container class="pa-md-12">
-            <div class="pa-2"></div>
-            <v-row>
-              <v-col cols="12" md="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text cyan darken-4"
-                    >Account API Response</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                         {{ accountsResponse }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-
             <h3 class="mb-3 mt-5 grey--text text--darken-1">
               Add Query Parameters
             </h3>
@@ -65,6 +49,32 @@
               </v-col>
             </v-row>
 
+            <v-row>
+              <v-col cols="12" md="12">
+                <v-card elevation="2" outlined>
+                  <v-card-title class="white--text blue darken-4"
+                    >Account API Request</v-card-title
+                  >
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                         {{ accountsRequest }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+              <v-col cols="12" md="12">
+                <v-card elevation="2" outlined>
+                  <v-card-title class="white--text cyan darken-4"
+                    >Account API Response</v-card-title
+                  >
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                         {{ accountsResponse }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+              </v-col>
+            </v-row>
             <v-row>
               <v-col cols="12" sm="3">
                 <CardComponent
@@ -148,6 +158,15 @@
               </v-col>
               <v-col cols="12" sm="8">
                 <v-card elevation="2" outlined>
+                  <v-card-title class="white--text blue darken-4">Request</v-card-title>
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto">
+                        {{ accountRequest }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+                 <v-divider class="mt-4"></v-divider>
+                <v-card elevation="2" outlined>
                   <v-card-title :class="resBannerStyle">Response</v-card-title>
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
@@ -184,6 +203,8 @@ export default {
   data() {
     return {
       accountsResponse: "",
+      accountsRequest: "",
+      accountRequest: "",
       accountIDs: [],
       selectedAccountId: "",
       accountDataResponse: "",
@@ -233,7 +254,8 @@ export default {
 
     getAccounts(path=""){
       axios.get(`/accounts${path}`, { withCredentials: true }).then((response) => {
-        this.accountsResponse = response.data;
+        this.accountsResponse = response.data.responseData;
+        this.accountsRequest = response.data.requestData;
         this.accountsResponse.data.forEach((account) => {
           this.accountIDs.push(account.accountId);
         });
@@ -249,7 +271,8 @@ export default {
         .get(`accounts/${path}`, { withCredentials: true })
         .then((response) => {
           if (response.status === 200) {
-            this.accountDataResponse = response.data;
+            this.accountDataResponse = response.data.responseData;
+            this.accountRequest = response.data.requestData;
             this.resBannerStyle = "white--text cyan darken-4";
           }
         })
@@ -257,6 +280,7 @@ export default {
           if (error.response.status !== 200) {
             this.resBannerStyle = "white--text red darken-1";
             this.accountDataResponse = error.response.data;
+            this.accountRequest = error.response.data.requestData;
           }
         });
     },

@@ -492,6 +492,14 @@
                             hide-details
                           ></v-checkbox>
                         </v-col>
+                        <v-col cols="12" sm="4" md="4">
+                          <v-checkbox
+                            v-model="theFormData.accept_any_certificates"
+                            label="Accept Any Certificate Presented"
+                            color="primary"
+                            hide-details
+                          ></v-checkbox>
+                        </v-col>
 
 
                         </v-row>
@@ -579,6 +587,7 @@ export default {
         number_of_check_loops: 5,
         preferred_token_auth_mech: "private_key_jwt",
         replace_existing_certs: false,
+        accept_any_certificates: false
       },
     };
   },

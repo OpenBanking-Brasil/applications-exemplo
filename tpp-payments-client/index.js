@@ -785,6 +785,10 @@ let config = JSON.parse(JSON.stringify(configuration));
       }
     }
 
+    if(req.body.accept_any_certificates){
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+    }
+
     req.session.useCustomConfig = true;
 
     const certsObj = {};

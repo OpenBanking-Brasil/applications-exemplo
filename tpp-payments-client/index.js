@@ -666,7 +666,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         ? `openid consent:${payload.data.consentId} payments`
         : `openid consent:${
             JSON.parse(response.body.toString()).data.consentId
-          } accounts resources credit-cards-accounts unarranged-accounts-overdraft customers`;
+          } accounts resources credit-cards-accounts unarranged-accounts-overdraft customers loans financings invoice-financings`;
     consentLog("Create the FAPI request object");
     const requestObject = await fapiClient.requestObject({
       scope,

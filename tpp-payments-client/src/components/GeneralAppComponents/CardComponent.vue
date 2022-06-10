@@ -275,6 +275,64 @@
           </v-row>
 
 
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'LOAN'">
+            <v-dialog v-model="dialog" persistent max-width="600px">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  color="primary"
+                  v-bind="attrs"
+                  v-on="on"
+                  outlined rounded text
+                >
+                  Add Query Params
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title>
+                  <span class="text-h5">Add Query Params</span>
+                </v-card-title>
+                <v-card-text>
+                  <v-container>
+                    <v-form ref="form" v-model="valid" lazy-validation>
+                      <v-row>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Page Size"
+                              v-model="queryParams['page-size']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Page"
+                              v-model="queryParams['page']"
+                            ></v-text-field>
+                          </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-container>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeQueryParamsDialog">
+                    Close
+                  </v-btn>
+                  <v-btn
+                    color="blue darken-1"
+                    text
+                    @click="saveParams"
+                  >
+                    Save
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+          </v-row>
+
+
       <v-card-actions class="justify-center mt-n5 mb-3">
         <v-btn outlined rounded text @click="onClickAccount">
           {{ btnText }}

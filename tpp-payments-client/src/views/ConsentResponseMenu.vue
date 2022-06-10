@@ -183,6 +183,17 @@
             <h3 class="ma-3 mt-5 grey--text text--darken-1">
               Select which API to call with the consents that have been granted:
             </h3>
+            <v-row>
+              <v-col cols="4" md="4">
+                <v-select
+                  :items="['Loans', 'Financings', 'Unarranged Accounts Overdraft', 'Invoice Financings']"
+                  label="Credit Operations"
+                  outlined
+                  dense
+                  v-model="selectedCreditOperation"
+                ></v-select>
+              </v-col>
+            </v-row>
             <v-btn
               color="primary"
               class="ma-3 mt-5"
@@ -204,7 +215,7 @@
             >
               3. Credit Card
             </v-btn>
-            <v-btn color="primary" class="ma-3 mt-5">
+            <v-btn color="primary" class="ma-3 mt-5" :disabled="creditOperationSelected" @click="creditOperation">
               4. Credit Operations
             </v-btn>
             <v-btn
@@ -249,6 +260,7 @@ export default {
       grantedConsents: [],
       grantedConsentsCategory: "",
       consentsArr: [],
+      selectedCreditOperation: ""
     };
   },
 
@@ -266,6 +278,18 @@ export default {
 
       return text;
     },
+
+    creditOperation(){
+      if(this.selectedCreditOperation === "Loans"){
+        this.$router.push("loans");
+      } else if (this.selectedCreditOperation === "Financings"){
+        this.$router.push("financings");
+      } else if (this.selectedCreditOperation === "Invoice Financings"){
+        this.$router.push("invoice-financings");
+      } else if (this.selectedCreditOperation === "Unarranged Accounts Overdraft"){
+        this.$router.push("unarranged-accounts-overdraft");
+      }
+    }
   },
 
   computed: {
@@ -275,6 +299,13 @@ export default {
       "clientID",
       "registrationAccessToken",
     ]),
+    creditOperationSelected(){
+      if(this.selectedCreditOperation){
+        return false;
+      }
+
+      return true;
+    }
   },
   created() {
     axios.get("/consent", { withCredentials: true }).then((response) => {

@@ -91,7 +91,7 @@
                   :supportsQueryParam="true"
                   :getPathWithQueryParams="getPathWithQueryParams" 
                   :queryParams="financingWarrantiesQueryParams"
-                  flag="LOAN"
+                  flag="CREDIT_OPERATION"
                   @fetch-data="fetchFinancingData"
                   @resource-id-change="changeResourceId"
                 />
@@ -107,7 +107,7 @@
                   :supportsQueryParam="true"
                   :getPathWithQueryParams="getPathWithQueryParams" 
                   :queryParams="financingWarrantiesQueryParams"
-                  flag="LOAN"
+                  flag="CREDIT_OPERATION"
                   @fetch-data="fetchFinancingData"
                   @resource-id-change="changeResourceId"
                 />
@@ -123,7 +123,7 @@
                   :supportsQueryParam="true"
                   :getPathWithQueryParams="getPathWithQueryParams" 
                   :queryParams="financingWarrantiesQueryParams"
-                  flag="LOAN"
+                  flag="CREDIT_OPERATION"
                   @fetch-data="fetchFinancingData"
                   @resource-id-change="changeResourceId"
                 />

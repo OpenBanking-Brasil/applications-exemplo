@@ -275,7 +275,7 @@
           </v-row>
 
 
-          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'LOAN'">
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_OPERATION'">
             <v-dialog v-model="dialog" persistent max-width="600px">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn

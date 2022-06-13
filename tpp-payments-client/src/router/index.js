@@ -13,6 +13,10 @@ import AccountsMenu from "../views/AccountsMenu.vue";
 import ResourcesResponse from "../views/ResourcesResponse.vue";
 import CreditCardAccounts from "../views/CreditCardAccounts.vue";
 import CustomersMenu from "../views/Customers.vue";
+import LoansMenu from "../views/LoansMenu.vue";
+import FinancingsMenu from "../views/FinancingsMenu.vue";
+import InvoiceFinancings from "../views/InvoiceFinancings.vue";
+import UnarrangedAccountsOverdraft from "../views/UnarrangedAccountsOverdraft.vue";
 
 Vue.use(VueRouter);
 
@@ -81,6 +85,26 @@ const routes = [
     path: "/customers",
     name: "customers",
     component: CustomersMenu,
+  },
+  {
+    path: "/loans",
+    name: "loans",
+    component: LoansMenu,
+  },
+  {
+    path: "/financings",
+    name: "financings",
+    component: FinancingsMenu,
+  },
+  {
+    path: "/invoice-financings",
+    name: "invoice-financings",
+    component: InvoiceFinancings,
+  },
+  {
+    path: "/unarranged-accounts-overdraft",
+    name: "unarranged-accounts-overdraft",
+    component: UnarrangedAccountsOverdraft,
   },
 ];
 

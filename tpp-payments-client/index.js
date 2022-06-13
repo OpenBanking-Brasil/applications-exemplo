@@ -12,6 +12,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
 (async () => {
   const {
+    TokenSet,
     Issuer,
     custom,
     generators /*, TokenSet */,
@@ -666,7 +667,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         ? `openid consent:${payload.data.consentId} payments`
         : `openid consent:${
             JSON.parse(response.body.toString()).data.consentId
-          } accounts resources credit-cards-accounts unarranged-accounts-overdraft customers`;
+          } accounts resources credit-cards-accounts unarranged-accounts-overdraft customers loans financings invoice-financings`;
     consentLog("Create the FAPI request object");
     const requestObject = await fapiClient.requestObject({
       scope,
@@ -783,6 +784,10 @@ let config = JSON.parse(JSON.stringify(configuration));
           saveFile(cert);
         });
       }
+    }
+
+    if(req.body.accept_any_certificates){
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
     }
 
     req.session.useCustomConfig = true;
@@ -975,6 +980,16 @@ let config = JSON.parse(JSON.stringify(configuration));
       .json({ ...payload, selectedBank: req.session.selectedBank });
   });
 
+  async function getToken(req){
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const theTokenSet = req.session.tokenSet;
+    const tokenSet = new TokenSet(theTokenSet);
+    if(tokenSet.expired()){
+      return await client.refresh(theTokenSet.refresh_token);
+    }
+    return theTokenSet;
+  }
+
   app.use(express.urlencoded());
 
   //This is used for response mode form_post, query and form_post are the most common
@@ -1006,6 +1021,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     req.session.refreshToken = tokenSet.refresh_token;
     req.session.accessToken = tokenSet.access_token;
+    req.session.tokenSet = tokenSet
 
     let apiFamilyType;
     let apiEndpointRegex;
@@ -1419,8 +1435,10 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
+    let response;
+    try {
     //Setup the request
-    const { authUrl, code_verifier, state, nonce, error } =
+      response =
       await generateRequest(
         client,
         req.session.selectedAuthServer,
@@ -1429,6 +1447,11 @@ let config = JSON.parse(JSON.stringify(configuration));
         req.session.selectedOrganisation,
         req
       );
+    } catch(error){
+      return res.status(500).json({message: "unable to generate request", error: error});
+    }
+
+    const { authUrl, code_verifier, state, nonce, error } = response;
 
     if (error) {
       const errorPayload = {
@@ -1686,6 +1709,11 @@ let config = JSON.parse(JSON.stringify(configuration));
   async function fetchData(req, apiFamilyType, apiType, path = "") {
     const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
+    const tokenSet = await getToken(req);
+    req.session.refreshToken = tokenSet.refresh_token;
+    req.session.accessToken = tokenSet.access_token;
+    req.session.tokenSet = tokenSet;
+
     let pathRegex;
     if (apiFamilyType === "accounts") {
       pathRegex = "open-banking/accounts/v1/accounts$";
@@ -1697,6 +1725,14 @@ let config = JSON.parse(JSON.stringify(configuration));
       pathRegex = `open-banking/customers/v1/business/${apiType}$`;
     } else if (apiFamilyType === "customers-personal") {
       pathRegex = `open-banking/customers/v1/personal/${apiType}$`;
+    } else if (apiFamilyType === "loans"){
+      pathRegex = "open-banking/loans/v1/contracts$"
+    } else if (apiFamilyType === "financings"){
+      pathRegex = "open-banking/financings/v1/contracts$"
+    } else if (apiFamilyType === "invoice-financings"){
+      pathRegex = "open-banking/invoice-financings/v1/contracts$"
+    } else if (apiFamilyType === "unarranged-accounts-overdraft"){
+      pathRegex = "open-banking/unarranged-accounts-overdraft/v1/contracts$"
     }
 
     paymentLog(
@@ -1927,5 +1963,217 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
   });
+
+  const loansApiFamily = "loans";
+  app.get("/loans", async (req, res) => {
+
+    const path = getPathWithParams(req.query);
+
+    const response = await fetchData(req, loansApiFamily, loansApiFamily, path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/loans/:contractId", async (req, res) => {
+    const contractId = req.params.contractId;
+    const response = await fetchData(
+      req,
+      loansApiFamily,
+      "loan",
+      `/${contractId}`
+    );
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/loans/:contractId/warranties", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/warranties${queryParams}`;
+
+    const response = await fetchData(req, loansApiFamily, "warranties", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/loans/:contractId/scheduled-instalments", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/scheduled-instalments${queryParams}`;
+
+    const response = await fetchData(req, loansApiFamily, "scheduled-instalments", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/loans/:contractId/payments", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/payments${queryParams}`;
+
+    const response = await fetchData(req, loansApiFamily, "payments", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  //####################Financings####################################
+
+  const financingsApiFamily = "financings";
+  app.get("/financings", async (req, res) => {
+
+    const path = getPathWithParams(req.query);
+
+    const response = await fetchData(req, financingsApiFamily, financingsApiFamily, path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/financings/:contractId", async (req, res) => {
+    const contractId = req.params.contractId;
+    const response = await fetchData(
+      req,
+      financingsApiFamily,
+      "financing",
+      `/${contractId}`
+    );
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/financings/:contractId/warranties", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/warranties${queryParams}`;
+
+    const response = await fetchData(req, financingsApiFamily, "warranties", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/financings/:contractId/scheduled-instalments", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/scheduled-instalments${queryParams}`;
+
+    const response = await fetchData(req, financingsApiFamily, "scheduled-instalments", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/financings/:contractId/payments", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/payments${queryParams}`;
+
+    const response = await fetchData(req, financingsApiFamily, "payments", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  //#####################Invoice Financings##############################
+  const invoiceFinancingsApiFamily = "invoice-financings";
+  app.get("/invoice-financings", async (req, res) => {
+
+    const path = getPathWithParams(req.query);
+
+    const response = await fetchData(req, invoiceFinancingsApiFamily, invoiceFinancingsApiFamily, path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/invoice-financings/:contractId", async (req, res) => {
+    const contractId = req.params.contractId;
+    const response = await fetchData(
+      req,
+      invoiceFinancingsApiFamily,
+      "invoice-financing",
+      `/${contractId}`
+    );
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/invoice-financings/:contractId/warranties", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/warranties${queryParams}`;
+
+    const response = await fetchData(req, invoiceFinancingsApiFamily, "warranties", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/invoice-financings/:contractId/scheduled-instalments", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/scheduled-instalments${queryParams}`;
+
+    const response = await fetchData(req, invoiceFinancingsApiFamily, "scheduled-instalments", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  app.get("/invoice-financings/:contractId/payments", async (req, res) => {
+    const contractId = req.params.contractId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${contractId}/payments${queryParams}`;
+
+    const response = await fetchData(req, invoiceFinancingsApiFamily, "payments", path);
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+  });
+
+  //#################### Unarranged Accounts Overdraft #####################
+    const UAO_ApiFamily = "unarranged-accounts-overdraft";
+    app.get("/unarranged-accounts-overdraft", async (req, res) => {
+  
+      const path = getPathWithParams(req.query);
+  
+      const response = await fetchData(req, UAO_ApiFamily, UAO_ApiFamily, path);
+  
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+    });
+  
+    app.get("/unarranged-accounts-overdraft/:contractId", async (req, res) => {
+      const contractId = req.params.contractId;
+      const response = await fetchData(
+        req,
+        UAO_ApiFamily,
+        "unarranged-accounts-overdraft",
+        `/${contractId}`
+      );
+  
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+    });
+  
+    app.get("/unarranged-accounts-overdraft/:contractId/warranties", async (req, res) => {
+      const contractId = req.params.contractId;
+      const queryParams = getPathWithParams(req.query);
+      const path = `/${contractId}/warranties${queryParams}`;
+  
+      const response = await fetchData(req, UAO_ApiFamily, "warranties", path);
+  
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+    });
+  
+    app.get("/unarranged-accounts-overdraft/:contractId/scheduled-instalments", async (req, res) => {
+      const contractId = req.params.contractId;
+      const queryParams = getPathWithParams(req.query);
+      const path = `/${contractId}/scheduled-instalments${queryParams}`;
+  
+      const response = await fetchData(req, UAO_ApiFamily, "scheduled-instalments", path);
+  
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+    });
+  
+    app.get("/unarranged-accounts-overdraft/:contractId/payments", async (req, res) => {
+      const contractId = req.params.contractId;
+      const queryParams = getPathWithParams(req.query);
+      const path = `/${contractId}/payments${queryParams}`;
+  
+      const response = await fetchData(req, UAO_ApiFamily, "payments", path);
+  
+      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+    });
 
 })();

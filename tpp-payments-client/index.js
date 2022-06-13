@@ -984,7 +984,6 @@ let config = JSON.parse(JSON.stringify(configuration));
     const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
     const theTokenSet = req.session.tokenSet;
     const tokenSet = new TokenSet(theTokenSet);
-    console.log("tessst", tokenSet.expired());
     if(tokenSet.expired()){
       return await client.refresh(theTokenSet.refresh_token);
     }

@@ -1423,8 +1423,10 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
 
+    let response;
+    try {
     //Setup the request
-    const { authUrl, code_verifier, state, nonce, error } =
+      response =
       await generateRequest(
         client,
         req.session.selectedAuthServer,
@@ -1433,6 +1435,11 @@ let config = JSON.parse(JSON.stringify(configuration));
         req.session.selectedOrganisation,
         req
       );
+    } catch(error){
+      returnres.status(500).json({message: "unable to generate request", error: error});
+    }
+
+    const { authUrl, code_verifier, state, nonce, error } = response;
 
     if (error) {
       const errorPayload = {

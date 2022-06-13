@@ -682,6 +682,10 @@ export default {
               )
               .then((response) => {
                 bankConsent.location.href = response.data.authUrl;
+              }).catch((error) => {
+                this.loading = false;
+                this.snackbar = true;
+                this.text = error.response.data.error;
               });
           }
         })

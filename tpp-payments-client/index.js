@@ -12,6 +12,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
 (async () => {
   const {
+    TokenSet,
     Issuer,
     custom,
     generators /*, TokenSet */,
@@ -979,6 +980,17 @@ let config = JSON.parse(JSON.stringify(configuration));
       .json({ ...payload, selectedBank: req.session.selectedBank });
   });
 
+  async function getToken(req){
+    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const theTokenSet = req.session.tokenSet;
+    const tokenSet = new TokenSet(theTokenSet);
+    console.log("tessst", tokenSet.expired());
+    if(tokenSet.expired()){
+      return await client.refresh(theTokenSet.refresh_token);
+    }
+    return theTokenSet;
+  }
+
   app.use(express.urlencoded());
 
   //This is used for response mode form_post, query and form_post are the most common
@@ -1010,6 +1022,7 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     req.session.refreshToken = tokenSet.refresh_token;
     req.session.accessToken = tokenSet.access_token;
+    req.session.tokenSet = tokenSet
 
     let apiFamilyType;
     let apiEndpointRegex;
@@ -1436,7 +1449,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         req
       );
     } catch(error){
-      returnres.status(500).json({message: "unable to generate request", error: error});
+      return res.status(500).json({message: "unable to generate request", error: error});
     }
 
     const { authUrl, code_verifier, state, nonce, error } = response;
@@ -1696,6 +1709,11 @@ let config = JSON.parse(JSON.stringify(configuration));
   //Fetch data for the given API
   async function fetchData(req, apiFamilyType, apiType, path = "") {
     const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+
+    const tokenSet = await getToken(req);
+    req.session.refreshToken = tokenSet.refresh_token;
+    req.session.accessToken = tokenSet.access_token;
+    req.session.tokenSet = tokenSet;
 
     let pathRegex;
     if (apiFamilyType === "accounts") {

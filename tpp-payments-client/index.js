@@ -261,7 +261,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const {certAuthority, transportKey, transportPem } =  getCerts(req.session.certificates);
 
     let fapiClient;
-    if (selectedDcrOption === "Provide An Existing Client Configuration") {
+    if (selectedDcrOption === "USE_EXISTING_CLIENT") {
       try {
         dcrLog("Get the existing client from the Bank");
         //try and get the existing client and set the private keys

@@ -183,17 +183,6 @@
             <h3 class="ma-3 mt-5 grey--text text--darken-1">
               Select which API to call with the consents that have been granted:
             </h3>
-            <v-row>
-              <v-col cols="4" md="4">
-                <v-select
-                  :items="['Loans', 'Financings', 'Unarranged Accounts Overdraft', 'Invoice Financings']"
-                  label="Credit Operations"
-                  outlined
-                  dense
-                  v-model="selectedCreditOperation"
-                ></v-select>
-              </v-col>
-            </v-row>
             <v-btn
               color="primary"
               class="ma-3 mt-5"
@@ -215,9 +204,60 @@
             >
               3. Credit Card
             </v-btn>
-            <v-btn color="primary" class="ma-3 mt-5" :disabled="creditOperationSelected" @click="creditOperation">
-              4. Credit Operations
-            </v-btn>
+
+            <v-dialog v-model="dialog" persistent max-width="600px">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  color="primary"
+                  v-bind="attrs"
+                  v-on="on"
+                  class="ma-3 mt-5"
+                >
+                  4. Credit Operations
+                </v-btn>
+              </template>
+              <v-card>
+                <v-card-title>
+                  <span class="text-h5">Credit Operation Options</span>
+                </v-card-title>
+                <v-card-text>
+                  <v-container>
+                    <v-form ref="form" v-model="valid" lazy-validation>
+                      <v-row>
+                        <v-col class="d-flex" cols="12" sm="12">
+                          <v-select
+                            :items="[
+                              'Loans',
+                              'Financings',
+                              'Unarranged Accounts Overdraft',
+                              'Invoice Financings',
+                            ]"
+                            label="Credit Operations"
+                            dense
+                            outlined
+                            v-model="selectedCreditOperation"
+                            :rules="creditOperationRules"
+                          ></v-select>
+                        </v-col>
+                      </v-row>
+                    </v-form>
+                  </v-container>
+                </v-card-text>
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="dialog = false">
+                    Close
+                  </v-btn>
+                  <v-btn
+                    color="blue darken-1"
+                    text
+                    @click="selectCreditOperationOption"
+                  >
+                    Save
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
             <v-btn
               color="primary"
               class="ma-3 mt-5"
@@ -253,6 +293,8 @@ export default {
   },
   data() {
     return {
+      valid: true,
+      dialog: false,
       selected: true,
       loading: true,
       consentPayload: "",
@@ -260,7 +302,8 @@ export default {
       grantedConsents: [],
       grantedConsentsCategory: "",
       consentsArr: [],
-      selectedCreditOperation: ""
+      selectedCreditOperation: "",
+      creditOperationRules: [(v) => !!v || "please select a credit operation"],
     };
   },
 
@@ -268,6 +311,26 @@ export default {
     getConsentInfo(consentData) {
       this.grantedConsentsCategory = consentData.category;
       this.consentsArr = consentData.permissionsArray;
+    },
+
+    async selectCreditOperationOption() {
+      this.$refs.form.validate();
+      await setTimeout(() => {}, 100);
+      if (!this.valid) {
+        return;
+      }
+      this.dialog = false;
+      if (this.selectedCreditOperation === "Loans") {
+        this.$router.push("loans");
+      } else if (this.selectedCreditOperation === "Financings") {
+        this.$router.push("financings");
+      } else if (this.selectedCreditOperation === "Invoice Financings") {
+        this.$router.push("invoice-financings");
+      } else if (
+        this.selectedCreditOperation === "Unarranged Accounts Overdraft"
+      ) {
+        this.$router.push("unarranged-accounts-overdraft");
+      }
     },
 
     convertArrayToString(arr) {
@@ -278,18 +341,6 @@ export default {
 
       return text;
     },
-
-    creditOperation(){
-      if(this.selectedCreditOperation === "Loans"){
-        this.$router.push("loans");
-      } else if (this.selectedCreditOperation === "Financings"){
-        this.$router.push("financings");
-      } else if (this.selectedCreditOperation === "Invoice Financings"){
-        this.$router.push("invoice-financings");
-      } else if (this.selectedCreditOperation === "Unarranged Accounts Overdraft"){
-        this.$router.push("unarranged-accounts-overdraft");
-      }
-    }
   },
 
   computed: {
@@ -299,13 +350,13 @@ export default {
       "clientID",
       "registrationAccessToken",
     ]),
-    creditOperationSelected(){
-      if(this.selectedCreditOperation){
+    creditOperationSelected() {
+      if (this.selectedCreditOperation) {
         return false;
       }
 
       return true;
-    }
+    },
   },
   created() {
     axios.get("/consent", { withCredentials: true }).then((response) => {

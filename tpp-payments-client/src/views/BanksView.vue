@@ -196,7 +196,7 @@ export default {
     snackbar: false,
     text: "Please select a bank",
     loading: false,
-    selectedBank: "Mock Bank",
+    selectedBank: "",
     banks: [],
     search: "",
     loadingBanks: true,
@@ -226,7 +226,7 @@ export default {
           "/dcr",
           {
             bank: this.selectedBank,
-            selectedDcrOption: this.selectedDcrOption,
+            selectedDcrOption: this.dcrOption,
             clientId: this.clientId,
             registrationAccessToken: this.registrationAccessToken,
           },
@@ -281,6 +281,7 @@ export default {
           }
         }
       }
+      this.banks.sort((a, b) => a.title.trim().localeCompare(b.title.trim()));
     },
 
     getClients() {

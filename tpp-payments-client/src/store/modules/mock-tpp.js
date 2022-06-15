@@ -9,8 +9,14 @@ const state = {
       dataCategory: "Cadastro",
       group: "Dados Cadastrais PF",
       permissions: [
-        "CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ",
-        "RESOURCES_READ",
+        {
+          permission: "CUSTOMERS_PERSONAL_IDENTIFICATIONS_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        }
       ],
       consent: false,
     },
@@ -18,7 +24,16 @@ const state = {
       id: 2,
       dataCategory: "Cadastro",
       group: "Informações complementares PF",
-      permissions: ["CUSTOMERS_PERSONAL_ADITTIONALINFO_READ", "RESOURCES_READ"],
+      permissions: [
+        {
+          permission: "CUSTOMERS_PERSONAL_ADITTIONALINFO_READ",
+          consent: false
+        }, 
+        {
+          permission: "RESOURCES_READ",
+          consent: false
+        }, 
+      ],
       consent: false,
     },
     {
@@ -26,8 +41,14 @@ const state = {
       dataCategory: "Cadastro",
       group: "Dados Cadastrais PJ",
       permissions: [
-        "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ",
-        "RESOURCES_READ",
+        {
+          permission: "CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        }
       ],
       consent: false,
     },
@@ -35,7 +56,16 @@ const state = {
       id: 4,
       dataCategory: "Cadastro",
       group: "Informações complementares PJ",
-      permissions: ["CUSTOMERS_BUSINESS_ADITTIONALINFO_READ", "RESOURCES_READ"],
+      permissions: [
+        {
+          permission: "CUSTOMERS_BUSINESS_ADITTIONALINFO_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        }
+      ],
       consent: false,
     },
     {
@@ -43,9 +73,18 @@ const state = {
       dataCategory: "Contas",
       group: "Saldos",
       permissions: [
-        "ACCOUNTS_READ",
-        "ACCOUNTS_BALANCES_READ",
-        "RESOURCES_READ",
+        {
+          permission: "ACCOUNTS_READ",
+          consent: false,
+        },
+        {
+          permission: "ACCOUNTS_BALANCES_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        },
       ],
       consent: false,
     },
@@ -54,9 +93,18 @@ const state = {
       dataCategory: "Contas",
       group: "Limites",
       permissions: [
-        "ACCOUNTS_READ",
-        "ACCOUNTS_OVERDRAFT_LIMITS_READ",
-        "RESOURCES_READ",
+        {
+          permission: "ACCOUNTS_READ",
+          consent: false,
+        },
+        {
+          permission: "ACCOUNTS_OVERDRAFT_LIMITS_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        },
       ],
       consent: false,
     },
@@ -65,9 +113,18 @@ const state = {
       dataCategory: "Contas",
       group: "Extratos",
       permissions: [
-        "ACCOUNTS_READ",
-        "ACCOUNTS_TRANSACTIONS_READ",
-        "RESOURCES_READ",
+        {
+          permission: "ACCOUNTS_READ",
+          consent: false,
+        },
+        {
+          permission: "ACCOUNTS_TRANSACTIONS_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        },
       ],
       consent: false,
     },
@@ -76,9 +133,18 @@ const state = {
       dataCategory: "Cartão de Crédito",
       group: "Limites",
       permissions: [
-        "CREDIT_CARDS_ACCOUNTS_READ",
-        "CREDIT_CARDS_ACCOUNTS_LIMITS_READ",
-        "RESOURCES_READ",
+        {
+          permission: "CREDIT_CARDS_ACCOUNTS_READ",
+          consent: false,
+        },
+        {
+          permission: "CREDIT_CARDS_ACCOUNTS_LIMITS_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        },
       ],
       consent: false,
     },
@@ -87,9 +153,18 @@ const state = {
       dataCategory: "Cartão de Crédito",
       group: "Transações",
       permissions: [
-        "CREDIT_CARDS_ACCOUNTS_READ",
-        "CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ",
-        "RESOURCES_READ",
+        {
+          permission: "CREDIT_CARDS_ACCOUNTS_READ",
+          consent: false,
+        },
+        {
+          permission: "CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        },
       ],
       consent: false,
     },
@@ -98,10 +173,22 @@ const state = {
       dataCategory: "Cartão de Crédito",
       group: "Faturas",
       permissions: [
-        "CREDIT_CARDS_ACCOUNTS_READ",
-        "CREDIT_CARDS_ACCOUNTS_BILLS_READ",
-        "CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ",
-        "RESOURCES_READ",
+        {
+          permission: "CREDIT_CARDS_ACCOUNTS_READ",
+          consent: false,
+        },
+        {
+          permission: "CREDIT_CARDS_ACCOUNTS_BILLS_READ",
+          consent: false,
+        },
+        {
+          permission: "CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        },
       ],
       consent: false,
     },
@@ -110,23 +197,75 @@ const state = {
       dataCategory: "Operações de Crédito",
       group: "Dados do Contrato",
       permissions: [
-        "LOANS_READ",
-        "LOANS_WARRANTIES_READ",
-        "LOANS_SCHEDULED_INSTALMENTS_READ",
-        "LOANS_PAYMENTS_READ",
-        "FINANCINGS_READ",
-        "FINANCINGS_WARRANTIES_READ",
-        "FINANCINGS_SCHEDULED_INSTALMENTS_READ",
-        "FINANCINGS_PAYMENTS_READ",
-        "UNARRANGED_ACCOUNTS_OVERDRAFT_READ",
-        "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ",
-        "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ",
-        "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ",
-        "INVOICE_FINANCINGS_READ",
-        "INVOICE_FINANCINGS_WARRANTIES_READ",
-        "INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ",
-        "INVOICE_FINANCINGS_PAYMENTS_READ",
-        "RESOURCES_READ",
+        {
+          permission: "LOANS_READ",
+          consent: false,
+        },
+        {
+          permission: "LOANS_WARRANTIES_READ",
+          consent: false,
+        },
+        {
+          permission: "LOANS_SCHEDULED_INSTALMENTS_READ",
+          consent: false,
+        },
+        {
+          permission: "LOANS_PAYMENTS_READ",
+          consent: false,
+        },
+        {
+          permission: "FINANCINGS_READ",
+          consent: false,
+        },
+        {
+          permission: "FINANCINGS_WARRANTIES_READ",
+          consent: false,
+        },
+        {
+          permission: "FINANCINGS_SCHEDULED_INSTALMENTS_READ",
+          consent: false,
+        },
+        {
+          permission: "FINANCINGS_PAYMENTS_READ",
+          consent: false,
+        },
+        {
+          permission: "UNARRANGED_ACCOUNTS_OVERDRAFT_READ",
+          consent: false,
+        },
+        {
+          permission: "UNARRANGED_ACCOUNTS_OVERDRAFT_WARRANTIES_READ",
+          consent: false,
+        },
+        {
+          permission: "UNARRANGED_ACCOUNTS_OVERDRAFT_SCHEDULED_INSTALMENTS_READ",
+          consent: false,
+        },
+        {
+          permission: "UNARRANGED_ACCOUNTS_OVERDRAFT_PAYMENTS_READ",
+          consent: false,
+        },
+        {
+          permission: "INVOICE_FINANCINGS_READ",
+          consent: false,
+        },
+        {
+          permission: "INVOICE_FINANCINGS_WARRANTIES_READ",
+          consent: false,
+        },
+        {
+          permission: "INVOICE_FINANCINGS_SCHEDULED_INSTALMENTS_READ",
+          consent: false,
+        },
+        {
+          permission: "INVOICE_FINANCINGS_PAYMENTS_READ",
+          consent: false,
+        },
+        {
+          permission: "RESOURCES_READ",
+          consent: false,
+        },
+
       ],
       consent: false,
     },

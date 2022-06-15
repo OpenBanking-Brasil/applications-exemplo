@@ -104,16 +104,30 @@
             class="elevation-1"
           >
             <template v-slot:[`item.permissions`]="{ item }">
-              <li v-for="(i, index) in item.permissions" :key="index">
-                {{ i }}
+              <div v-for="(i, index) in item.permissions" :key="index">
+              <li class="mb-1">
+                {{ i.permission }}
               </li>
+              </div>
             </template>
 
             <template v-slot:[`item.consent`]="{ item }">
-              <v-simple-checkbox
-                :ripple="false"
-                v-model="item.consent"
-              ></v-simple-checkbox>
+              <v-row>
+                <v-col cols="6" md="6" class="d-flex align-center">
+                  <v-simple-checkbox
+                    :ripple="false"
+                    v-model="item.consent"
+                    style="transform: scale(1.3)"
+                  ></v-simple-checkbox>
+                </v-col>
+                <v-col cols="6" md="6">
+                  <v-simple-checkbox
+                  v-for="(consentItem, i) in item.permissions" :key="i"
+                    :ripple="false"
+                    v-model="consentItem.consent"
+                  ></v-simple-checkbox>
+                </v-col>
+              </v-row>
             </template>
           </v-data-table>
           <v-col class="text-right">
@@ -230,9 +244,28 @@ export default {
       this.setCadastroOption(this.selectedOption);
       this.loading = true;
       axios.defaults.withCredentials = true;
-      const selectedConsents = this.consentsArr.filter(
+      const selectedConsentsbyGroup = this.consentsArr.filter(
         (rowData) => rowData.consent === true
       );
+      const individuallySelectedConsents = this.consentsArr.filter(
+        (rowData) => rowData.consent === false
+      );
+      const filteredConsents = individuallySelectedConsents.map((consent) => {
+        let consentGranted = false;
+        const obj = {...consent, permissions: consent.permissions.filter((permission) => {
+          if(permission.consent){
+            consentGranted = true;
+            return true;
+          }
+          return false;
+        })};
+
+        if(consentGranted){
+          return {...obj, consent: consentGranted};
+        }
+      }).filter(consent => consent);
+
+      const selectedConsents = [...selectedConsentsbyGroup, ...filteredConsents];
 
       const bankConsent = window.open("", "_self");
       axios

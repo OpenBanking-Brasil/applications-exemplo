@@ -1536,7 +1536,9 @@ let config = JSON.parse(JSON.stringify(configuration));
     const identification = req.body.identification;
     const rel = req.body.rel;
     const grantedPermissions = req.body.permissionsArr.map((permissionData) => {
-      return permissionData.permissions;
+      return permissionData.permissions.map((data) => {
+        return data.permission;
+      });
     });
 
     //granted permissions categories
@@ -1545,6 +1547,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         category: permissionData.dataCategory,
         id: permissionData.id,
         group: permissionData.group,
+        permissions: permissionData.permissions
       };
     });
 

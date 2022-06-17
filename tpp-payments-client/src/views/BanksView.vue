@@ -282,13 +282,20 @@ export default {
         }
       }
       this.banks.sort((a, b) => a.title.trim().localeCompare(b.title.trim()));
+      for (let i = 0; i < this.banks.length; i++) {
+        fetch(this.banks[i].avatar, { mode: "no-cors"}).then((response) => {
+        }).catch((error) => {
+          console.log("error", error);
+          this.banks[i].avatar = "https://ui-avatars.com/api/?name=No+Logo";
+        });
+      }
     },
 
     getClients() {
       axios.get("clients", { withCredentials: true }).then((response) => {
         this.clients = response.data;
         this.clients.forEach((client) => {
-          if(client.bank === this.selectedBank){
+          if (client.bank === this.selectedBank) {
             this.clientIds.push(client.clientId);
           }
         });
@@ -354,7 +361,6 @@ export default {
   },
 
   created() {
-
     console.log(this.$route.query);
 
     this.clientId = "";

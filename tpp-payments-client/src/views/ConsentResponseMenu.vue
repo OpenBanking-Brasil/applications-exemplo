@@ -160,7 +160,7 @@
                                     <v-list-item-content>
                                       {{ consentObj.group }}
                                     </v-list-item-content>
-                                    <v-list-item-content class="align-end">
+                                    <v-list-item-content class="align-end" style="overflow: auto">
                                       {{ consentObj.permissions }}
                                     </v-list-item-content>
                                   </v-list-item>
@@ -364,74 +364,36 @@ export default {
       this.requestData = response.data.requestData;
       this.grantedConsents = response.data.permissionsData;
 
-      let consentsArr = [];
-      this.grantedConsents.forEach((consentData) => {
-        this.consents.forEach((consent) => {
-          if (
-            consent.dataCategory === consentData.category &&
-            consent.id === consentData.id
-          ) {
-            consentsArr.push(consent);
-          }
-        });
-      });
-
-      //Get all consents that have the same category
-      let duplicates = this.grantedConsents
-        .map((consent) => consent.category)
-        .filter(
-          (consentCategory, i, arr) => arr.indexOf(consentCategory) !== i
-        );
-      duplicates = [...new Set(duplicates)]; //unique duplicates
-
-      const consentsList = [];
-      duplicates.forEach((consentCategory) => {
-        consentsArr.forEach((consentObj) => {
-          if (consentCategory === consentObj.dataCategory) {
-            consentsList.push(consentObj);
-          }
-        });
-      });
-
-      const formatedConsents = [];
-      for (let consentCategory of duplicates) {
+      let formatedConsents = [];
+      for (let consent of this.grantedConsents) {
         const consentObj = {
           category: "",
           permissionsArray: [],
         };
 
-        consentsList.forEach((consentItem) => {
-          if (consentCategory === consentItem.dataCategory) {
-            consentObj.category = consentCategory;
+        let itemFound = false;
+        const filteredArr = this.grantedConsents.filter((theConsent) => theConsent.category === consent.category);
+        for(const cnst of filteredArr){
+          for(const formatedConsent of formatedConsents){
+            if(formatedConsent["category"] === cnst["category"]){
+              itemFound = true;
+            }
+          }
+          if(!itemFound){
+            consentObj.category = cnst.category;
             consentObj.permissionsArray.push({
-              group: consentItem.group,
-              permissions: this.convertArrayToString(consentItem.permissions),
+              group: cnst.group,
+              permissions: this.convertArrayToString(cnst.permissions.map((permissions) => permissions.permission))
             });
           }
-        });
+        }
 
-        formatedConsents.push(consentObj);
+        if(consentObj.category){
+          formatedConsents.push(consentObj);
+        }
       }
 
-      //Get all consents except the consents with duplicate categories
-      consentsArr = consentsArr.filter((consent) => {
-        return !duplicates.includes(consent.dataCategory);
-      });
-
-      //Standarise the consent objects format
-      consentsArr = consentsArr.map((item) => {
-        return {
-          category: item.dataCategory,
-          permissionsArray: [
-            {
-              group: item.group,
-              permissions: this.convertArrayToString(item.permissions),
-            },
-          ],
-        };
-      });
-
-      this.grantedConsents = [...consentsArr, ...formatedConsents];
+      this.grantedConsents = [...formatedConsents];
       this.loading = false;
     });
   },

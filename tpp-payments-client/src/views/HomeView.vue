@@ -451,7 +451,7 @@
                                 </v-col>
                               </v-row>
                             </v-card>
-                            <v-card flat v-else-if="item === 'Mock TPP settings'">
+                            <v-card flat v-else-if="item === 'Mock TPP Settings'">
                               <v-row class="pa-5">
                                 <v-col cols="12" sm="6" md="6">
                                   <b> Loop Pause Time (ms) </b>

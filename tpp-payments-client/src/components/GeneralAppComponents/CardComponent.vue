@@ -44,21 +44,21 @@
                     <v-form ref="form" v-model="valid" lazy-validation>
                       <v-row>
                           <v-col cols="12" sm="6">
+                            <h5>Date Format must be : yyyy-mm-dd</h5>
                             <v-text-field
                               dense
                               outlined
                               label="From Booking Date"
                               v-model="queryParams['fromBookingDate']"
-                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
+                            <h5>Date Format must be : yyyy-mm-dd</h5>
                             <v-text-field
                               dense
                               outlined
                               label="To Booking Date"
                               v-model="queryParams['toBookingDate']"
-                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -128,21 +128,21 @@
                     <v-form ref="form" v-model="valid" lazy-validation>
                       <v-row>
                           <v-col cols="12" sm="6">
+                            <h5>Date Format must be : yyyy-mm-dd</h5>
                             <v-text-field
                               dense
                               outlined
                               label="From Transaction Date"
                               v-model="queryParams['fromTransactionDate']"
-                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
+                            <h5>Date Format must be : yyyy-mm-dd</h5>
                             <v-text-field
                               dense
                               outlined
                               label="To Transaction Date"
                               v-model="queryParams['toTransactionDate']"
-                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -220,21 +220,21 @@
                     <v-form ref="form" v-model="valid" lazy-validation>
                       <v-row>
                           <v-col cols="12" sm="6">
+                            <h5>Date Format must be : yyyy-mm-dd</h5>
                             <v-text-field
                               dense
                               outlined
                               label="From Due Date"
                               v-model="queryParams['fromDueDate']"
-                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
+                            <h5>Date Format must be : yyyy-mm-dd</h5>
                             <v-text-field
                               dense
                               outlined
                               label="To Due Date"
                               v-model="queryParams['toDueDate']"
-                              :rules="dateRule"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -399,7 +399,6 @@ export default {
       dialog: false,
       textFieldLabel: "",
       valid: true,
-      dateRule: [(v) => /^(19|20)\d\d([-])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])$/.test(v) || "Data must be valid - yyyy-mm-dd"],
     };
   },
   methods: {

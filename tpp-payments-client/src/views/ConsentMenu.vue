@@ -65,17 +65,7 @@
           </v-dialog>
 
           <v-row align="center">
-            <v-col class="d-flex" cols="12" sm="4">
-              <v-select
-                :items="cadastroOptions"
-                label="Cadastro Options"
-                dense
-                outlined
-                v-model="selectedOption"
-              ></v-select>
-            </v-col>
-
-            <v-col cols="12" sm="4">
+            <v-col cols="12" sm="6">
               <v-text-field
                 dense
                 outlined
@@ -83,9 +73,17 @@
                 v-model="identification"
                 required
                 :rules="identificationRules"
+                class="mt-6"
               ></v-text-field>
             </v-col>
-            <v-col cols="12" sm="4">
+            <v-col cols="12" sm="6">
+              <v-icon
+                small
+                title="CPF or CNPJ are acceptable"
+                class="mb-2"
+              >
+                mdi-information
+              </v-icon>
               <v-text-field
                 dense
                 outlined
@@ -105,9 +103,9 @@
           >
             <template v-slot:[`item.permissions`]="{ item }">
               <div v-for="(i, index) in item.permissions" :key="index">
-              <li class="mb-1">
-                {{ i.permission }}
-              </li>
+                <li class="mb-1">
+                  {{ i.permission }}
+                </li>
               </div>
             </template>
 
@@ -122,7 +120,8 @@
                 </v-col>
                 <v-col cols="6" md="6">
                   <v-simple-checkbox
-                  v-for="(consentItem, i) in item.permissions" :key="i"
+                    v-for="(consentItem, i) in item.permissions"
+                    :key="i"
                     :ripple="false"
                     v-model="consentItem.consent"
                   ></v-simple-checkbox>
@@ -181,8 +180,6 @@ export default {
       snackbar: false,
       snackbarMessage: "",
       loading: false,
-      cadastroOptions: ["PF", "PJ"],
-      selectedOption: "PF",
       consentsArr: [],
       consentsDeepCopy: [],
       identificationRules: [(v) => !!v || "Identification is required"],
@@ -204,18 +201,6 @@ export default {
     };
   },
 
-  watch: {
-    selectedOption(val) {
-      this.consentsArr = this.consentsDeepCopy.filter((consent) => {
-        if (val === "PF") {
-          return consent.id !== 3 && consent.id !== 4;
-        } else if (val === "PJ") {
-          return consent.id !== 1 && consent.id !== 2;
-        }
-      });
-    },
-  },
-
   computed: {
     ...mapGetters([
       "consents",
@@ -231,17 +216,13 @@ export default {
       selectedDcrOption === "USE_EXISTING_CLIENT"
         ? "Obtained the registered client's details successfully"
         : "Dynamic client registration has been done successfully";
-    this.setCadastroOption(this.selectedOption);
     this.consentsDeepCopy = JSON.parse(JSON.stringify(this.consents));
-    this.consentsArr = this.consentsDeepCopy.filter(
-      (consent) => consent.id !== 3 && consent.id !== 4
-    );
+    this.consentsArr = this.consentsDeepCopy;
   },
 
   methods: {
     ...mapActions(["setCadastroOption"]),
     continueConsent() {
-      this.setCadastroOption(this.selectedOption);
       this.loading = true;
       axios.defaults.withCredentials = true;
       const selectedConsentsbyGroup = this.consentsArr.filter(
@@ -250,22 +231,40 @@ export default {
       const individuallySelectedConsents = this.consentsArr.filter(
         (rowData) => rowData.consent === false
       );
-      const filteredConsents = individuallySelectedConsents.map((consent) => {
-        let consentGranted = false;
-        const obj = {...consent, permissions: consent.permissions.filter((permission) => {
-          if(permission.consent){
-            consentGranted = true;
-            return true;
+      const filteredConsents = individuallySelectedConsents
+        .map((consent) => {
+          let consentGranted = false;
+          const obj = {
+            ...consent,
+            permissions: consent.permissions.filter((permission) => {
+              if (permission.consent) {
+                consentGranted = true;
+                return true;
+              }
+              return false;
+            }),
+          };
+
+          if (consentGranted) {
+            return { ...obj, consent: consentGranted };
           }
-          return false;
-        })};
+        })
+        .filter((consent) => consent);
 
-        if(consentGranted){
-          return {...obj, consent: consentGranted};
+      const selectedConsents = [
+        ...selectedConsentsbyGroup,
+        ...filteredConsents,
+      ];
+
+      selectedConsents.forEach((selectedConsent) => {
+        let foundSelectedConsentGroup;
+        if(selectedConsent.group.includes("PF")){
+          foundSelectedConsentGroup = "PF";
+        } else if(selectedConsent.group.includes("PJ")){
+          foundSelectedConsentGroup = "PJ";
         }
-      }).filter(consent => consent);
-
-      const selectedConsents = [...selectedConsentsbyGroup, ...filteredConsents];
+          this.setCadastroOption(foundSelectedConsentGroup);
+      });
 
       const bankConsent = window.open("", "_self");
       axios

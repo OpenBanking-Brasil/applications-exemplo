@@ -299,7 +299,7 @@
                             </v-card>
                             <v-card
                               flat
-                              v-else-if="item === 'SS Settings'"
+                              v-else-if="item === 'Software Statement Settings'"
                             >
                               <v-row class="pa-5">
                                 <v-col cols="12" sm="4" md="4">
@@ -543,7 +543,7 @@ export default {
       statusColour: "red accent-2",
 
       tab: null,
-      items: ["Authorization and Message Settings", "SS Settings", "Mock TPP settings"],
+      items: ["Authorization and Message Settings", "Software Statement Settings", "Mock TPP Settings"],
       text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
 
       theFormData: {

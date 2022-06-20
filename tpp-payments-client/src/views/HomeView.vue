@@ -111,7 +111,7 @@
 
                         <v-tabs-items v-model="tab">
                           <v-tab-item v-for="item in items" :key="item">
-                            <v-card flat v-if="item === 'Client'">
+                            <v-card flat v-if="item === 'Authorization and Message Settings'">
                               <v-row class="pa-5">
                                 <v-col cols="12" sm="4" md="4">
                                   <b> Application Type </b>
@@ -277,53 +277,6 @@
                                   ></v-select>
                                 </v-col>
                                 <v-col cols="12" sm="4" md="4">
-                                  <b> Client ID </b>
-                                  <v-text-field
-                                    placeholder=""
-                                    outlined
-                                    dense
-                                    name="client_id"
-                                    id="client_id"
-                                    v-model="theFormData.client_id"
-                                  ></v-text-field>
-                                </v-col>
-                                <v-col cols="12" sm="8" md="8">
-                                  <b> JWKS URI </b>
-                                  <v-icon
-                                    small
-                                    title="URL for the client's JSON Web Key Set (JWKS) document. If the client signs requests to the server, it contains the signing key(s) the server uses to validate signatures from the Client."
-                                  >
-                                    mdi-information
-                                  </v-icon>
-                                  <v-text-field
-                                    placeholder=""
-                                    outlined
-                                    dense
-                                    name="jwks_uri"
-                                    id="jwks_uri"
-                                    v-model="theFormData.jwks_uri"
-                                  ></v-text-field>
-                                </v-col>
-                                <v-col cols="12" sm="8" md="8">
-                                  <b> TLS Client Auth Subject DN </b>
-                                  <v-icon
-                                    small
-                                    title="This value must be set if token_endpoint_auth_method is set to tls_client_auth. The tls_client_auth_subject_dn claim MUST contain the DN of the certificate that the TPP will present to the ASPSP token endpoint."
-                                  >
-                                    mdi-information
-                                  </v-icon>
-                                  <v-text-field
-                                    placeholder=""
-                                    outlined
-                                    dense
-                                    name="tls_client_auth_subject_dn"
-                                    id="tls_client_auth_subject_dn"
-                                    v-model="
-                                      theFormData.tls_client_auth_subject_dn
-                                    "
-                                  ></v-text-field>
-                                </v-col>
-                                <v-col cols="12" sm="4" md="4">
                                   <b> Authorization Signed Response ALG </b>
                                   <v-icon
                                     small
@@ -344,7 +297,10 @@
                                 </v-col>
                               </v-row>
                             </v-card>
-                            <v-card flat v-else-if="item === 'Software Statement'">
+                            <v-card
+                              flat
+                              v-else-if="item === 'SS Settings'"
+                            >
                               <v-row class="pa-5">
                                 <v-col cols="12" sm="4" md="4">
                                   <b> Signing Key ID </b>
@@ -376,6 +332,18 @@
                                 </v-col>
 
                                 <v-col cols="12" sm="4" md="4">
+                                  <b> Directory Client ID </b>
+                                  <v-text-field
+                                    placeholder=""
+                                    outlined
+                                    dense
+                                    name="client_id"
+                                    id="client_id"
+                                    v-model="theFormData.client_id"
+                                  ></v-text-field>
+                                </v-col>
+
+                                <v-col cols="12" sm="4" md="4">
                                   <b> Organisation ID </b>
                                   <v-text-field
                                     placeholder=""
@@ -386,48 +354,42 @@
                                     v-model="theFormData.organisation_id"
                                   ></v-text-field>
                                 </v-col>
-                              </v-row>
-                            </v-card>
-                            <v-card flat v-else-if="item === 'App Settings'">
-                              <v-row class="pa-5">
-                                <v-col cols="12" sm="4" md="4">
-                                  <b> Loop Pause Time (ms) </b>
+                                <v-col cols="12" sm="8" md="8">
+                                  <b> JWKS URI </b>
+                                  <v-icon
+                                    small
+                                    title="URL for the client's JSON Web Key Set (JWKS) document. If the client signs requests to the server, it contains the signing key(s) the server uses to validate signatures from the Client."
+                                  >
+                                    mdi-information
+                                  </v-icon>
                                   <v-text-field
                                     placeholder=""
                                     outlined
                                     dense
-                                    type="number"
-                                    name="loop_pause_time"
-                                    id="loop_pause_time"
-                                    v-model="theFormData.loop_pause_time"
+                                    name="jwks_uri"
+                                    id="jwks_uri"
+                                    v-model="theFormData.jwks_uri"
                                   ></v-text-field>
                                 </v-col>
-                                <v-col cols="12" sm="4" md="4">
-                                  <b> Number of Check Loops </b>
+                                <v-col cols="12" sm="12" md="12">
+                                  <b> TLS Client Auth Subject DN </b>
+                                  <v-icon
+                                    small
+                                    title="This value must be set if token_endpoint_auth_method is set to tls_client_auth. The tls_client_auth_subject_dn claim MUST contain the DN of the certificate that the TPP will present to the ASPSP token endpoint."
+                                  >
+                                    mdi-information
+                                  </v-icon>
                                   <v-text-field
                                     placeholder=""
                                     outlined
                                     dense
-                                    type="number"
-                                    name="number_of_check_loops"
-                                    id="number_of_check_loops"
-                                    v-model="theFormData.number_of_check_loops"
-                                  ></v-text-field>
-                                </v-col>
-                                <v-col cols="12" sm="4" md="4">
-                                  <b> Preferred Token Auth Mechanism </b>
-                                  <v-text-field
-                                    placeholder=""
-                                    outlined
-                                    dense
-                                    name="preferred_token_auth_mech"
-                                    id="preferred_token_auth_mech"
+                                    name="tls_client_auth_subject_dn"
+                                    id="tls_client_auth_subject_dn"
                                     v-model="
-                                      theFormData.preferred_token_auth_mech
+                                      theFormData.tls_client_auth_subject_dn
                                     "
                                   ></v-text-field>
                                 </v-col>
-
                                 <v-col cols="12" sm="8" md="8">
                                   <b>
                                     Upload Certificates - Certificate authority
@@ -486,6 +448,34 @@
                                     color="primary"
                                     hide-details
                                   ></v-checkbox>
+                                </v-col>
+                              </v-row>
+                            </v-card>
+                            <v-card flat v-else-if="item === 'Mock TPP settings'">
+                              <v-row class="pa-5">
+                                <v-col cols="12" sm="6" md="6">
+                                  <b> Loop Pause Time (ms) </b>
+                                  <v-text-field
+                                    placeholder=""
+                                    outlined
+                                    dense
+                                    type="number"
+                                    name="loop_pause_time"
+                                    id="loop_pause_time"
+                                    v-model="theFormData.loop_pause_time"
+                                  ></v-text-field>
+                                </v-col>
+                                <v-col cols="12" sm="6" md="6">
+                                  <b> Number of Check Loops </b>
+                                  <v-text-field
+                                    placeholder=""
+                                    outlined
+                                    dense
+                                    type="number"
+                                    name="number_of_check_loops"
+                                    id="number_of_check_loops"
+                                    v-model="theFormData.number_of_check_loops"
+                                  ></v-text-field>
                                 </v-col>
                               </v-row>
                             </v-card>
@@ -553,7 +543,7 @@ export default {
       statusColour: "red accent-2",
 
       tab: null,
-      items: ["Client", "Software Statement", "App Settings"],
+      items: ["Authorization and Message Settings", "SS Settings", "Mock TPP settings"],
       text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
 
       theFormData: {

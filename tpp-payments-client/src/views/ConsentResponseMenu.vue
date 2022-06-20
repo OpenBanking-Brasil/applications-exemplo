@@ -283,7 +283,7 @@
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
-import { mapGetters } from "vuex";
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "ConsentResponseMenu",
@@ -308,6 +308,7 @@ export default {
   },
 
   methods: {
+    ...mapActions(["setCadastroOption"]),
     getConsentInfo(consentData) {
       this.grantedConsentsCategory = consentData.category;
       this.consentsArr = consentData.permissionsArray;
@@ -363,6 +364,17 @@ export default {
       this.consentPayload = response.data.consent;
       this.requestData = response.data.requestData;
       this.grantedConsents = response.data.permissionsData;
+
+      let cadastroOption;
+      this.grantedConsents.forEach((grantedConsent) => {
+        if(grantedConsent.group.includes("PF")){
+          cadastroOption = "PF";
+        } else if (grantedConsent.group.includes("PJ")){
+          cadastroOption = "PJ";
+        }
+      });
+
+      this.setCadastroOption(cadastroOption);
 
       let formatedConsents = [];
       for (let consent of this.grantedConsents) {

@@ -221,7 +221,6 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setCadastroOption"]),
     continueConsent() {
       this.loading = true;
       axios.defaults.withCredentials = true;
@@ -255,16 +254,6 @@ export default {
         ...selectedConsentsbyGroup,
         ...filteredConsents,
       ];
-
-      selectedConsents.forEach((selectedConsent) => {
-        let foundSelectedConsentGroup;
-        if(selectedConsent.group.includes("PF")){
-          foundSelectedConsentGroup = "PF";
-        } else if(selectedConsent.group.includes("PJ")){
-          foundSelectedConsentGroup = "PJ";
-        }
-          this.setCadastroOption(foundSelectedConsentGroup);
-      });
 
       const bankConsent = window.open("", "_self");
       axios

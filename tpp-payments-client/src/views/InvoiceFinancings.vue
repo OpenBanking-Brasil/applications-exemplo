@@ -56,7 +56,7 @@
               </v-col>
               <v-col cols="12" md="12">
                 <v-card elevation="2" outlined>
-                  <v-card-title class="white--text cyan darken-4"
+                  <v-card-title :class="primaryResBannerStyle"
                     >Invoice Financings API Response</v-card-title
                   >
                   <v-card-text>
@@ -167,7 +167,7 @@
                 </v-card>
                  <v-divider class="mt-4"></v-divider>
                 <v-card elevation="2" outlined>
-                  <v-card-title :class="resBannerStyle">Response</v-card-title>
+                  <v-card-title :class="secondaryResBannerStyle">Response</v-card-title>
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
                         {{ invoiceFinancingResponse }}
@@ -208,7 +208,8 @@ export default {
       contractIDs: [],
       selectedContractId: "",
       invoiceFinancingResponse: "",
-      resBannerStyle: "white--text cyan darken-4",
+      primaryResBannerStyle: "white--text cyan darken-4",
+      secondaryResBannerStyle: "white--text cyan darken-4",
       invoiceFinancingsQueryParams: {
         "page-size": null,
         page: null,
@@ -255,9 +256,11 @@ export default {
         this.invoiceFinancingsResponse.data.forEach((invoiceFinancing) => {
           this.contractIDs.push(invoiceFinancing.contractId);
         });
+        this.primaryResBannerStyle = "white--text cyan darken-4";
       }).catch((error) => {
         this.invoiceFinancingsResponse = error.response.data.responseData;
         this.invoiceFinancingsRequest = error.response.data.requestData;
+        this.primaryResBannerStyle = "white--text red darken-1";
       });
     },
 
@@ -272,12 +275,12 @@ export default {
           if (response.status === 200) {
             this.invoiceFinancingResponse = response.data.responseData;
             this.invoiceFinancingRequest = response.data.requestData;
-            this.resBannerStyle = "white--text cyan darken-4";
+            this.secondaryResBannerStyle = "white--text cyan darken-4";
           }
         })
         .catch((error) => {
           if (error.response.status !== 200) {
-            this.resBannerStyle = "white--text red darken-1";
+            this.secondaryResBannerStyle = "white--text red darken-1";
             this.invoiceFinancingResponse = error.response.data.responseData;
             this.invoiceFinancingRequest = error.response.data.requestData;
           }

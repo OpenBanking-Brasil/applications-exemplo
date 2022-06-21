@@ -56,7 +56,7 @@
               </v-col>
               <v-col cols="12" md="12">
                 <v-card elevation="2" outlined>
-                  <v-card-title class="white--text cyan darken-4"
+                  <v-card-title :class="primaryResBannerStyle"
                     >Credit Card Accounts API Response</v-card-title
                   >
                   <v-card-text>
@@ -213,7 +213,7 @@
                 </v-card>
                 <v-divider class="mt-5"></v-divider>
                 <v-card elevation="2" outlined>
-                  <v-card-title :class="resBannerStyle">Response</v-card-title>
+                  <v-card-title :class="secondaryResBannerStyle">Response</v-card-title>
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
                         {{ creditCardAccountResponse }}
@@ -260,7 +260,8 @@ export default {
       selectedBillId: "",
       creditCardAccountResponse: "",
       billIDs: [],
-      resBannerStyle: "white--text cyan darken-4",
+      primaryResBannerStyle: "white--text cyan darken-4",
+      secondaryResBannerStyle: "white--text cyan darken-4",
       creditCardAccountsQueryParams: {
         "page-size": null,
         page: null,
@@ -318,6 +319,11 @@ export default {
           this.creditCardAccountsResponse.data.forEach((creditCardAccount) => {
             this.creditCardAccountIDs.push(creditCardAccount.creditCardAccountId);
           });
+          this.primaryResBannerStyle = "white--text cyan darken-4";
+        }).catch((error) => {
+          this.creditCardAccountsResponse = error.response.data.responseData;
+          this.creditCardAccountsRequest = error.response.data.requestData;
+          this.primaryResBannerStyle = "white--text red darken-1";
         });
     },
     setAccountId(creditCardAccountId) {
@@ -344,7 +350,7 @@ export default {
           if (response.status === 200) {
             this.creditCardAccountResponse = response.data.responseData;
             this.creditCardAccountRequest = response.data.requestData;
-            this.resBannerStyle = "white--text cyan darken-4";
+            this.secondaryResBannerStyle = "white--text cyan darken-4";
 
             if (path === `${this.selectedCreditCardAccountId}/bills`) {
               response.data.data.forEach((bill) => {
@@ -355,7 +361,7 @@ export default {
         })
         .catch((error) => {
           if (error.response.status !== 200) {
-            this.resBannerStyle = "white--text red darken-1";
+            this.secondaryResBannerStyle = "white--text red darken-1";
             this.creditCardAccountResponse = error.response.data.responseData;
             this.creditCardAccountRequest = error.response.data.requestData;
           }

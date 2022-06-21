@@ -56,7 +56,7 @@
               </v-col>
               <v-col cols="12" md="12">
                 <v-card elevation="2" outlined>
-                  <v-card-title class="white--text cyan darken-4"
+                  <v-card-title :class="primaryResBannerStyle"
                     >Loans API Response</v-card-title
                   >
                   <v-card-text>
@@ -167,7 +167,7 @@
                 </v-card>
                  <v-divider class="mt-4"></v-divider>
                 <v-card elevation="2" outlined>
-                  <v-card-title :class="resBannerStyle">Response</v-card-title>
+                  <v-card-title :class="secondaryResBannerStyle">Response</v-card-title>
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
                         {{ loanResponse }}
@@ -208,7 +208,8 @@ export default {
       contractIDs: [],
       selectedContractId: "",
       loanResponse: "",
-      resBannerStyle: "white--text cyan darken-4",
+      primaryResBannerStyle: "white--text cyan darken-4",
+      secondaryResBannerStyle: "white--text cyan darken-4",
       loansQueryParams: {
         "page-size": null,
         page: null,
@@ -255,9 +256,11 @@ export default {
         this.loansResponse.data.forEach((loan) => {
           this.contractIDs.push(loan.contractId);
         });
+        this.primaryResBannerStyle = "white--text cyan darken-4";
       }).catch((error) => {
         this.loansResponse = error.response.data.responseData;
         this.loansRequest = error.response.data.requestData;
+        this.primaryResBannerStyle = "white--text red darken-1";
       });
     },
 
@@ -272,12 +275,12 @@ export default {
           if (response.status === 200) {
             this.loanResponse = response.data.responseData;
             this.loanRequest = response.data.requestData;
-            this.resBannerStyle = "white--text cyan darken-4";
+            this.secondaryResBannerStyle = "white--text cyan darken-4";
           }
         })
         .catch((error) => {
           if (error.response.status !== 200) {
-            this.resBannerStyle = "white--text red darken-1";
+            this.secondaryResBannerStyle = "white--text red darken-1";
             this.loanResponse = error.response.data.responseData;
             this.loanRequest = error.response.data.requestData;
           }

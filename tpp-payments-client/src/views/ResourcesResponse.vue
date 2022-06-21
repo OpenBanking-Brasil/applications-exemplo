@@ -54,7 +54,7 @@
               </v-col>
               <v-col cols="12" md="12">
                 <v-card elevation="2" outlined>
-                  <v-card-title class="white--text cyan darken-4"
+                  <v-card-title :class="primaryResBannerStyle"
                     >Resources Response</v-card-title
                   >
                   <v-card-text>
@@ -96,7 +96,8 @@ export default {
         "page-size": null,
         "page": null,
         "accountType": ""
-      }
+      },
+      primaryResBannerStyle: "white--text cyan darken-4",
     };
   },
   methods: {
@@ -122,6 +123,11 @@ export default {
       axios.get(`/resources${path}`, { withCredentials: true }).then((response) => {
         this.resourcesResponse = response.data.responseData;
         this.resourcesRequest = response.data.requestData;
+        this.primaryResBannerStyle = "white--text cyan darken-4";
+      }).catch((error) => {
+        this.resourcesResponse = error.response.data.responseData;
+        this.resourcesRequest = error.response.data.requestData;
+        this.primaryResBannerStyle = "white--text red darken-1";
       });
     }
   },

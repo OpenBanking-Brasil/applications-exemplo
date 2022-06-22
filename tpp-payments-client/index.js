@@ -1556,23 +1556,75 @@ let config = JSON.parse(JSON.stringify(configuration));
       permissions.push(...permission);
     }
 
-    let date = new Date();
-    const offset = date.getTimezoneOffset();
-    date = new Date(date.getTime() - offset * 60 * 1000);
-    date.setDate(date.getDate() + 30);
 
-    const data = JSON.stringify({
+    const loggedUserId = req.body.loggedUserId ? req.body.loggedUserId : undefined;
+    const loggedUserRel = req.body.loggedUserRel ? req.body.loggedUserRel : undefined;
+
+    const businessEntityId = req.body.businessEntityId ? req.body.businessEntityId : undefined;
+    const businessEntityRel = req.body.businessEntityRel ? req.body.businessEntityRel : undefined;
+
+    
+    const expirationDate = req.body.expirationDate ? req.body.expirationDate : undefined;
+    const expirationTime = req.body.expirationTime ? req.body.expirationTime : undefined;
+    
+    const transactionFromDate = req.body.transactionFromDate ? req.body.transactionFromDate : undefined;
+    const transactionFromTime = req.body.transactionFromTime ? req.body.transactionFromTime : undefined;
+
+    const transactionToDate = req.body.transactionToDate ? req.body.transactionToDate : undefined;
+    const transactionToTime = req.body.transactionToTime ? req.body.transactionToTime : undefined;
+
+    const dataObj = {
       data: {
-        loggedUser: {
-          document: {
-            identification: identification,
-            rel: rel,
-          },
-        },
         permissions,
-        expirationDateTime: date.toISOString(),
       },
-    });
+    };
+
+    if(loggedUserId && loggedUserRel){
+      dataObj.data.loggedUser = {
+        document: {
+          identification: loggedUserId,
+          rel: loggedUserRel,
+        },
+      }
+    }
+    
+    if(businessEntityId && businessEntityRel){
+      dataObj.data.businessEntity = {
+        document: {
+          identification: businessEntityId,
+          rel: businessEntityRel,
+        },
+      }
+    }
+
+    let transactionFromDateTime;
+    if(transactionFromDate && transactionFromTime){
+      transactionFromDateTime = transactionFromDate + "T" + transactionFromTime + "Z";
+      dataObj.data.transactionFromDateTime = transactionFromDateTime;
+    }
+
+    let transactionToDateTime;
+    if(transactionToDate && transactionToTime){
+      transactionToDateTime = transactionToDate + "T" + transactionToTime + "Z";
+      dataObj.data.transactionToDateTime = transactionToDateTime;
+    }
+    
+    let expirationDateTime;
+    if(expirationDate && expirationTime){
+      expirationDateTime = expirationDate + "T" + expirationTime + "Z";
+    } else {
+      let date = new Date();
+      const offset = date.getTimezoneOffset();
+      date = new Date(date.getTime() - offset * 60 * 1000);
+      date.setDate(date.getDate() + 30);
+      expirationDateTime = date.toISOString();
+    }
+    dataObj.data.expirationDateTime = expirationDateTime;
+
+
+    const data = JSON.stringify(dataObj);
+
+    console.log("tesst", data);
 
     const path = "";
 

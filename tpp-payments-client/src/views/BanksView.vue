@@ -208,7 +208,11 @@ export default {
   methods: {
     ...mapActions(["setScopes"]),
     selectBank(bankTitle) {
-      this.selectedBank = bankTitle;
+      if(this.selectedBank === bankTitle){
+        this.selectedBank = "";
+      } else {
+        this.selectedBank = bankTitle;
+      }
     },
     confirmSelectedBank() {
       if (

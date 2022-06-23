@@ -221,7 +221,7 @@ export default {
     };
   },
   created() {
-    this.getinvoiceFinancings();
+    this.getInvoiceFinancings();
   },
   methods: {
 
@@ -249,7 +249,7 @@ export default {
       this.getInvoiceFinancings(path);
     },
 
-    getinvoiceFinancings(path=""){
+    getInvoiceFinancings(path=""){
       axios.get(`/invoice-financings${path}`, { withCredentials: true }).then((response) => {
         this.invoiceFinancingsResponse = response.data.responseData;
         this.invoiceFinancingsRequest = response.data.requestData;

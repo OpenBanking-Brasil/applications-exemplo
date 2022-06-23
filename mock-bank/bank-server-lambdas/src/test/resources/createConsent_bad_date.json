@@ -1,0 +1,24 @@
+{
+  "data": {
+    "loggedUser": {
+      "document": {
+        "identification": "27387511588",
+        "rel": "ASD"
+      }
+    },
+    "businessEntity": {
+      "document": {
+        "identification": "10430885339885",
+        "rel": "ASDF"
+      }
+    },
+    "permissions": [
+      "RESOURCES_READ",
+      "ACCOUNTS_READ",
+      "ACCOUNTS_BALANCES_READ"
+    ],
+    "expirationDateTime": "2021-13-32T10:00:00-05:00",
+    "transactionFromDateTime": "2021-07-19T10:09:23Z",
+    "transactionToDateTime": "2021-07-20T10:09:23Z"
+  }
+}

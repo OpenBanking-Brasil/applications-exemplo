@@ -1,0 +1,58 @@
+micronaut:
+  application:
+    name: lambdas
+  security:
+    enabled: true
+  data:
+    pageable:
+      max-page-size: 50000
+      default-page-size: 25
+      size-parameter-name: "page-size"
+
+
+jackson:
+  serialization:
+    writeDatesAsTimestamps: true
+  serialization-inclusion: NON_ABSENT
+
+jpa:
+  default:
+    entity-scan:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: none
+        show_sql: false
+
+flyway:
+  datasources:
+    default:
+      locations:
+        - classpath:db/migration
+        - classpath:db/dataloading
+      enabled: true
+
+datasources:
+  default:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driverClassName: ${DB_DRIVER}
+    jdbc-interceptors: com.amazonaws.xray.sql.postgres.TracingInterceptor
+    initialSize: 2
+    minIdle: 2
+    maxIdle: 5
+    maxActive: 10
+    minEvictableIdleTimeMillis: 15000
+    removeAbandoned: true
+    testOnBorrow: true
+
+aws:
+  region: ${REGION:region}
+
+mockbank:
+  mockbankUrl: ${MOCKBANK_URL}
+
+trustframework:
+  issuer: 74e929d9-33b6-4d85-8ba7-c146c867a817
+  audience: 74e929d9-33b6-4d85-8ba7-c146c867a817

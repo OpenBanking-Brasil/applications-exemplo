@@ -1,0 +1,27 @@
+{
+  "name": "@raidiam/api_accounts_open_banking_brasil",
+  "version": "1.0.2",
+  "description": "OpenAPI client for @raidiam/api_accounts_open_banking_brasil",
+  "author": "OpenAPI-Generator Contributors",
+  "keywords": [
+    "axios",
+    "typescript",
+    "openapi-client",
+    "openapi-generator",
+    "@raidiam/api_accounts_open_banking_brasil"
+  ],
+  "license": "Unlicense",
+  "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --outDir dist/",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "axios": "^0.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^12.11.5",
+    "typescript": "^3.6.4"
+  }
+}

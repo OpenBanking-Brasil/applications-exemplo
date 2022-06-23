@@ -1,0 +1,43 @@
+micronaut:
+  application:
+    name: lambdas
+  security:
+    enabled: true
+  data:
+    pageable:
+      max-page-size: 50000
+      default-page-size: 25
+      size-parameter-name: "page-size"
+  http:
+    client:
+      read-timeout: 600s
+    server:
+      read-timeout: 600s
+    services:
+        read-timeout: 600s
+
+jpa:
+  default:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: validate
+        show_sql: true
+        bytecode:
+          provider: none
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+aws:
+  region: ${REGION:us-east-1}
+
+mockbank:
+  mockbankUrl: "https://mockbank.com/api"
+
+trustframework:
+  issuer: mockbank
+  audience: mockbank
+
+jackson:
+  serialization:
+    writeDatesAsTimestamps: true
+  serialization-inclusion: NON_ABSENT

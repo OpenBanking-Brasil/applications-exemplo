@@ -7,12 +7,11 @@ var dcrLog = require("debug")("tpp:dcr"),
   commsLog = require("debug")("tpp:communications");
 const configuration = require("./config");
 
-//deep copy configuration object
+//deep copy configuration object so we don't modify the original one
 let config = JSON.parse(JSON.stringify(configuration));
 
 (async () => {
   const {
-    TokenSet,
     Issuer,
     custom,
     generators /*, TokenSet */,
@@ -34,10 +33,23 @@ let config = JSON.parse(JSON.stringify(configuration));
   const { connectToDb, getDb } = require("./db");
   const uploadFile = require("express-fileupload");
 
+  const { getEndpoint, getPrivateKey, getCerts, getFapiClient } = require("./utils/helpers.js");
+  const accountRoutes = require("./routes/accounts.js");
+  const resourcesRoutes = require("./routes/resources.js");
+  const creditCardAccountsRoutes = require("./routes/credit-card-accounts.js");
+  const customersBusinessRoutes = require("./routes/customers-business.js");
+  const customersPersonalRoutes = require("./routes/customers-personal.js");
+  const lonasRoutes = require("./routes/loans.js");
+  const financingsRoutes = require("./routes/financings.js");
+  const invoiceFinancingsRoutes = require("./routes/invoice-financings.js");
+  const unarrangedAccountsOverdraftRoutes = require("./routes/unarranged-accounts-overdraft.js");
+
   app.use(cors({ credentials: true, origin: "https://tpp.localhost:8080" }));
 
   //A lot of oauth 2 bodies are form url encoded
   app.use(express.urlencoded({ extended: true }));
+
+  const USE_EXISTING_CLIENT = "USE_EXISTING_CLIENT";
 
   // configure MongoDB store for sessions
   const store = new MongoDBStore({
@@ -84,44 +96,6 @@ let config = JSON.parse(JSON.stringify(configuration));
   // parse various different custom JSON types as JSON
   app.use(express.json({ type: "application/json" }));
 
-  /*fapiClient object should be stored in a session db because object with methods cannot be stored in memory session,
-  but for now we use an array to store the fapiClients with associated session IDs*/
-  const fapiClientSpecificData = [];
-
-  function getCerts(certificates = {}){
-
-    const certAuthority = certificates.hasOwnProperty(
-      "ca.pem"
-    )
-      ? certificates["ca.pem"]
-      : fs.readFileSync(certsPath + "ca.pem");
-
-    const transportKey = certificates.hasOwnProperty(
-      "transport.key"
-    )
-      ? certificates["transport.key"]
-      : fs.readFileSync(certsPath + "transport.key");
-
-    const transportPem = certificates.hasOwnProperty(
-      "transport.pem"
-    )
-      ? certificates["transport.pem"]
-      : fs.readFileSync(certsPath + "transport.pem");
-
-    const signingKey = certificates.hasOwnProperty(
-      "signing.key"
-    )
-      ? certificates["signing.key"]
-      : fs.readFileSync(certsPath + "signing.key");
-
-      return {certAuthority, transportKey, transportPem, signingKey};
-  }
-
-  function getPrivateKey(signingKey){
-    const key = crypto.createPrivateKey(signingKey);
-    return key;
-  }
-
   async function initConfig(req, res, flag = "") {
 
     const {certAuthority, transportKey, transportPem, signingKey} =  getCerts(req.session.certificates);
@@ -130,8 +104,8 @@ let config = JSON.parse(JSON.stringify(configuration));
     //We need to confirm our private key into a jwks for local signing
     const key = getPrivateKey(signingKey);
     req.session.privateJwk = await jose.exportJWK(key);
-    req.session.privateJwk.kid = req.session.config
-      ? req.session.config.data.signing_kid
+    req.session.privateJwk.kid = req.session.customConfig
+      ? req.session.customConfig.data.signing_kid
       : config.data.signing_kid;
     setupLog("Create private jwk key %O", req.session.privateJwk);
     req.session.keyset = {
@@ -211,7 +185,7 @@ let config = JSON.parse(JSON.stringify(configuration));
   app.get("/", initConfig);
 
   //This configures a FAPI Client for the Bank that you have selected from the UI
-  async function setupClient(
+  module.exports.setupClient = async function (
     bank,
     selectedDcrOption,
     req,
@@ -261,7 +235,7 @@ let config = JSON.parse(JSON.stringify(configuration));
     const {certAuthority, transportKey, transportPem } =  getCerts(req.session.certificates);
 
     let fapiClient;
-    if (selectedDcrOption === "USE_EXISTING_CLIENT") {
+    if (selectedDcrOption === USE_EXISTING_CLIENT && clientId) {
       try {
         dcrLog("Get the existing client from the Bank");
         //try and get the existing client and set the private keys
@@ -288,8 +262,6 @@ let config = JSON.parse(JSON.stringify(configuration));
 
         dcrLog("The existing client obtained successfully");
         dcrLog(fapiClient);
-        req.session.clientId = fapiClient.client_id;
-        dcrLog("TODO: Save client For Later Use");
       } catch (err) {
         console.log(err);
         dcrLog("Error obtaining the existing client's deatils from the bank");
@@ -449,8 +421,6 @@ let config = JSON.parse(JSON.stringify(configuration));
       });
       dcrLog("New client created successfully");
       dcrLog(fapiClient);
-      req.session.clientId = fapiClient.client_id;
-      dcrLog("TODO: Save client For Later Use");
       const result = await db.collection("clients").insertOne({bank: bank, clientId: fapiClient.client_id, registrationAccessToken: fapiClient.registration_access_token});
       dcrLog("Client added to the database", result);
     } catch (err) {
@@ -472,24 +442,6 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     setupLog("Client Setup for Target Bank Complete");
     return { fapiClient, localIssuer };
-  }
-
-  function getEndpoint(authServer, apiFamilyType, apiEndpointRegex) {
-    let consentEndpoint;
-    authServer.ApiResources.find((resource) => {
-      if (resource.ApiFamilyType === apiFamilyType) {
-        //'payments-consents'
-        resource.ApiDiscoveryEndpoints.find((endpoint) => {
-          if (endpoint.ApiEndpoint.match(apiEndpointRegex)) {
-            //'open-banking\/payments\/v1\/consents$'
-            consentEndpoint = endpoint.ApiEndpoint;
-            return endpoint;
-          }
-        });
-        return resource;
-      }
-    });
-    return consentEndpoint;
   }
 
   function sleep(ms) {
@@ -933,7 +885,8 @@ let config = JSON.parse(JSON.stringify(configuration));
     "Find payment endpoint with the specified ID for the selected bank from the directory of participants"
   );
   app.get("/payment/:paymentId", async (req, res) => {
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const { fapiClient } = await getFapiClient(req, req.session.clientId, req.session.registrationAccessToken, USE_EXISTING_CLIENT);
+    const client = fapiClient;
 
     const paymentId = req.params.paymentId;
 
@@ -980,24 +933,14 @@ let config = JSON.parse(JSON.stringify(configuration));
       .json({ ...payload, selectedBank: req.session.selectedBank });
   });
 
-  async function getToken(req){
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
-    const theTokenSet = req.session.tokenSet;
-    const tokenSet = new TokenSet(theTokenSet);
-    if(tokenSet.expired()){
-      return await client.refresh(theTokenSet.refresh_token);
-    }
-    return theTokenSet;
-  }
-
   app.use(express.urlencoded());
 
   //This is used for response mode form_post, query and form_post are the most common
   app.post("/cb", async (req, res) => {
 
-    const fapiClient = fapiClientSpecificData.find(client => client.sessionId === req.session.id);
-    const client = fapiClient.client;
-    const issuer = fapiClient.issuer;
+    const { fapiClient, localIssuer } = await getFapiClient(req, req.session.clientId, req.session.registrationAccessToken, USE_EXISTING_CLIENT);
+    const client = fapiClient;
+    const issuer = localIssuer;
 
     consentLog("Received redirect from the bank");
     const callbackParams = client.callbackParams(req);
@@ -1376,11 +1319,12 @@ let config = JSON.parse(JSON.stringify(configuration));
   });
 
 
+
   app.post("/dcr", async (req, res) => {
     const selectedBank = req.body.bank;
-    req.session.selectedDcrOption = req.body.selectedDcrOption;
-    req.session.theClientId = req.body.clientId;
-    req.session.registrationAccessToken = req.body.registrationAccessToken;
+    const selectedDcrOption = req.body.selectedDcrOption;
+    const theClientId = req.body.clientId;
+    const registrationAccessToken = req.body.registrationAccessToken;
 
     if (selectedBank) {
       req.session.selectedBank = selectedBank;
@@ -1395,13 +1339,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       );
 
       try {
-        const { fapiClient, localIssuer } = await setupClient(
-          req.session.selectedBank,
-          req.session.selectedDcrOption,
-          req,
-          req.session.theClientId,
-          req.session.registrationAccessToken
-        );
+        const { fapiClient, localIssuer } = await getFapiClient(req, theClientId, registrationAccessToken, selectedDcrOption);
         consentLog("Client is ready to talk to the chosen bank");
         client = fapiClient;
         issuer = localIssuer;
@@ -1413,13 +1351,8 @@ let config = JSON.parse(JSON.stringify(configuration));
       throw Error("No bank was selected");
     }
 
-    //Technically this should be saved into a session but we cannot because an object with methods cannot be stored in session memory
-    consentLog('Save fapi client with the session ID into the array');
-    fapiClientSpecificData.push({
-      sessionId: req.session.id,
-      client,
-      issuer
-    });
+    req.session.clientId = client.client_id;
+    req.session.registrationAccessToken = client.registration_access_token;
 
     return res.send({
       clientId: client.client_id,
@@ -1433,7 +1366,8 @@ let config = JSON.parse(JSON.stringify(configuration));
   app.post("/makepayment", async (req, res) => {
     const path = "";
 
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const { fapiClient } = await getFapiClient(req, req.session.clientId, req.session.registrationAccessToken, USE_EXISTING_CLIENT);
+    const client = fapiClient;
 
     let response;
     try {
@@ -1487,7 +1421,8 @@ let config = JSON.parse(JSON.stringify(configuration));
   app.get("/payment-consent/:consentId", async (req, res) => {
     const consentId = req.params.consentId;
 
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const { fapiClient } = await getFapiClient(req, req.session.clientId, req.session.registrationAccessToken, USE_EXISTING_CLIENT);
+    const client = fapiClient;
 
     consentLog(
       "Find the patch consent endpoint for the payments consent from the selected authorisation server from the directory"
@@ -1624,11 +1559,10 @@ let config = JSON.parse(JSON.stringify(configuration));
 
     const data = JSON.stringify(dataObj);
 
-    console.log("tesst", data);
-
     const path = "";
 
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const { fapiClient } = await getFapiClient(req, req.session.clientId, req.session.registrationAccessToken, USE_EXISTING_CLIENT);
+    const client = fapiClient;
 
     //Setup the request
     const { authUrl, code_verifier, state, nonce, error } =
@@ -1679,7 +1613,8 @@ let config = JSON.parse(JSON.stringify(configuration));
   app.patch("/revoke-payment", async (req, res) => {
     const consentId = req.session.createdConsent.data.consentId;
 
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+    const { fapiClient } = await getFapiClient(req, req.session.clientId, req.session.registrationAccessToken, USE_EXISTING_CLIENT);
+    const client = fapiClient;
 
     consentLog(
       "Find the patch consent endpoint for the payments consent from the selected authorisation server from the directory"
@@ -1760,475 +1695,22 @@ let config = JSON.parse(JSON.stringify(configuration));
     res.status(response.statusCode).json(payload);
   });
 
-  //Fetch data for the given API
-  async function fetchData(req, apiFamilyType, apiType, path = "") {
-    const client = fapiClientSpecificData.find(client => client.sessionId === req.session.id).client;
+  app.use(accountRoutes);
 
-    const tokenSet = await getToken(req);
-    req.session.refreshToken = tokenSet.refresh_token;
-    req.session.accessToken = tokenSet.access_token;
-    req.session.tokenSet = tokenSet;
+  app.use(resourcesRoutes);
 
-    let pathRegex;
-    if (apiFamilyType === "accounts") {
-      pathRegex = "open-banking/accounts/v1/accounts$";
-    } else if (apiFamilyType === "credit-cards-accounts") {
-      pathRegex = "/open-banking/credit-cards-accounts/v1/accounts$";
-    } else if (apiFamilyType === "resources") {
-      pathRegex = "open-banking/resources/v1/resources$";
-    } else if (apiFamilyType === "customers-business") {
-      pathRegex = `open-banking/customers/v1/business/${apiType}$`;
-    } else if (apiFamilyType === "customers-personal") {
-      pathRegex = `open-banking/customers/v1/personal/${apiType}$`;
-    } else if (apiFamilyType === "loans"){
-      pathRegex = "open-banking/loans/v1/contracts$"
-    } else if (apiFamilyType === "financings"){
-      pathRegex = "open-banking/financings/v1/contracts$"
-    } else if (apiFamilyType === "invoice-financings"){
-      pathRegex = "open-banking/invoice-financings/v1/contracts$"
-    } else if (apiFamilyType === "unarranged-accounts-overdraft"){
-      pathRegex = "open-banking/unarranged-accounts-overdraft/v1/contracts$"
-    }
+  app.use(creditCardAccountsRoutes);
 
-    paymentLog(
-      `Find the ${apiType} endpoint for the selected bank from the directory of participants`
-    );
-    const endpoint = `${getEndpoint(
-      req.session.selectedAuthServer,
-      apiFamilyType,
-      pathRegex
-    )}${path}`;
-    consentLog(`The ${apiType} endpoint found %O`, endpoint);
+  app.use(customersBusinessRoutes);
 
-    paymentLog(`Getting ${apiType} response`);
-    const response = await client.requestResource(
-      endpoint,
-      req.session.accessToken
-    );
-
-    const requestData = {
-      endpoint,
-      accessToken: req.session.accessToken
-    };
-
-    if (!response.body) {
-      return { responseBody: "undefined", statusCode: response.statusCode, requestData };
-    }
-
-    return {
-      responseBody: JSON.parse(response.body.toString()),
-      statusCode: response.statusCode,
-      requestData
-    };
-  }
-
-  function getPathWithParams(queryParams){
-    let path = "";
-    let isFirstIteration = true;
-    for(let queryParam in queryParams){
-      if(queryParams[queryParam]){
-        if(!isFirstIteration){
-          path += `&${queryParam}=${queryParams[queryParam]}`;
-        } else {
-          isFirstIteration = false;
-          path = `?${queryParam}=${queryParams[queryParam]}`;
-        }
-      }
-    }
-
-    return path;
-  }
-
-  const accountsApiFamily = "accounts";
-  app.get("/accounts", async (req, res) => {
-
-    const path = getPathWithParams(req.query);
-
-    const response = await fetchData(req, accountsApiFamily, accountsApiFamily, path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/accounts/:accountId", async (req, res) => {
-    const accountId = req.params.accountId;
-    const response = await fetchData(
-      req,
-      accountsApiFamily,
-      "account",
-      `/${accountId}`
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/accounts/:accountId/overdraft-limits", async (req, res) => {
-    const accountId = req.params.accountId;
-    const path = `/${accountId}/overdraft-limits`;
-
-    const response = await fetchData(
-      req,
-      accountsApiFamily,
-      "overdraft limits",
-      path
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/accounts/:accountId/balances", async (req, res) => {
-    const accountId = req.params.accountId;
-    const path = `/${accountId}/balances`;
-
-    const response = await fetchData(req, accountsApiFamily, "balances", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/accounts/:accountId/transactions", async (req, res) => {
-    const accountId = req.params.accountId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${accountId}/transactions${queryParams}`;
-
-    const response = await fetchData(
-      req,
-      accountsApiFamily,
-      "transactions",
-      path
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/resources", async (req, res) => {
-    const path = getPathWithParams(req.query);
-
-    const response = await fetchData(req, "resources", "resources", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  const creditCardAccountAPIFamily = "credit-cards-accounts";
-  app.get("/credit-cards-accounts", async (req, res) => {
-    const path = getPathWithParams(req.query);
-    const response = await fetchData(
-      req,
-      creditCardAccountAPIFamily,
-      "credit cards accounts",
-      path
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/credit-cards-accounts/:creditCardAccountId", async (req, res) => {
-    const creditCardAccountId = req.params.creditCardAccountId;
-    const response = await fetchData(
-      req,
-      creditCardAccountAPIFamily,
-      "credit card account",
-      `/${creditCardAccountId}`
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get(
-    "/credit-cards-accounts/:creditCardAccountId/limits",
-    async (req, res) => {
-      const creditCardAccountId = req.params.creditCardAccountId;
-      const path = `/${creditCardAccountId}/limits`;
-      const response = await fetchData(
-        req,
-        creditCardAccountAPIFamily,
-        "credit cards accounts limits",
-        path
-      );
-
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    }
-  );
-
-  app.get(
-    "/credit-cards-accounts/:creditCardAccountId/transactions",
-    async (req, res) => {
-      const creditCardAccountId = req.params.creditCardAccountId;
-      const queryParams = getPathWithParams(req.query);
-      const path = `/${creditCardAccountId}/transactions${queryParams}`;
-      const response = await fetchData(
-        req,
-        creditCardAccountAPIFamily,
-        "credit cards accounts transactions",
-        path
-      );
-
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    }
-  );
-
-  app.get(
-    "/credit-cards-accounts/:creditCardAccountId/bills",
-    async (req, res) => {
-      const creditCardAccountId = req.params.creditCardAccountId;
-      const queryParams = getPathWithParams(req.query);
-      const path = `/${creditCardAccountId}/bills${queryParams}`;
-      const response = await fetchData(
-        req,
-        creditCardAccountAPIFamily,
-        "credit cards accounts bills",
-        path
-      );
-
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    }
-  );
-
-  app.get(
-    "/credit-cards-accounts/:creditCardAccountId/bills/:billId/transactions",
-    async (req, res) => {
-      const creditCardAccountId = req.params.creditCardAccountId;
-      const billId = req.params.billId;
-      const path = `/${creditCardAccountId}/bills/${billId}/transactions`;
-      const response = await fetchData(
-        req,
-        creditCardAccountAPIFamily,
-        "credit cards accounts transactions",
-        path
-      );
-
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    }
-  );
-
-  app.get("/customers-business/:apiType", async (req, res) => {
-    const response = await fetchData(
-      req,
-      "customers-business",
-      req.params.apiType
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/customers-personal/:apiType", async (req, res) => {
-    const response = await fetchData(
-      req,
-      "customers-personal",
-      req.params.apiType
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  const loansApiFamily = "loans";
-  app.get("/loans", async (req, res) => {
-
-    const path = getPathWithParams(req.query);
-
-    const response = await fetchData(req, loansApiFamily, loansApiFamily, path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/loans/:contractId", async (req, res) => {
-    const contractId = req.params.contractId;
-    const response = await fetchData(
-      req,
-      loansApiFamily,
-      "loan",
-      `/${contractId}`
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/loans/:contractId/warranties", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/warranties${queryParams}`;
-
-    const response = await fetchData(req, loansApiFamily, "warranties", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/loans/:contractId/scheduled-instalments", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/scheduled-instalments${queryParams}`;
-
-    const response = await fetchData(req, loansApiFamily, "scheduled-instalments", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/loans/:contractId/payments", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/payments${queryParams}`;
-
-    const response = await fetchData(req, loansApiFamily, "payments", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  //####################Financings####################################
-
-  const financingsApiFamily = "financings";
-  app.get("/financings", async (req, res) => {
-
-    const path = getPathWithParams(req.query);
-
-    const response = await fetchData(req, financingsApiFamily, financingsApiFamily, path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/financings/:contractId", async (req, res) => {
-    const contractId = req.params.contractId;
-    const response = await fetchData(
-      req,
-      financingsApiFamily,
-      "financing",
-      `/${contractId}`
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/financings/:contractId/warranties", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/warranties${queryParams}`;
-
-    const response = await fetchData(req, financingsApiFamily, "warranties", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/financings/:contractId/scheduled-instalments", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/scheduled-instalments${queryParams}`;
-
-    const response = await fetchData(req, financingsApiFamily, "scheduled-instalments", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/financings/:contractId/payments", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/payments${queryParams}`;
-
-    const response = await fetchData(req, financingsApiFamily, "payments", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  //#####################Invoice Financings##############################
-  const invoiceFinancingsApiFamily = "invoice-financings";
-  app.get("/invoice-financings", async (req, res) => {
-
-    const path = getPathWithParams(req.query);
-
-    const response = await fetchData(req, invoiceFinancingsApiFamily, invoiceFinancingsApiFamily, path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/invoice-financings/:contractId", async (req, res) => {
-    const contractId = req.params.contractId;
-    const response = await fetchData(
-      req,
-      invoiceFinancingsApiFamily,
-      "invoice-financing",
-      `/${contractId}`
-    );
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/invoice-financings/:contractId/warranties", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/warranties${queryParams}`;
-
-    const response = await fetchData(req, invoiceFinancingsApiFamily, "warranties", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/invoice-financings/:contractId/scheduled-instalments", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/scheduled-instalments${queryParams}`;
-
-    const response = await fetchData(req, invoiceFinancingsApiFamily, "scheduled-instalments", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  app.get("/invoice-financings/:contractId/payments", async (req, res) => {
-    const contractId = req.params.contractId;
-    const queryParams = getPathWithParams(req.query);
-    const path = `/${contractId}/payments${queryParams}`;
-
-    const response = await fetchData(req, invoiceFinancingsApiFamily, "payments", path);
-
-    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
-
-  //#################### Unarranged Accounts Overdraft #####################
-    const UAO_ApiFamily = "unarranged-accounts-overdraft";
-    app.get("/unarranged-accounts-overdraft", async (req, res) => {
+  app.use(customersPersonalRoutes);
   
-      const path = getPathWithParams(req.query);
+  app.use(lonasRoutes);
   
-      const response = await fetchData(req, UAO_ApiFamily, UAO_ApiFamily, path);
+  app.use(financingsRoutes);
   
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    });
+  app.use(invoiceFinancingsRoutes);
   
-    app.get("/unarranged-accounts-overdraft/:contractId", async (req, res) => {
-      const contractId = req.params.contractId;
-      const response = await fetchData(
-        req,
-        UAO_ApiFamily,
-        "unarranged-accounts-overdraft",
-        `/${contractId}`
-      );
-  
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    });
-  
-    app.get("/unarranged-accounts-overdraft/:contractId/warranties", async (req, res) => {
-      const contractId = req.params.contractId;
-      const queryParams = getPathWithParams(req.query);
-      const path = `/${contractId}/warranties${queryParams}`;
-  
-      const response = await fetchData(req, UAO_ApiFamily, "warranties", path);
-  
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    });
-  
-    app.get("/unarranged-accounts-overdraft/:contractId/scheduled-instalments", async (req, res) => {
-      const contractId = req.params.contractId;
-      const queryParams = getPathWithParams(req.query);
-      const path = `/${contractId}/scheduled-instalments${queryParams}`;
-  
-      const response = await fetchData(req, UAO_ApiFamily, "scheduled-instalments", path);
-  
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    });
-  
-    app.get("/unarranged-accounts-overdraft/:contractId/payments", async (req, res) => {
-      const contractId = req.params.contractId;
-      const queryParams = getPathWithParams(req.query);
-      const path = `/${contractId}/payments${queryParams}`;
-  
-      const response = await fetchData(req, UAO_ApiFamily, "payments", path);
-  
-      return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-    });
+  app.use(unarrangedAccountsOverdraftRoutes);
 
 })();

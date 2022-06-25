@@ -58,7 +58,7 @@ npm run serve
 8. Back-End
 
 ```
-npm DEBUG=tpp* node index.js
+DEBUG=tpp* node index.js
 ```
 
 Open a Browser to <https://tpp.localhost>

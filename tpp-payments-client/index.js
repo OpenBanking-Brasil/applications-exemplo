@@ -96,6 +96,20 @@ let config = JSON.parse(JSON.stringify(configuration));
   // parse various different custom JSON types as JSON
   app.use(express.json({ type: "application/json" }));
 
+  function getHttpsAgent(certificates = {}){
+    const {certAuthority, transportKey, transportPem } =  getCerts(certificates);
+    //We need to setup an mtls certificate httpsAgent
+    //NOTE: Do NOT leave rejectUnauthorized as 'false' as this disables certificate chain verification
+    const httpsAgent = new https.Agent({
+        ca: certAuthority,
+        key: transportKey,
+        cert: transportPem,
+        rejectUnauthorized: false,
+      });
+
+    return httpsAgent;
+  }
+
   async function initConfig(req, res, flag = "") {
 
     const {certAuthority, transportKey, transportPem, signingKey} =  getCerts(req.session.certificates);
@@ -111,15 +125,6 @@ let config = JSON.parse(JSON.stringify(configuration));
     req.session.keyset = {
       keys: [req.session.privateJwk],
     };
-
-    //We need to setup an mtls certificate httpsAgent
-    //NOTE: Do NOT leave rejectUnauthorized as 'false' as this disables certificate chain verification
-    const httpsAgent = new https.Agent({
-      ca: certAuthority,
-      key: transportKey,
-      cert: transportPem,
-      rejectUnauthorized: false,
-    });
 
     //Set some logging options so that we log evrey request and response in an easy to use pattern
     req.session.loggingOptions = {
@@ -165,15 +170,6 @@ let config = JSON.parse(JSON.stringify(configuration));
       },
     };
     custom.setHttpOptionsDefaults(req.session.loggingOptions);
-
-    //Retrieve the information from the open banking brazil directory of participants on launch
-    req.session.instance = axios.create({ httpsAgent });
-    setupLog("Retrieving Banks from Directory of Participants");
-    const axiosResponse = await req.session.instance.get(
-      "https://data.sandbox.directory.openbankingbrasil.org.br/participants"
-    );
-
-    req.session.axiosResponse = axiosResponse.data;
 
     if(flag === "CUSTOM_CERTS"){
       return;
@@ -698,7 +694,14 @@ let config = JSON.parse(JSON.stringify(configuration));
         ? "payments-consents"
         : "customers-personal";
 
-    const TotalBanks = req.session.axiosResponse;
+    //Retrieve the information from the open banking brazil directory of participants on launch
+    const instance = axios.create({ httpsAgent: getHttpsAgent(req.session.certificates) });
+    setupLog("Retrieving Banks from Directory of Participants");
+    const axiosResponse = await instance.get(
+      "https://data.sandbox.directory.openbankingbrasil.org.br/participants"
+    );
+
+    const TotalBanks = axiosResponse.data;
     req.session.availableBanks = TotalBanks.filter((e) =>
       e.AuthorisationServers.some((as) =>
         as.ApiResources.some(
@@ -862,18 +865,8 @@ let config = JSON.parse(JSON.stringify(configuration));
       req.session.paymentIsScheduled = false;
     }
 
-    consentLog(
-      "Storing consent payload in a cookie for convenience, server side mechanisms would be more secure and consent payload only just fits in a cookie size"
-    );
-    res.cookie("consent", JSON.stringify(data), {
-      sameSite: "none",
-      secure: true,
-    });
 
-    //Clear stale cookies on page load
-    res.clearCookie("state");
-    res.clearCookie("nonce");
-    res.clearCookie("code_verifier");
+    req.session.paymentConsentPayload = JSON.stringify(data);
 
     consentLog(
       "Sending customer to select the bank they want to make the payment from in the next request from the front-end"
@@ -949,9 +942,9 @@ let config = JSON.parse(JSON.stringify(configuration));
       "https://tpp.localhost/cb",
       callbackParams,
       {
-        code_verifier: req.cookies.code_verifier,
-        state: req.cookies.state,
-        nonce: req.cookies.nonce,
+        code_verifier: req.session.code_verifier,
+        state: req.session.state,
+        nonce: req.session.nonce,
         response_type: "code",
       },
       {
@@ -1376,7 +1369,7 @@ let config = JSON.parse(JSON.stringify(configuration));
       await generateRequest(
         client,
         req.session.selectedAuthServer,
-        JSON.parse(req.cookies.consent),
+        JSON.parse(req.session.paymentConsentPayload),
         "PAYMENTS",
         req.session.selectedOrganisation,
         req
@@ -1393,7 +1386,7 @@ let config = JSON.parse(JSON.stringify(configuration));
         payload: error,
       };
       errorPayload.stringify = JSON.stringify(errorPayload, null, 2);
-      const paymentInfo = JSON.parse(req.cookies.consent);
+      const paymentInfo = JSON.parse(req.session.paymentConsentPayload);
       paymentInfo.stringify = JSON.stringify(paymentInfo, null, 2);
 
       req.session.paymentResData = {
@@ -1406,13 +1399,9 @@ let config = JSON.parse(JSON.stringify(configuration));
         .redirect("https://tpp.localhost:8080/payment-response");
     }
 
-    res.cookie("state", state, { path, sameSite: "none", secure: true });
-    res.cookie("nonce", nonce, { path, sameSite: "none", secure: true });
-    res.cookie("code_verifier", code_verifier, {
-      path,
-      sameSite: "none",
-      secure: true,
-    });
+    req.session.state = state;
+    req.session.nonce = nonce;
+    req.session.code_verifier = code_verifier;
 
     consentLog("Send customer to bank to give consent to the payment");
     return res.json({ authUrl });
@@ -1594,13 +1583,9 @@ let config = JSON.parse(JSON.stringify(configuration));
         .redirect("https://tpp.localhost:8080/consent-response-menu");
     }
 
-    res.cookie("state", state, { path, sameSite: "none", secure: true });
-    res.cookie("nonce", nonce, { path, sameSite: "none", secure: true });
-    res.cookie("code_verifier", code_verifier, {
-      path,
-      sameSite: "none",
-      secure: true,
-    });
+    req.session.state = state;
+    req.session.nonce = nonce;
+    req.session.code_verifier = code_verifier;
 
     if (!authUrl) {
       return res.status(400).send({ message: "Bad Request" });

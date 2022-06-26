@@ -103,7 +103,7 @@ export default {
 
   created() {
     axios
-      .get("/payment-response-data", { withCredentials: true })
+      .get("/payments/payment-response", { withCredentials: true })
       .then((response) => {
         console.log(response.data);
         if (!response.data.errorPayload) {

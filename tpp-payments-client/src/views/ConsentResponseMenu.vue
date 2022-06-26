@@ -360,7 +360,7 @@ export default {
     },
   },
   created() {
-    axios.get("/consent", { withCredentials: true }).then((response) => {
+    axios.get("/consent/consent-response", { withCredentials: true }).then((response) => {
       this.consentPayload = response.data.consent;
       this.requestData = response.data.requestData;
       this.grantedConsents = response.data.permissionsData;

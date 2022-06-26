@@ -298,7 +298,7 @@ export default {
     getPayment() {
       this.loading = true;
       axios
-        .get(`/payment/${this.paymentID}`, {
+        .get(`/payments/${this.paymentID}`, {
           withCredentials: true,
         })
         .then((response) => {
@@ -309,7 +309,7 @@ export default {
           this.bankName = response.data.selectedBank;
           if (this.paymentIsScheduled) {
             axios
-              .get(`/payment-consent/${this.consentID}`, {
+              .get(`/payments/payment-consent/${this.consentID}`, {
                 withCredentials: true,
               })
               .then((response) => {
@@ -357,7 +357,7 @@ export default {
         : "Dynamic client registration has been done successfully";
     this.clientId = this.$route.params.data?.clientId;
     axios
-      .get("/payment-response-data", {
+      .get("/payments/payment-response", {
         withCredentials: true,
       })
       .then((response) => {

@@ -439,7 +439,7 @@ export default {
       const bankConsent = window.open("", "_self");
       axios
         .post(
-          "/consent",
+          "/consent/create-consent",
           {
             permissionsArr: selectedConsents,
             loggedUserId: this.loggedUserId,

@@ -209,7 +209,7 @@ export default {
 
       axios.defaults.withCredentials = true;
       axios
-        .patch("/revoke-payment", formBody, {
+        .patch("payments/revoke-payment", formBody, {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },

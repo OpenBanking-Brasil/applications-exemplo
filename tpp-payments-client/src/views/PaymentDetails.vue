@@ -663,7 +663,7 @@ export default {
       let bankConsent = window.open("", "_self");
       this.loading = true;
       axios
-        .post("/payment", formBody, {
+        .post("/payments/payment-consent", formBody, {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
@@ -672,7 +672,7 @@ export default {
           if (res.status === 200) {
             axios
               .post(
-                "/makepayment",
+                "/payments/make-payment",
                 { bank: this.bankName },
                 {
                   headers: {

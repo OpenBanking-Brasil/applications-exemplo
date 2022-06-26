@@ -101,7 +101,7 @@ async function setupClient(
 
       try {
         fapiClient = await FAPI1Client.fromUri(
-          `https://matls-auth.mockbank.poc.raidiam.io/reg/${clientId}`,
+          `${localIssuer.metadata.registration_endpoint}/${clientId}`,
           registrationAccessToken,
           req.session.keyset
         );

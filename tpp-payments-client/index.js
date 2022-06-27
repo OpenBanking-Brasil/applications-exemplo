@@ -457,7 +457,7 @@ const config = require("./config");
         consentLog(
           "Consent has not reached authorised state after 5 iterations, failing"
         );
-        payload = {
+        let errorPayload = {
           msg: "Unable To Complete Authorisation - State Not Authorised",
           payload: payload,
         };
@@ -732,7 +732,7 @@ const config = require("./config");
         client = fapiClient;
         issuer = localIssuer;
       } catch (error) {
-        res.status(500).json({ error: error });
+        res.status(500).json({ error });
       }
     } else {
       throw Error("No bank was selected");

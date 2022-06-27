@@ -31,40 +31,20 @@ router.post("/consent/create-consent", async (req, res) => {
     permissions.push(...permission);
   }
 
-  const loggedUserId = req.body.loggedUserId
-    ? req.body.loggedUserId
-    : undefined;
-  const loggedUserRel = req.body.loggedUserRel
-    ? req.body.loggedUserRel
-    : undefined;
+  const loggedUserId = req.body.loggedUserId || undefined;
+  const loggedUserRel = req.body.loggedUserRel || undefined;
 
-  const businessEntityId = req.body.businessEntityId
-    ? req.body.businessEntityId
-    : undefined;
-  const businessEntityRel = req.body.businessEntityRel
-    ? req.body.businessEntityRel
-    : undefined;
+  const businessEntityId = req.body.businessEntityId || undefined;
+  const businessEntityRel = req.body.businessEntityRel || undefined;
 
-  const expirationDate = req.body.expirationDate
-    ? req.body.expirationDate
-    : undefined;
-  const expirationTime = req.body.expirationTime
-    ? req.body.expirationTime
-    : undefined;
+  const expirationDate = req.body.expirationDate || undefined;
+  const expirationTime = req.body.expirationTime || undefined;
 
-  const transactionFromDate = req.body.transactionFromDate
-    ? req.body.transactionFromDate
-    : undefined;
-  const transactionFromTime = req.body.transactionFromTime
-    ? req.body.transactionFromTime
-    : undefined;
+  const transactionFromDate = req.body.transactionFromDate || undefined;
+  const transactionFromTime = req.body.transactionFromTime || undefined;
 
-  const transactionToDate = req.body.transactionToDate
-    ? req.body.transactionToDate
-    : undefined;
-  const transactionToTime = req.body.transactionToTime
-    ? req.body.transactionToTime
-    : undefined;
+  const transactionToDate = req.body.transactionToDate || undefined;
+  const transactionToTime = req.body.transactionToTime || undefined;
 
   const dataObj = {
     data: {

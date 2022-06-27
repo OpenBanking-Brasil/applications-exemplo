@@ -2,14 +2,12 @@ const { connectToDb, getDb } = require("./db.js");
 
 let db;
 function connectToDatabase(cb) {
-  let connected = false;
   connectToDb(function(error) {
     if (!error) {
       db = getDb();
-      connected = true;
-      cb(connected);
+      cb(true);
     } else {
-      cb(connected);
+      cb(false);
       throw new Error("Failed to connect to the mongoDB database");
     }
   });

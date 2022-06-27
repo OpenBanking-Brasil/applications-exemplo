@@ -12,3 +12,4 @@ router.get("/resources", async (req, res) => {
   });
 
   module.exports = router;
+  

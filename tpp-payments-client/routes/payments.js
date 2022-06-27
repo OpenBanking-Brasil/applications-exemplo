@@ -125,8 +125,8 @@ router.post("/payments/make-payment", async (req, res) => {
       paymentInfo,
     };
     return res
-      .status(302)
-      .redirect("https://tpp.localhost:8080/payment-response");
+      .status(500)
+      .send(error);
   }
 
   req.session.state = state;

@@ -105,12 +105,12 @@ export default {
     axios
       .get("/payments/payment-response", { withCredentials: true })
       .then((response) => {
-        console.log(response.data);
+        const res = response.data.payload?.payload || response.data.payload;
         if (!response.data.errorPayload) {
           this.consentResponse = response.data.consentPayload;
           this.paymentResponse = response.data.payload;
-          this.amount = response.data.payload.data.payment.amount;
-          this.status = response.data.payload.data.status;
+          this.amount = res.data.payment.amount;
+          this.status = res.data.status;
         } else {
           this.errorResponse = response.data.errorPayload;
           this.consentResponse = response.data.consentPayload;

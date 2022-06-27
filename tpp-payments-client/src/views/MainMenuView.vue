@@ -362,10 +362,11 @@ export default {
       })
       .then((response) => {
         if (response.data.clientId) {
+          const res = response.data.payload?.payload?.data || response.data.payload?.data;
           this.clientId = response.data?.clientId;
           this.refreshToken = response.data?.refreshToken;
-          this.consentID = response.data.payload?.data.consentId;
-          this.paymentID = response.data.payload?.data.paymentId;
+          this.consentID = res.consentId;
+          this.paymentID = res.paymentId;
           this.paymentIsScheduled = response?.data.scheduled ? true : false;
         }
       });

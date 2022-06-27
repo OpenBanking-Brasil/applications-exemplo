@@ -685,7 +685,7 @@ export default {
               }).catch((error) => {
                 this.loading = false;
                 this.snackbar = true;
-                this.text = error.response.data.error;
+                this.text = error.response.data.errors[0].title;
               });
           }
         })

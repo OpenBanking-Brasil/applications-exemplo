@@ -352,8 +352,8 @@ export default {
             this.creditCardAccountRequest = response.data.requestData;
             this.secondaryResBannerStyle = "white--text cyan darken-4";
 
-            if (path === `${this.selectedCreditCardAccountId}/bills`) {
-              response.data.data.forEach((bill) => {
+            if (path.match(`${this.selectedCreditCardAccountId}/bills/*`)) {
+              response.data.responseData.data.forEach((bill) => {
                 this.billIDs.push(bill.billId);
               });
             }

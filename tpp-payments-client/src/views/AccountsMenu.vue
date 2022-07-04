@@ -253,42 +253,42 @@ export default {
       this.getAccounts(path);
     },
 
-    getAccounts(path=""){
-      axios.get(`/accounts${path}`, { withCredentials: true }).then((response) => {
+    async getAccounts(path=""){
+      
+      try {
+        const response = await axios.get(`/accounts${path}`, { withCredentials: true });
         this.accountsResponse = response.data.responseData;
         this.accountsRequest = response.data.requestData;
         this.accountsResponse.data.forEach((account) => {
           this.accountIDs.push(account.accountId);
         });
         this.primaryResBannerStyle = "white--text cyan darken-4";
-      }).catch((error) => {
+      } catch (error){
         this.accountsResponse = error.response.data.responseData;
         this.accountsRequest = error.response.data.requestData;
         this.primaryResBannerStyle = "white--text red darken-1";
-      });
+      }
     },
 
     setAccountId(accountId) {
       this.selectedAccountId = accountId;
     },
 
-    fetchAccountData(path) {
-      axios
-        .get(`accounts/${path}`, { withCredentials: true })
-        .then((response) => {
-          if (response.status === 200) {
-            this.accountDataResponse = response.data.responseData;
-            this.accountRequest = response.data.requestData;
-            this.secondaryResBannerStyle = "white--text cyan darken-4";
-          }
-        })
-        .catch((error) => {
-          if (error.response.status !== 200) {
-            this.secondaryResBannerStyle = "white--text red darken-1";
-            this.accountDataResponse = error.response.data.responseData;
-            this.accountRequest = error.response.data.requestData;
-          }
-        });
+    async fetchAccountData(path) {
+      try {
+        const response = await axios.get(`accounts/${path}`, { withCredentials: true });
+        if (response.status === 200) {
+          this.accountDataResponse = response.data.responseData;
+          this.accountRequest = response.data.requestData;
+          this.secondaryResBannerStyle = "white--text cyan darken-4";
+        }
+      } catch(error) {
+        if (error.response.status !== 200) {
+          this.secondaryResBannerStyle = "white--text red darken-1";
+          this.accountDataResponse = error.response.data.responseData;
+          this.accountRequest = error.response.data.requestData;
+        }
+      }
     },
 
     changeResourceId(accountId) {

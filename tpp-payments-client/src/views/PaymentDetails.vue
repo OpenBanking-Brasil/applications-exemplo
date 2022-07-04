@@ -579,7 +579,7 @@
       <v-progress-circular indeterminate size="100"></v-progress-circular>
     </v-overlay>
     <v-snackbar v-model="snackbar" :multi-line="multiLine">
-      {{ text }}
+      {{ messageText }}
 
       <template v-slot:action="{ attrs }">
         <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
@@ -605,18 +605,14 @@ export default {
   data: () => ({
     multiLine: true,
     snackbar: false,
-    text: "Payment schedule date must be in the future",
+    messageText: "Payment schedule date must be in the future",
     loading: false,
     modal: false,
     bankName: "",
-    today: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-      .toISOString()
-      .substr(0, 10),
+    today: null,
     formDataObj: {
       selected: "No",
-      date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-        .toISOString()
-        .substr(0, 10),
+      date: null,
       debtorAccount_number: "94088392",
       debtorAccount_accountType: "CACC",
       debtorAccount_ispb: "12345678",
@@ -638,11 +634,23 @@ export default {
   }),
 
   created() {
+    this.today = this.getTodaysDate;
+    this.formDataObj.date = this.getTodaysDate;
     this.bankName = this.$route.params.data;
   },
 
+  computed: {
+    getTodaysDate(){
+      const todaysDate = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+      .toISOString()
+      .substr(0, 10);
+
+      return todaysDate;
+    }
+  },
+
   methods: {
-    createPayment() {
+    async createPayment() {
       if (
         this.formDataObj.selected === "Yes" &&
         this.formDataObj.date.toString() === this.today.toString()
@@ -662,14 +670,16 @@ export default {
 
       let bankConsent = window.open("", "_self");
       this.loading = true;
-      axios
-        .post("/payments/payment-consent", formBody, {
+
+      let response;
+      try {
+        response = await axios.post("/payments/payment-consent", formBody, {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-        })
-        .then((res) => {
-          if (res.status === 200) {
+        });
+
+          if (response.status === 200) {
             axios
               .post(
                 "/payments/make-payment",
@@ -685,14 +695,14 @@ export default {
               }).catch((error) => {
                 this.loading = false;
                 this.snackbar = true;
-                this.text = error.response.data.errors[0].title;
+                this.messageText = error.response.data.errors[0].title;
               });
           }
-        })
-        .catch(function (response) {
-          console.log(response);
-          this.loading = false;
-        });
+      } catch (error) {
+        this.loading = false;
+        this.snackbar = true;
+        this.messageText = error.message;
+      }
     },
   },
 };

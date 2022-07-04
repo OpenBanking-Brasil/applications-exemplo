@@ -100,7 +100,8 @@ router.get(
   async (req, res) => {
     const creditCardAccountId = req.params.creditCardAccountId;
     const billId = req.params.billId;
-    const path = `/${creditCardAccountId}/bills/${billId}/transactions`;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${creditCardAccountId}/bills/${billId}/transactions${queryParams}`;
     const response = await fetchData(
       req,
       creditCardAccountAPIFamily,

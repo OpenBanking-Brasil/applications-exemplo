@@ -575,8 +575,6 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setOption"]),
-
     remove(index) {
       this.files.splice(index, 1);
     },
@@ -604,7 +602,7 @@ export default {
       this.files = structuredClone(this.currFiles);
     },
 
-    submitConfigForm() {
+    async submitConfigForm() {
       this.dialog = false;
 
       let formData = new FormData();
@@ -617,31 +615,30 @@ export default {
       }
 
       axios.defaults.withCredentials = true;
-      axios
-        .post("/change-config", formData, {
+
+      let response;
+      try {
+        response = await axios.post("/change-config", formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        })
-        .then((res) => {
-          if (res.status === 201) {
-            this.messageText = res.data.message;
-            this.statusColour = "success";
-            this.snackbar = true;
-          }
-          this.clearFilesInput();
-        })
-        .catch((error) => {
-          console.log("cannot post", error);
+        });
+
+        if (response.status === 201) {
+          this.messageText = response.data.message;
+          this.statusColour = "success";
+          this.snackbar = true;
+        }
+        this.clearFilesInput();
+      } catch (error) {
           this.messageText = error.response.data;
           this.statusColour = "red accent-2";
           this.snackbar = true;
           this.clearFilesInput();
-        });
+      }
     },
 
     optionChoice(option) {
-      this.setOption(option);
       this.$router.push({
         name: "banks",
         query: { option: option },
@@ -649,10 +646,14 @@ export default {
     },
   },
 
-  created() {
-    axios.get("/", { withCredentials: true }).then((response) => {
-      console.log(response.status);
-    });
+  async created() {
+
+    try {
+      await axios.get("/", { withCredentials: true });
+    } catch (error){
+      this.messageText = error.message;
+      this.snackbar = true;
+    }
   },
 };
 </script>

@@ -226,6 +226,7 @@ export default {
   methods: {
 
     getPathWithQueryParams(invoiceFinancingsQueryParams){
+
       let path = "";
       let isFirstIteration = true;
       for(let queryParam in invoiceFinancingsQueryParams){
@@ -249,42 +250,45 @@ export default {
       this.getInvoiceFinancings(path);
     },
 
-    getInvoiceFinancings(path=""){
-      axios.get(`/invoice-financings${path}`, { withCredentials: true }).then((response) => {
+    async getInvoiceFinancings(path=""){
+
+      let response;
+      try {
+        response = await axios.get(`/invoice-financings${path}`, { withCredentials: true });
         this.invoiceFinancingsResponse = response.data.responseData;
         this.invoiceFinancingsRequest = response.data.requestData;
         this.invoiceFinancingsResponse.data.forEach((invoiceFinancing) => {
           this.contractIDs.push(invoiceFinancing.contractId);
         });
         this.primaryResBannerStyle = "white--text cyan darken-4";
-      }).catch((error) => {
+      } catch (error) {
         this.invoiceFinancingsResponse = error.response.data.responseData;
         this.invoiceFinancingsRequest = error.response.data.requestData;
         this.primaryResBannerStyle = "white--text red darken-1";
-      });
+      }
     },
 
     setContractId(contractId) {
       this.selectedContractId = contractId;
     },
 
-    fetchInvoiceFinancingData(path) {
-      axios
-        .get(`invoice-financings/${path}`, { withCredentials: true })
-        .then((response) => {
-          if (response.status === 200) {
-            this.invoiceFinancingResponse = response.data.responseData;
-            this.invoiceFinancingRequest = response.data.requestData;
-            this.secondaryResBannerStyle = "white--text cyan darken-4";
-          }
-        })
-        .catch((error) => {
-          if (error.response.status !== 200) {
-            this.secondaryResBannerStyle = "white--text red darken-1";
-            this.invoiceFinancingResponse = error.response.data.responseData;
-            this.invoiceFinancingRequest = error.response.data.requestData;
-          }
-        });
+    async fetchInvoiceFinancingData(path) {
+
+      let response;
+      try {
+        response = await axios.get(`invoice-financings/${path}`, { withCredentials: true });
+        if (response.status === 200) {
+          this.invoiceFinancingResponse = response.data.responseData;
+          this.invoiceFinancingRequest = response.data.requestData;
+          this.secondaryResBannerStyle = "white--text cyan darken-4";
+        }
+      } catch (error) {
+        if (error.response.status !== 200) {
+          this.secondaryResBannerStyle = "white--text red darken-1";
+          this.invoiceFinancingResponse = error.response.data.responseData;
+          this.invoiceFinancingRequest = error.response.data.requestData;
+        }
+      }
     },
 
     changeResourceId(contractId) {

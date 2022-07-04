@@ -321,7 +321,7 @@ import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import DatePicker from "@/components/GeneralAppComponents/DatePicker.vue";
 import axios from "../util/axios.js";
-import { mapGetters, mapActions } from "vuex";
+import { mapGetters } from "vuex";
 
 export default {
   name: "ConsentMenu",
@@ -390,7 +390,6 @@ export default {
 
   methods: {
     changeDate(newDate, flag) {
-      console.log(newDate, flag);
       switch (flag) {
         case "TransactionFromDate":
           this.transactionFromDate = newDate;
@@ -402,7 +401,7 @@ export default {
           this.expirationDate = newDate;
       }
     },
-    continueConsent() {
+    async continueConsent() {
       this.loading = true;
       axios.defaults.withCredentials = true;
       const selectedConsentsbyGroup = this.consentsArr.filter(
@@ -437,8 +436,9 @@ export default {
       ];
 
       const bankConsent = window.open("", "_self");
-      axios
-        .post(
+      let res;
+      try {
+        res = await axios.post(
           "/consent/create-consent",
           {
             permissionsArr: selectedConsents,
@@ -458,19 +458,17 @@ export default {
               "Content-Type": "application/json",
             },
           }
-        )
-        .then((res) => {
-          if (res.status === 201) {
-            bankConsent.location.href = res.data.authUrl;
-          }
-        })
-        .catch((error) => {
-          if (error.response.status !== 201) {
-            this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
-            this.snackbar = true;
-          }
-          this.loading = false;
-        });
+        );
+        if (res.status === 201) {
+          bankConsent.location.href = res.data.authUrl;
+        }
+      } catch (error) {
+        if (error.response.status !== 201) {
+          this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
+          this.snackbar = true;
+        }
+        this.loading = false;
+      }
     },
   },
 };

@@ -89,7 +89,7 @@
                   btnText="RUN"
                   :path="`${selectedContractId}/warranties`"
                   :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :getPathWithQueryParams="getPathWithQueryParams"
                   :queryParams="financingWarrantiesQueryParams"
                   flag="CREDIT_OPERATION"
                   @fetch-data="fetchFinancingData"
@@ -105,7 +105,7 @@
                   :displayTextField="true"
                   :path="`${selectedContractId}/scheduled-instalments`"
                   :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :getPathWithQueryParams="getPathWithQueryParams"
                   :queryParams="financingWarrantiesQueryParams"
                   flag="CREDIT_OPERATION"
                   @fetch-data="fetchFinancingData"
@@ -121,7 +121,7 @@
                   btnText="RUN"
                   :path="`${selectedContractId}/payments`"
                   :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :getPathWithQueryParams="getPathWithQueryParams"
                   :queryParams="financingWarrantiesQueryParams"
                   flag="CREDIT_OPERATION"
                   @fetch-data="fetchFinancingData"
@@ -158,16 +158,20 @@
               </v-col>
               <v-col cols="12" sm="8">
                 <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4">Request</v-card-title>
+                  <v-card-title class="white--text blue darken-4"
+                    >Request</v-card-title
+                  >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
                         {{ financingRequest }}
                     </pre>
                   </v-card-text>
                 </v-card>
-                 <v-divider class="mt-4"></v-divider>
+                <v-divider class="mt-4"></v-divider>
                 <v-card elevation="2" outlined>
-                  <v-card-title :class="secondaryResBannerStyle">Response</v-card-title>
+                  <v-card-title :class="secondaryResBannerStyle"
+                    >Response</v-card-title
+                  >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
                         {{ financingResponse }}
@@ -217,20 +221,19 @@ export default {
       financingWarrantiesQueryParams: {
         "page-size": null,
         page: null,
-      }
+      },
     };
   },
   created() {
     this.getFinancings();
   },
   methods: {
-
-    getPathWithQueryParams(financingsQueryParams){
+    getPathWithQueryParams(financingsQueryParams) {
       let path = "";
       let isFirstIteration = true;
-      for(let queryParam in financingsQueryParams){
-        if(financingsQueryParams[queryParam]){
-          if(!isFirstIteration){
+      for (let queryParam in financingsQueryParams) {
+        if (financingsQueryParams[queryParam]) {
+          if (!isFirstIteration) {
             path += `&${queryParam}=${financingsQueryParams[queryParam]}`;
           } else {
             isFirstIteration = false;
@@ -242,49 +245,54 @@ export default {
       return path;
     },
 
-    getFinancingsByQueryParams(){
+    getFinancingsByQueryParams() {
       this.contractIDs = [];
       const path = this.getPathWithQueryParams(this.financingsQueryParams);
 
       this.getFinancings(path);
     },
 
-    getFinancings(path=""){
-      axios.get(`/financings${path}`, { withCredentials: true }).then((response) => {
+    async getFinancings(path = "") {
+      let response;
+      try {
+        response = await axios.get(`/financings${path}`, {
+          withCredentials: true,
+        });
         this.financingsResponse = response.data.responseData;
         this.financingsRequest = response.data.requestData;
         this.financingsResponse.data.forEach((financing) => {
           this.contractIDs.push(financing.contractId);
         });
         this.primaryResBannerStyle = "white--text cyan darken-4";
-      }).catch((error) => {
+      } catch (error) {
         this.financingsResponse = error.response.data.responseData;
         this.financingsRequest = error.response.data.requestData;
         this.primaryResBannerStyle = "white--text red darken-1";
-      });
+      }
     },
 
     setContractId(contractId) {
       this.selectedContractId = contractId;
     },
 
-    fetchFinancingData(path) {
-      axios
-        .get(`financings/${path}`, { withCredentials: true })
-        .then((response) => {
-          if (response.status === 200) {
-            this.financingResponse = response.data.responseData;
-            this.financingRequest = response.data.requestData;
-            this.secondaryResBannerStyle = "white--text cyan darken-4";
-          }
-        })
-        .catch((error) => {
-          if (error.response.status !== 200) {
-            this.secondaryResBannerStyle = "white--text red darken-1";
-            this.financingResponse = error.response.data.responseData;
-            this.financingRequest = error.response.data.requestData;
-          }
+    async fetchFinancingData(path) {
+      let response;
+      try {
+        response = await axios.get(`financings/${path}`, {
+          withCredentials: true,
         });
+        if (response.status === 200) {
+          this.financingResponse = response.data.responseData;
+          this.financingRequest = response.data.requestData;
+          this.secondaryResBannerStyle = "white--text cyan darken-4";
+        }
+      } catch (error) {
+        if (error.response.status !== 200) {
+          this.secondaryResBannerStyle = "white--text red darken-1";
+          this.financingResponse = error.response.data.responseData;
+          this.financingRequest = error.response.data.requestData;
+        }
+      }
     },
 
     changeResourceId(contractId) {

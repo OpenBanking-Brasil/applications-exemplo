@@ -275,6 +275,15 @@
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="100"></v-progress-circular>
     </v-overlay>
+        <v-snackbar v-model="snackbar" :multi-line="multiLine" color="red accent-2">
+      {{ errorMessage }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-main>
 </template>
 
@@ -293,6 +302,9 @@ export default {
   },
   data() {
     return {
+      multiLine: true,
+      snackbar: false,
+      errorMessage: "",
       valid: true,
       dialog: false,
       selected: true,
@@ -359,8 +371,9 @@ export default {
       return true;
     },
   },
-  created() {
-    axios.get("/consent/consent-response", { withCredentials: true }).then((response) => {
+  async created() {
+    try {
+      const response = await axios.get("/consent/consent-response", { withCredentials: true });
       this.consentPayload = response.data.consent;
       this.requestData = response.data.requestData;
       this.grantedConsents = response.data.permissionsData;
@@ -407,7 +420,10 @@ export default {
 
       this.grantedConsents = [...formatedConsents];
       this.loading = false;
-    });
+    } catch (error){
+      this.errorMessage = error.message;
+      this.snackbar = true;
+    }
   },
 };
 </script>

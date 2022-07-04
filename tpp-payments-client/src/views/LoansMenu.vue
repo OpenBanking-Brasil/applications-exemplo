@@ -249,42 +249,45 @@ export default {
       this.getLoans(path);
     },
 
-    getLoans(path=""){
-      axios.get(`/loans${path}`, { withCredentials: true }).then((response) => {
+    async getLoans(path=""){
+
+      let response;
+      try {
+        response = await axios.get(`/loans${path}`, { withCredentials: true });
         this.loansResponse = response.data.responseData;
         this.loansRequest = response.data.requestData;
         this.loansResponse.data.forEach((loan) => {
           this.contractIDs.push(loan.contractId);
         });
         this.primaryResBannerStyle = "white--text cyan darken-4";
-      }).catch((error) => {
+      } catch (error){
         this.loansResponse = error.response.data.responseData;
         this.loansRequest = error.response.data.requestData;
         this.primaryResBannerStyle = "white--text red darken-1";
-      });
+      }
     },
 
     setContractId(contractId) {
       this.selectedContractId = contractId;
     },
 
-    fetchLoanData(path) {
-      axios
-        .get(`loans/${path}`, { withCredentials: true })
-        .then((response) => {
-          if (response.status === 200) {
-            this.loanResponse = response.data.responseData;
-            this.loanRequest = response.data.requestData;
-            this.secondaryResBannerStyle = "white--text cyan darken-4";
-          }
-        })
-        .catch((error) => {
-          if (error.response.status !== 200) {
-            this.secondaryResBannerStyle = "white--text red darken-1";
-            this.loanResponse = error.response.data.responseData;
-            this.loanRequest = error.response.data.requestData;
-          }
-        });
+    async fetchLoanData(path) {
+
+      let response;
+      try {
+        response = await axios.get(`loans/${path}`, { withCredentials: true });
+        if (response.status === 200) {
+          this.loanResponse = response.data.responseData;
+          this.loanRequest = response.data.requestData;
+          this.secondaryResBannerStyle = "white--text cyan darken-4";
+        }
+      } catch (error) {
+        if (error.response.status !== 200) {
+          this.secondaryResBannerStyle = "white--text red darken-1";
+          this.loanResponse = error.response.data.responseData;
+          this.loanRequest = error.response.data.requestData;
+        }
+      }
     },
 
     changeResourceId(contractId) {

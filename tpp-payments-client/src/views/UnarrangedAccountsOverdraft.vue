@@ -249,42 +249,45 @@ export default {
       this.getUAO(path);
     },
 
-    getUAO(path=""){
-      axios.get(`/unarranged-accounts-overdraft${path}`, { withCredentials: true }).then((response) => {
+    async getUAO(path=""){
+
+      let response;
+      try {
+        response = await axios.get(`/unarranged-accounts-overdraft${path}`, { withCredentials: true });
         this.theUAO_Response = response.data.responseData;
         this.theUAO_Request = response.data.requestData;
         this.theUAO_Response.data.forEach((UAO) => {
           this.contractIDs.push(UAO.contractId);
         });
         this.primaryResBannerStyle = "white--text cyan darken-4";
-      }).catch((error) => {
+      } catch (error){
         this.theUAO_Response = error.response.data.responseData;
         this.theUAO_Request = error.response.data.requestData;
         this.primaryResBannerStyle = "white--text red darken-1";
-      });
+      }
     },
 
     setContractId(contractId) {
       this.selectedContractId = contractId;
     },
 
-    fetchUAO_Data(path) {
-      axios
-        .get(`unarranged-accounts-overdraft/${path}`, { withCredentials: true })
-        .then((response) => {
-          if (response.status === 200) {
-            this.UAO_Response = response.data.responseData;
-            this.UAO_Request = response.data.requestData;
-            this.secondaryResBannerStyle = "white--text cyan darken-4";
-          }
-        })
-        .catch((error) => {
-          if (error.response.status !== 200) {
-            this.secondaryResBannerStyle = "white--text red darken-1";
-            this.UAO_Response = error.response.data.responseData;
-            this.UAO_Request = error.response.data.requestData;
-          }
-        });
+    async fetchUAO_Data(path) {
+
+      let response;
+      try {
+        response = await axios.get(`unarranged-accounts-overdraft/${path}`, { withCredentials: true });
+        if (response.status === 200) {
+          this.UAO_Response = response.data.responseData;
+          this.UAO_Request = response.data.requestData;
+          this.secondaryResBannerStyle = "white--text cyan darken-4";
+        }
+      } catch (error){
+        if (error.response.status !== 200) {
+          this.secondaryResBannerStyle = "white--text red darken-1";
+          this.UAO_Response = error.response.data.responseData;
+          this.UAO_Request = error.response.data.requestData;
+        }
+      }
     },
 
     changeResourceId(contractId) {

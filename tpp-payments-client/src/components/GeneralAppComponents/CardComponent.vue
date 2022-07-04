@@ -107,7 +107,7 @@
             </v-dialog>
           </v-row>
 
-          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS'">
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS' || flag === 'CREDIT_CARD_ACCOUNT_BILLS_TRANSACTIONS'">
             <v-dialog v-model="dialog" persistent max-width="600px">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn

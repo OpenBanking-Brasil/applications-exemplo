@@ -119,16 +119,19 @@ export default {
       this.getResources(path);
     },
 
-    getResources(path=""){
-      axios.get(`/resources${path}`, { withCredentials: true }).then((response) => {
+    async getResources(path=""){
+
+      let response;
+      try {
+        response = await axios.get(`/resources${path}`, { withCredentials: true });
         this.resourcesResponse = response.data.responseData;
         this.resourcesRequest = response.data.requestData;
         this.primaryResBannerStyle = "white--text cyan darken-4";
-      }).catch((error) => {
+      } catch (error){
         this.resourcesResponse = error.response.data.responseData;
         this.resourcesRequest = error.response.data.requestData;
         this.primaryResBannerStyle = "white--text red darken-1";
-      });
+      }
     }
   },
   created() {

@@ -76,6 +76,15 @@
         <BackButton path="payment-menu" />
       </v-col>
     </v-row>
+    <v-snackbar v-model="snackbar" :multi-line="multiLine" color="red accent-2">
+      {{ errorMessage }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-main>
 </template>
 
@@ -94,6 +103,9 @@ export default {
   },
 
   data: () => ({
+    multiLine: true,
+    snackbar: false,
+    errorMessage: "",
     consentResponse: "",
     paymentResponse: "",
     errorResponse: "",
@@ -101,25 +113,30 @@ export default {
     status: "",
   }),
 
-  created() {
-    axios
-      .get("/payment-response-data", { withCredentials: true })
-      .then((response) => {
-        console.log(response.data);
-        if (!response.data.errorPayload) {
-          this.consentResponse = response.data.consentPayload;
-          this.paymentResponse = response.data.payload;
-          this.amount = response.data.payload.data.payment.amount;
-          this.status = response.data.payload.data.status;
-        } else {
-          this.errorResponse = response.data.errorPayload;
-          this.consentResponse = response.data.consentPayload;
+  async created() {
 
-          this.amount = response.data.consentPayload.data.payment.amount;
-          this.status = response.data.payload.data.status;
-          console.log(response.data.consentPayload.data.payment.amount);
-        }
-      });
+    let response;
+    try {
+      response = await axios.get("/payments/payment-response", { withCredentials: true });
+      const res = response.data.payload?.payload || response.data.payload;
+      if (!response.data.errorPayload) {
+        this.consentResponse = response.data.consentPayload;
+        this.paymentResponse = response.data.payload;
+        this.amount = res.data.payment.amount;
+        this.status = res.data.status;
+      } else {
+        //payment error response
+        this.errorResponse = response.data.errorPayload;
+        this.consentResponse = response.data.consentPayload;
+
+        this.amount = response.data.consentPayload.data.payment.amount;
+        this.status = response.data.payload.data.status;
+        console.log(response.data.consentPayload.data.payment.amount);
+      }
+    } catch (error) {
+      this.errorMessage = error.message;
+      this.snackbar = true;
+    }
   }
 };
 </script>

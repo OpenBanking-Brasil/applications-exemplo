@@ -197,7 +197,7 @@ export default {
   }),
 
   methods: {
-    revokePayment() {
+    async revokePayment() {
       this.loading = true;
       let formBody = [];
       for (let property in this.formData) {
@@ -208,31 +208,32 @@ export default {
       formBody = formBody.join("&");
 
       axios.defaults.withCredentials = true;
-      axios
-        .patch("/revoke-payment", formBody, {
+
+      let response;
+      try {
+        response = await axios.patch("payments/revoke-payment", formBody, {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-        })
-        .then((res) => {
-          this.$router.push({
-            name: "patch-response",
-            params: {
-              patchResponse: res.data,
-              status: res.status,
-            },
-          });
-        })
-        .catch((error) => {
-          this.loading = false;
-          this.$router.push({
-            name: "patch-response",
-            params: {
-              patchErrorResponse: error.response.data,
-              status: error.response.status,
-            },
-          });
         });
+
+        this.$router.push({
+          name: "patch-response",
+          params: {
+            patchResponse: response.data,
+            status: response.status,
+          },
+        });
+      } catch (error) {
+        this.loading = false;
+        this.$router.push({
+          name: "patch-response",
+          params: {
+            patchErrorResponse: error.response.data,
+            status: error.response.status,
+          },
+        });
+      }
     },
   },
 };

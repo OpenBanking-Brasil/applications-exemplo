@@ -295,46 +295,47 @@ export default {
   },
 
   methods: {
-    getPayment() {
+    async getPayment() {
       this.loading = true;
-      axios
-        .get(`/payment/${this.paymentID}`, {
+
+      let response;
+      try {
+        response = await axios.get(`/payments/${this.paymentID}`, {
           withCredentials: true,
-        })
-        .then((response) => {
-          this.paymentAmount = response.data.data.payment.amount;
-          this.status = response.data.data.status;
-          this.currency = response.data.data.payment.currency;
-          this.creationDateTime = response.data.data.creationDateTime;
-          this.bankName = response.data.selectedBank;
-          if (this.paymentIsScheduled) {
-            axios
-              .get(`/payment-consent/${this.consentID}`, {
-                withCredentials: true,
-              })
-              .then((response) => {
-                this.scheduledDate =
-                  response.data.data.payment.schedule.single.date;
-                this.loading = false;
-              })
-              .catch((error) => {
-                if (error.response.status !== 200) {
-                  this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
-                  this.snackbar = true;
-                  this.loading = false;
-                }
-              });
-          } else {
-            this.loading = false;
-          }
-        })
-        .catch((error) => {
-          if (error.response.status !== 200) {
-            this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
-            this.snackbar = true;
-            this.loading = false;
-          }
         });
+
+        this.paymentAmount = response.data.data.payment.amount;
+        this.status = response.data.data.status;
+        this.currency = response.data.data.payment.currency;
+        this.creationDateTime = response.data.data.creationDateTime;
+        this.bankName = response.data.selectedBank;
+        if (this.paymentIsScheduled) {
+          axios
+            .get(`/payments/payment-consent/${this.consentID}`, {
+              withCredentials: true,
+            })
+            .then((response) => {
+              this.scheduledDate =
+                response.data.data.payment.schedule.single.date;
+              this.loading = false;
+            })
+            .catch((error) => {
+              if (error.response.status !== 200) {
+                this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
+                this.snackbar = true;
+                this.loading = false;
+              }
+            });
+        } else {
+          this.loading = false;
+        }
+      } catch (error) {
+        if (error.response.status !== 200) {
+          this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
+          this.snackbar = true;
+          this.loading = false;
+        }
+      }
     },
     createPayment() {
       this.$router.push({
@@ -349,26 +350,29 @@ export default {
     },
   },
 
-  created() {
+  async created() {
     const selectedDcrOption = this.$route.params.data?.selectedDcrOption;
     this.messageText =
       selectedDcrOption === "USE_EXISTING_CLIENT"
         ? "Obtained the registered client's details successfully"
         : "Dynamic client registration has been done successfully";
     this.clientId = this.$route.params.data?.clientId;
-    axios
-      .get("/payment-response-data", {
-        withCredentials: true,
-      })
-      .then((response) => {
-        if (response.data.clientId) {
-          this.clientId = response.data?.clientId;
-          this.refreshToken = response.data?.refreshToken;
-          this.consentID = response.data.payload?.data.consentId;
-          this.paymentID = response.data.payload?.data.paymentId;
-          this.paymentIsScheduled = response?.data.scheduled ? true : false;
-        }
-      });
+
+    let response;
+    try {
+      response = await axios.get("/payments/payment-response", { withCredentials: true });
+      if (response.data.clientId) {
+        const res = response.data.payload?.payload?.data || response.data.payload?.data;
+        this.clientId = response.data?.clientId;
+        this.refreshToken = response.data?.refreshToken;
+        this.consentID = res.consentId;
+        this.paymentID = res.paymentId;
+        this.paymentIsScheduled = response?.data.scheduled ? true : false;
+      }
+    } catch (error) {
+      this.snackbarMessage = error.message;
+      this.snackbar = true;
+    }
   },
 };
 </script>

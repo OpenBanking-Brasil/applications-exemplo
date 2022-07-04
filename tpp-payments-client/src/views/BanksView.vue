@@ -30,13 +30,13 @@
                   class="overflow-y-auto"
                 >
                   <v-list-item
-                    v-for="bank in searchBank"
+                    v-for="(bank, i) in searchBank"
                     :key="bank.id"
                     class="pa-md-4"
                     @click="selectBank(bank.title)"
                   >
                     <v-list-item-avatar>
-                      <v-img contain :src="bank.avatar"></v-img>
+                      <v-img contain :src="bank.avatar" @error="onImgError(i)"></v-img>
                     </v-list-item-avatar>
 
                     <v-list-item-content>
@@ -208,13 +208,13 @@ export default {
   methods: {
     ...mapActions(["setScopes"]),
     selectBank(bankTitle) {
-      if(this.selectedBank === bankTitle){
+      if (this.selectedBank === bankTitle) {
         this.selectedBank = "";
       } else {
         this.selectedBank = bankTitle;
       }
     },
-    confirmSelectedBank() {
+    async confirmSelectedBank() {
       if (
         this.selectedDcrOption === this.dcrOptions[1] &&
         (!this.clientId || !this.registrationAccessToken)
@@ -225,8 +225,9 @@ export default {
       this.dialog = false;
       axios.defaults.withCredentials = true;
       this.loading = true;
-      axios
-        .post(
+
+      try {
+        const res = await axios.post(
           "/dcr",
           {
             bank: this.selectedBank,
@@ -239,42 +240,40 @@ export default {
               "Content-Type": "application/json",
             },
           }
-        )
-        .then((res) => {
-          this.clientId = res.data.clientId;
-          this.registrationAccessToken = res.data.registrationAccessToken;
-          this.setScopes(res.data.scope);
-          if (this.selectedOption === "payments") {
-            this.$router.push({
-              name: "payment-menu",
-              params: {
-                data: {
-                  selectedDcrOption: this.dcrOption,
-                  selectedBank: this.selectedBank,
-                  clientId: res.data.clientId,
-                },
+        );
+        this.clientId = res.data.clientId;
+        this.registrationAccessToken = res.data.registrationAccessToken;
+        this.setScopes(res.data.scope);
+        if (this.selectedOption === "payments") {
+          this.$router.push({
+            name: "payment-menu",
+            params: {
+              data: {
+                selectedDcrOption: this.dcrOption,
+                selectedBank: this.selectedBank,
+                clientId: res.data.clientId,
               },
-            });
-          } else {
-            this.$router.push({
-              name: "consent-menu",
-              params: {
-                data: {
-                  selectedDcrOption: this.dcrOption,
-                },
+            },
+          });
+        } else {
+          this.$router.push({
+            name: "consent-menu",
+            params: {
+              data: {
+                selectedDcrOption: this.dcrOption,
               },
-            });
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-          this.text = error.response.statusText;
-          this.snackbar = true;
-          this.loading = false;
-        });
+            },
+          });
+        }
+      } catch (error) {
+        this.text = error.response.statusText;
+        this.snackbar = true;
+        this.loading = false;
+      }
     },
-    getBanks(data) {
-      for (var i = 0; i < data.length; i++) {
+
+    async getBanks(data) {
+      for (let i = 0; i < data.length; i++) {
         if (data[i].AuthorisationServers) {
           for (let y = 0; y < data[i].AuthorisationServers.length; y++) {
             this.banks.push({
@@ -287,23 +286,31 @@ export default {
       }
       this.banks.sort((a, b) => a.title.trim().localeCompare(b.title.trim()));
       for (let i = 0; i < this.banks.length; i++) {
-        fetch(this.banks[i].avatar, { mode: "no-cors"}).then((response) => {
-        }).catch((error) => {
-          console.log("error", error);
+        try {
+          await fetch(this.banks[i].avatar, { mode: "no-cors" });
+        } catch (error) {
           this.banks[i].avatar = "https://ui-avatars.com/api/?name=No+Logo";
-        });
+        }
       }
     },
 
-    getClients() {
-      axios.get("clients", { withCredentials: true }).then((response) => {
+    onImgError(i){
+      this.banks[i].avatar = "https://ui-avatars.com/api/?name=No+Logo";
+    },
+
+    async getClients() {
+      try {
+        const response = await axios.get("/clients", { withCredentials: true });
         this.clients = response.data;
         this.clients.forEach((client) => {
           if (client.bank === this.selectedBank) {
             this.clientIds.push(client.clientId);
           }
         });
-      });
+      } catch (error){
+        this.text = `Cannot get clients: error ${error.response.status}`;
+        this.snackbar = true;
+      }
     },
   },
 
@@ -364,19 +371,19 @@ export default {
     },
   },
 
-  created() {
-    console.log(this.$route.query);
-
+  async created() {
     this.clientId = "";
     this.registrationAccessToken = "";
-
     this.selectedOption = this.$route.query.option;
-    axios
-      .get(`/banks/${this.selectedOption}`, { withCredentials: true })
-      .then((response) => {
-        this.loadingBanks = false;
-        this.getBanks(response.data);
-      });
+
+    try {
+      const response = await axios.get(`/banks/${this.selectedOption}`, { withCredentials: true });
+      this.loadingBanks = false;
+      this.getBanks(response.data);
+    } catch (error){
+      this.text = error.message;
+      this.snackbar = true;
+    }
   },
 };
 </script>

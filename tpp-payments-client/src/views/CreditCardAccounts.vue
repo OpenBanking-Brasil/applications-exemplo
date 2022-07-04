@@ -76,6 +76,10 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/bills/${selectedBillId}/transactions`"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams"
+                  :queryParams="creditCardAccountTransactionsQueryParams"
+                  flag="CREDIT_CARD_ACCOUNT_BILLS_TRANSACTIONS"
                   @fetch-data="fetchAccountData"
                   @resource-id-change="
                     (billId) => changeResourceId(billId, true)
@@ -117,7 +121,7 @@
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/transactions`"
                   :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :getPathWithQueryParams="getPathWithQueryParams"
                   :queryParams="creditCardAccountTransactionsQueryParams"
                   flag="CREDIT_CARD_ACCOUNT_TRANSACTIONS"
                   @fetch-data="fetchAccountData"
@@ -133,7 +137,7 @@
                   :displayTextField="true"
                   :path="`${selectedCreditCardAccountId}/bills`"
                   :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :getPathWithQueryParams="getPathWithQueryParams"
                   :queryParams="creditCardAccountBillsQueryParams"
                   flag="CREDIT_CARD_ACCOUNT_BILLS"
                   @fetch-data="fetchAccountData"
@@ -204,7 +208,9 @@
               </v-col>
               <v-col cols="12" sm="8">
                 <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4">Request</v-card-title>
+                  <v-card-title class="white--text blue darken-4"
+                    >Request</v-card-title
+                  >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
                         {{ creditCardAccountRequest }}
@@ -213,7 +219,9 @@
                 </v-card>
                 <v-divider class="mt-5"></v-divider>
                 <v-card elevation="2" outlined>
-                  <v-card-title :class="secondaryResBannerStyle">Response</v-card-title>
+                  <v-card-title :class="secondaryResBannerStyle"
+                    >Response</v-card-title
+                  >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
                         {{ creditCardAccountResponse }}
@@ -272,26 +280,26 @@ export default {
         "page-size": null,
         page: null,
         transactionType: null,
-        payeeMCC: null
+        payeeMCC: null,
       },
       creditCardAccountBillsQueryParams: {
         fromDueDate: null,
         toDueDate: null,
         "page-size": null,
-        page: null
-      }
+        page: null,
+      },
     };
   },
   created() {
     this.getCreditCardAccounts();
   },
   methods: {
-    getPathWithQueryParams(queryParams){
+    getPathWithQueryParams(queryParams) {
       let path = "";
       let isFirstIteration = true;
-      for(let queryParam in queryParams){
-        if(queryParams[queryParam]){
-          if(!isFirstIteration){
+      for (let queryParam in queryParams) {
+        if (queryParams[queryParam]) {
+          if (!isFirstIteration) {
             path += `&${queryParam}=${queryParams[queryParam]}`;
           } else {
             isFirstIteration = false;
@@ -303,28 +311,32 @@ export default {
       return path;
     },
 
-    getCreditCardAccountsByQueryParams(){
+    getCreditCardAccountsByQueryParams() {
       this.creditCardAccountIDs = [];
-      const path = this.getPathWithQueryParams(this.creditCardAccountsQueryParams);
+      const path = this.getPathWithQueryParams(
+        this.creditCardAccountsQueryParams
+      );
 
       this.getCreditCardAccounts(path);
     },
 
-    getCreditCardAccounts(path=""){
-      axios
-        .get(`/credit-cards-accounts${path}`, { withCredentials: true })
-        .then((response) => {
-          this.creditCardAccountsResponse = response.data.responseData;
-          this.creditCardAccountsRequest = response.data.requestData;
-          this.creditCardAccountsResponse.data.forEach((creditCardAccount) => {
-            this.creditCardAccountIDs.push(creditCardAccount.creditCardAccountId);
-          });
-          this.primaryResBannerStyle = "white--text cyan darken-4";
-        }).catch((error) => {
+    async getCreditCardAccounts(path = "") {
+
+      try {
+        const response = await axios.get(`/credit-cards-accounts${path}`, { withCredentials: true });
+        this.creditCardAccountsResponse = response.data.responseData;
+        this.creditCardAccountsRequest = response.data.requestData;
+        this.creditCardAccountsResponse.data.forEach((creditCardAccount) => {
+          this.creditCardAccountIDs.push(
+            creditCardAccount.creditCardAccountId
+          );
+        });
+        this.primaryResBannerStyle = "white--text cyan darken-4";
+      } catch (error) {
           this.creditCardAccountsResponse = error.response.data.responseData;
           this.creditCardAccountsRequest = error.response.data.requestData;
           this.primaryResBannerStyle = "white--text red darken-1";
-        });
+      }
     },
     setAccountId(creditCardAccountId) {
       this.creditCardAccountResponse = "";
@@ -343,29 +355,30 @@ export default {
       this.selectedAccountIdIndex = null;
     },
 
-    fetchAccountData(path) {
-      axios
-        .get(`credit-cards-accounts/${path}`, { withCredentials: true })
-        .then((response) => {
-          if (response.status === 200) {
-            this.creditCardAccountResponse = response.data.responseData;
-            this.creditCardAccountRequest = response.data.requestData;
-            this.secondaryResBannerStyle = "white--text cyan darken-4";
-
-            if (path === `${this.selectedCreditCardAccountId}/bills`) {
-              response.data.data.forEach((bill) => {
-                this.billIDs.push(bill.billId);
-              });
-            }
-          }
-        })
-        .catch((error) => {
-          if (error.response.status !== 200) {
-            this.secondaryResBannerStyle = "white--text red darken-1";
-            this.creditCardAccountResponse = error.response.data.responseData;
-            this.creditCardAccountRequest = error.response.data.requestData;
-          }
+    async fetchAccountData(path) {
+      let response;
+      try {
+        response = await axios.get(`credit-cards-accounts/${path}`, {
+          withCredentials: true,
         });
+        if (response.status === 200) {
+          this.creditCardAccountResponse = response.data.responseData;
+          this.creditCardAccountRequest = response.data.requestData;
+          this.secondaryResBannerStyle = "white--text cyan darken-4";
+
+          if (path.match(`${this.selectedCreditCardAccountId}/bills/*`)) {
+            response.data.responseData.data.forEach((bill) => {
+              this.billIDs.push(bill.billId);
+            });
+          }
+        }
+      } catch (error) {
+        if (error.response.status !== 200) {
+          this.secondaryResBannerStyle = "white--text red darken-1";
+          this.creditCardAccountResponse = error.response.data.responseData;
+          this.creditCardAccountRequest = error.response.data.requestData;
+        }
+      }
     },
 
     changeResourceId(resourceId, billdIdProvided = false) {

@@ -145,8 +145,6 @@ router.get("/payments/payment-response", (req, res) => {
     scheduled: req.session.paymentIsScheduled,
   };
 
-  console.log("hellllo", paymentResponse);
-
   return res.json(paymentResponse);
 });
 

@@ -254,11 +254,17 @@ async function generateRequest(
     );
 
     //Validate the jwt
-    const result = await jose.jwtVerify(response.body.toString(), JWKS, {
-      issuer: organisation.organisation_id,
-      audience: req.session.config.data.organisation_id,
-      clockTolerance: 2,
-    });
+    let result = {};
+    try {
+      result = await jose.jwtVerify(response.body.toString(), JWKS, {
+        issuer: organisation.organisation_id,
+        audience: req.session.config.data.organisation_id,
+        clockTolerance: 5,
+        maxTokenAge: 300
+      });
+    } catch(error){
+      result.payload = JSON.parse(response.body.toString());
+    }
     payload = result.payload;
     req.session.createdConsent = payload;
   } else {

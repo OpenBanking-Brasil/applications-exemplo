@@ -192,6 +192,7 @@ async function setupClient(
     //The expected issuer for production is available on the security specifications
     issuer: "Open Banking Open Banking Brasil sandbox SSA issuer",
     clockTolerance: 2,
+    maxTokenAge: 300
   });
   dcrLog(payload);
 

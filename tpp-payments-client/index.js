@@ -188,10 +188,6 @@ const config = require("./config");
   app.use(express.static(path.join(__dirname, "public")));
 
   app.use("/banks/:option", async (req, res) => {
-    // const apiFamilyType =
-    //   req.params.option === "payments"
-    //     ? "payments-consents"
-    //     : "customers-personal";
     
     let apiFamilyType;
     let ApiVersion;

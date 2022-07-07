@@ -120,6 +120,10 @@
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedAccountId}/transactions-current`"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :queryParams="accountTransactionsQueryParams"
+                  flag="ACCOUNT_TRANSACTIONS_CURRENT"
                   @fetch-data="fetchAccountData"
                   @resource-id-change="changeResourceId"
                 />

@@ -23,7 +23,7 @@
         </v-list-item-content>
       </v-list-item>
 
-          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'ACCOUNT_TRANSACTIONS'">
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'ACCOUNT_TRANSACTIONS' || flag === 'ACCOUNT_TRANSACTIONS_CURRENT'">
             <v-dialog v-model="dialog" persistent max-width="600px">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -48,7 +48,7 @@
                             <v-text-field
                               dense
                               outlined
-                              label="From Booking Date"
+                              :label="flag === 'ACCOUNT_TRANSACTIONS_CURRENT' ? 'From Booking Date Max Limited' : 'From Booking Date'"
                               v-model="queryParams['fromBookingDate']"
                             ></v-text-field>
                           </v-col>
@@ -57,7 +57,7 @@
                             <v-text-field
                               dense
                               outlined
-                              label="To Booking Date"
+                              :label="flag === 'ACCOUNT_TRANSACTIONS_CURRENT' ? 'To Booking Date Max Limited' : 'To Booking Date'"
                               v-model="queryParams['toBookingDate']"
                             ></v-text-field>
                           </v-col>

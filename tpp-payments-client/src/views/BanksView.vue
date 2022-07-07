@@ -206,7 +206,7 @@ export default {
     selectedOption: "",
   }),
   methods: {
-    ...mapActions(["setScopes"]),
+    ...mapActions(["setScopes", "setApiOption"]),
     selectBank(bankTitle) {
       if (this.selectedBank === bankTitle) {
         this.selectedBank = "";
@@ -375,6 +375,7 @@ export default {
     this.clientId = "";
     this.registrationAccessToken = "";
     this.selectedOption = this.$route.query.option;
+    this.setApiOption(this.selectedOption);
 
     try {
       const response = await axios.get(`/banks/${this.selectedOption}`, { withCredentials: true });

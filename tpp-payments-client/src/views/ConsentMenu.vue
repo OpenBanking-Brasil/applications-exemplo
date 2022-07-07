@@ -375,6 +375,7 @@ export default {
       "scopes",
       "clientID",
       "registrationAccessToken",
+      "ApiOption",
     ]),
   },
 
@@ -452,6 +453,7 @@ export default {
             transactionToTime: this.transactionToTime,
             expirationDate: this.expirationDate,
             expirationTime: this.expirationTime,
+            ApiOption: this.ApiOption,
           },
           {
             headers: {

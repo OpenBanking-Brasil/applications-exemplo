@@ -1,4 +1,5 @@
 const state = {
+  ApiOption: "app",
   clientID: "",
   registrationAccessToken: "",
   scopes: "",
@@ -278,6 +279,7 @@ const getters = {
   scopes: (state) => state.scopes,
   clientID: (state) => state.clientID,
   registrationAccessToken: (state) => state.registrationAccessToken,
+  ApiOption: (state) => state.ApiOption,
 };
 
 const actions = {
@@ -287,6 +289,9 @@ const actions = {
   setScopes({ commit }, scopes) {
     commit("setTheScopes", scopes);
   },
+  setApiOption({ commit }, ApiOption) {
+    commit("setTheApiOption", ApiOption);
+  }
 };
 
 const mutations = {
@@ -296,6 +301,7 @@ const mutations = {
   setSelectedCadastroOption: (state, cadastroOption) =>
     (state.cadastroOption = cadastroOption),
   setTheScopes: (state, scopes) => (state.scopes = scopes),
+  setTheApiOption: (state, ApiOption) => (state.ApiOption = ApiOption)
 };
 
 export default {

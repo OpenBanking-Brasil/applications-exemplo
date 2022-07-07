@@ -112,6 +112,18 @@
                   @resource-id-change="changeResourceId"
                 />
               </v-col>
+              <v-col cols="12" sm="3" v-if="ApiVersion === 'v2'">
+                <CardComponent
+                  title="Account Transactions Current API"
+                  fullPath="/open-banking/accounts/v1/accounts/{accountId}/transactions-current"
+                  :resourceId="selectedAccountId"
+                  btnText="RUN"
+                  :displayTextField="true"
+                  :path="`${selectedAccountId}/transactions-current`"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
+                />
+              </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Transactions API"
@@ -192,6 +204,7 @@ import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import CardComponent from "@/components/GeneralAppComponents/CardComponent.vue";
 import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
+import { mapGetters } from "vuex";
 
 export default {
   name: "AccountsMenu",
@@ -202,6 +215,7 @@ export default {
   },
   data() {
     return {
+      ApiVersion: "",
       accountsResponse: "",
       accountsRequest: "",
       accountRequest: "",
@@ -224,7 +238,12 @@ export default {
       }
     };
   },
+  computed: {
+    ...mapGetters(["ApiOption"]),
+  },
   created() {
+    const optionWords = this.ApiOption.split("-");
+    this.ApiVersion = optionWords[optionWords.length - 1];
     this.getAccounts();
   },
   methods: {

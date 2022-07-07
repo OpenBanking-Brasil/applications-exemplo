@@ -25,25 +25,27 @@ async function fetchData(req, apiFamilyType, apiType, path = "") {
   req.session.accessToken = tokenSet.access_token;
   req.session.tokenSet = tokenSet;
 
+  const ApiVersion = req.session.ApiVersion;
+
   let pathRegex;
   if (apiFamilyType === "accounts") {
-    pathRegex = "open-banking/accounts/v1/accounts$";
+    pathRegex = `open-banking/accounts/${ApiVersion}/accounts$`;
   } else if (apiFamilyType === "credit-cards-accounts") {
-    pathRegex = "/open-banking/credit-cards-accounts/v1/accounts$";
+    pathRegex = `/open-banking/credit-cards-accounts/${ApiVersion}/accounts$`;
   } else if (apiFamilyType === "resources") {
-    pathRegex = "open-banking/resources/v1/resources$";
+    pathRegex = `open-banking/resources/${ApiVersion}/resources$`;
   } else if (apiFamilyType === "customers-business") {
-    pathRegex = `open-banking/customers/v1/business/${apiType}$`;
+    pathRegex = `open-banking/customers/${ApiVersion}/business/${apiType}$`;
   } else if (apiFamilyType === "customers-personal") {
-    pathRegex = `open-banking/customers/v1/personal/${apiType}$`;
+    pathRegex = `open-banking/customers/${ApiVersion}/personal/${apiType}$`;
   } else if (apiFamilyType === "loans") {
-    pathRegex = "open-banking/loans/v1/contracts$";
+    pathRegex = `open-banking/loans/${ApiVersion}/contracts$`;
   } else if (apiFamilyType === "financings") {
-    pathRegex = "open-banking/financings/v1/contracts$";
+    pathRegex = `open-banking/financings/${ApiVersion}/contracts$`;
   } else if (apiFamilyType === "invoice-financings") {
-    pathRegex = "open-banking/invoice-financings/v1/contracts$";
+    pathRegex = `open-banking/invoice-financings/${ApiVersion}/contracts$`;
   } else if (apiFamilyType === "unarranged-accounts-overdraft") {
-    pathRegex = "open-banking/unarranged-accounts-overdraft/v1/contracts$";
+    pathRegex = `open-banking/unarranged-accounts-overdraft/${ApiVersion}/contracts$`;
   }
 
   paymentLog(
@@ -56,16 +58,24 @@ async function fetchData(req, apiFamilyType, apiType, path = "") {
   )}${path}`;
   consentLog(`The ${apiType} endpoint found %O`, endpoint);
 
+  const requestData = {
+    endpoint,
+    accessToken: req.session.accessToken,
+  };
+
+  if(endpoint.split("/")[0] === "undefined"){
+    return {
+      responseBody: "could not find the provided API endpoint",
+      statusCode: 404,
+      requestData,
+    };
+  }
+
   paymentLog(`Getting ${apiType} response`);
   const response = await client.requestResource(
     endpoint,
     req.session.accessToken
   );
-
-  const requestData = {
-    endpoint,
-    accessToken: req.session.accessToken,
-  };
 
   if (!response.body) {
     return {

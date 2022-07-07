@@ -362,6 +362,7 @@ export default {
       "scopes",
       "clientID",
       "registrationAccessToken",
+      "ApiOption",
     ]),
     creditOperationSelected() {
       if (this.selectedCreditOperation) {

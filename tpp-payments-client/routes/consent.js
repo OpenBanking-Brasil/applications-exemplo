@@ -16,6 +16,9 @@ router.post("/consent/create-consent", async (req, res) => {
     });
   });
 
+  const optionWords = req.body.ApiOption.split("-");
+  req.session.ApiVersion = optionWords[optionWords.length - 1];
+
   //granted permissions categories
   req.session.consentsArr = req.body.permissionsArr.map((permissionData) => {
     return {

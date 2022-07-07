@@ -20,7 +20,7 @@
                       Customer Data
                     </v-list-item-title>
                     <v-list-item-subtitle
-                      >Use the Mock TPP for Phase 2 Customer Data</v-list-item-subtitle
+                      >Use the Mock TPP for Phase 2</v-list-item-subtitle
                     >
                   </v-list-item-content>
 
@@ -52,8 +52,7 @@
                       Payments
                     </v-list-item-title>
                     <v-list-item-subtitle
-                      >Use the Mock TPP for Phase 3
-                      Payments</v-list-item-subtitle
+                      >Use the Mock TPP for Phase 3</v-list-item-subtitle
                     >
                   </v-list-item-content>
 

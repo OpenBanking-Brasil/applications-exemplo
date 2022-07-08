@@ -415,16 +415,6 @@ export default {
       dialog: false,
       textFieldLabel: "",
       valid: true,
-
-      genericQueryParams: {
-        fromDate: null,
-        toDate: null,
-        pageSize: null,
-        page: null,
-        transactionType: null,
-        payeeMCC: null,
-        paginationKey: null,
-      }
     };
   },
   methods: {

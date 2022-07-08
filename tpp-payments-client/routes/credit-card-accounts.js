@@ -74,6 +74,26 @@ router.get(
 );
 
 router.get(
+  "/credit-cards-accounts/:creditCardAccountId/transactions-current",
+  async (req, res) => {
+    const creditCardAccountId = req.params.creditCardAccountId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${creditCardAccountId}/transactions-current${queryParams}`;
+    const response = await fetchData(
+      req,
+      creditCardAccountAPIFamily,
+      "credit cards accounts transactions current",
+      path
+    );
+
+    return res.status(response.statusCode).json({
+      responseData: response.responseBody,
+      requestData: response.requestData,
+    });
+  }
+);
+
+router.get(
   "/credit-cards-accounts/:creditCardAccountId/bills",
   async (req, res) => {
     const creditCardAccountId = req.params.creditCardAccountId;

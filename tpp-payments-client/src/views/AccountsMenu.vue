@@ -122,7 +122,7 @@
                   :path="`${selectedAccountId}/transactions-current`"
                   :supportsQueryParam="true"
                   :getPathWithQueryParams="getPathWithQueryParams" 
-                  :queryParams="accountTransactionsQueryParams"
+                  :queryParams="accountTransactionsCurrentQueryParams"
                   flag="ACCOUNT_TRANSACTIONS_CURRENT"
                   @fetch-data="fetchAccountData"
                   @resource-id-change="changeResourceId"
@@ -232,6 +232,14 @@ export default {
         "page-size": null,
         page: null,
         accountType: ""
+      },
+      accountTransactionsCurrentQueryParams: {
+        fromBookingDateMaxLimited: null,
+        toBookingDateMaxLimited: null,
+        "page-size": null,
+        page: null,
+        creditDebitIndicator: null,
+        "pagination-key": null,
       },
       accountTransactionsQueryParams: {
         fromBookingDate: null,

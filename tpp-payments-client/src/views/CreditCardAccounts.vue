@@ -128,6 +128,22 @@
                   @resource-id-change="changeResourceId"
                 />
               </v-col>
+              <v-col cols="12" sm="3" v-if="ApiVersion === 'v2'">
+                <CardComponent
+                  title="Credit Card Account Transactions Current API"
+                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/transactions-current"
+                  :resourceId="selectedCreditCardAccountId"
+                  btnText="RUN"
+                  :displayTextField="true"
+                  :path="`${selectedCreditCardAccountId}/transactions-current`"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams"
+                  :queryParams="creditCardAccountTransactionsCurrentQueryParams"
+                  flag="CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT"
+                  @fetch-data="fetchAccountData"
+                  @resource-id-change="changeResourceId"
+                />
+              </v-col>
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Credit Card Account Bills API"
@@ -246,6 +262,7 @@ import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import CardComponent from "@/components/GeneralAppComponents/CardComponent.vue";
 import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
+import { mapGetters } from "vuex";
 
 export default {
   name: "CreditCardAccounts",
@@ -274,6 +291,15 @@ export default {
         "page-size": null,
         page: null,
       },
+      creditCardAccountTransactionsCurrentQueryParams: {
+        fromTransactionDateMaxLimited: null,
+        toTransactionDateMaxLimited: null,
+        "page-size": null,
+        page: null,
+        creditCardTransactionType: null,
+        creditCardPayeeMCC: null,
+        "pagination-key": null,
+      },
       creditCardAccountTransactionsQueryParams: {
         fromTransactionDate: null,
         toTransactionDate: null,
@@ -291,7 +317,12 @@ export default {
     };
   },
   created() {
+    const optionWords = this.ApiOption.split("-");
+    this.ApiVersion = optionWords[optionWords.length - 1];
     this.getCreditCardAccounts();
+  },
+  computed: {
+    ...mapGetters(["ApiOption"]),
   },
   methods: {
     getPathWithQueryParams(queryParams) {

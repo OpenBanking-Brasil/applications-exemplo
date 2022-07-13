@@ -468,11 +468,12 @@
                             </v-card>
                             <v-card
                               flat
-                              v-else-if="item === 'Mock TPP Settings'"
+                              v-else-if="item === 'Payments Polling Settings'"
                             >
                               <v-row class="pa-5">
                                 <v-col cols="12" sm="6" md="6">
                                   <b> Loop Pause Time (ms) </b>
+                                  <v-icon small title="The total time in milliseconds that the application waits before polling again."> mdi-information </v-icon>
                                   <v-text-field
                                     placeholder=""
                                     outlined
@@ -484,7 +485,8 @@
                                   ></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="6">
-                                  <b> Number of Check Loops </b>
+                                  <b> Number of Requests </b>
+                                  <v-icon small title="The number of times the application polls a payment"> mdi-information </v-icon>
                                   <v-text-field
                                     placeholder=""
                                     outlined
@@ -565,7 +567,7 @@ export default {
       items: [
         "Authorization and Message Settings",
         "Software Statement Settings",
-        "Mock TPP Settings",
+        "Payments Polling Settings",
       ],
       text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
 

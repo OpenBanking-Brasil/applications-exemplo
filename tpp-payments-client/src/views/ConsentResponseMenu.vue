@@ -80,8 +80,41 @@
               <v-col cols="12" md="8">
                 <v-card elevation="2" outlined>
                   <v-card-title class="white--text blue darken-4"
-                    >Consent Request</v-card-title
-                  >
+                    >Consent POST Request
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-icon v-bind="attrs" v-on="on" color="white" right
+                          >mdi-information</v-icon
+                        >
+                      </template>
+                      <span
+                        >POST request to the consents endpoint was made when
+                        permissions were selected from the permissions
+                        table.</span
+                      >
+                    </v-tooltip>
+                  </v-card-title>
+                  <v-card-text>
+                    <pre class="pt-4" style="overflow: auto"
+                      >{{ consentReqObj }}
+                    </pre>
+                  </v-card-text>
+                </v-card>
+                <div class="pa-2"></div>
+                <v-card elevation="2" outlined>
+                  <v-card-title class="white--text blue darken-4"
+                    >Consent GET Request
+                    <v-tooltip top>
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-icon v-bind="attrs" v-on="on" color="white" right
+                          >mdi-information</v-icon
+                        >
+                      </template>
+                      <span
+                        >GET request to the consents endpoint was made before this page got mounted to the DOM to get the created consent.</span
+                      >
+                    </v-tooltip>
+                  </v-card-title>
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto"
                       >{{ requestData }}
@@ -160,7 +193,10 @@
                                     <v-list-item-content>
                                       {{ consentObj.group }}
                                     </v-list-item-content>
-                                    <v-list-item-content class="align-end" style="overflow: auto">
+                                    <v-list-item-content
+                                      class="align-end"
+                                      style="overflow: auto"
+                                    >
                                       {{ consentObj.permissions }}
                                     </v-list-item-content>
                                   </v-list-item>
@@ -275,7 +311,7 @@
     <v-overlay :value="loading">
       <v-progress-circular indeterminate size="100"></v-progress-circular>
     </v-overlay>
-        <v-snackbar v-model="snackbar" :multi-line="multiLine" color="red accent-2">
+    <v-snackbar v-model="snackbar" :multi-line="multiLine" color="red accent-2">
       {{ errorMessage }}
 
       <template v-slot:action="{ attrs }">
@@ -311,6 +347,7 @@ export default {
       loading: true,
       consentPayload: "",
       requestData: "",
+      consentReqObj: "",
       grantedConsents: [],
       grantedConsentsCategory: "",
       consentsArr: [],
@@ -374,16 +411,19 @@ export default {
   },
   async created() {
     try {
-      const response = await axios.get("/consent/consent-response", { withCredentials: true });
+      const response = await axios.get("/consent/consent-response", {
+        withCredentials: true,
+      });
       this.consentPayload = response.data.consent;
       this.requestData = response.data.requestData;
       this.grantedConsents = response.data.permissionsData;
+      this.consentReqObj = response.data.consentReqObj;
 
       let cadastroOption;
       this.grantedConsents.forEach((grantedConsent) => {
-        if(grantedConsent.group.includes("PF")){
+        if (grantedConsent.group.includes("PF")) {
           cadastroOption = "PF";
-        } else if (grantedConsent.group.includes("PJ")){
+        } else if (grantedConsent.group.includes("PJ")) {
           cadastroOption = "PJ";
         }
       });
@@ -398,30 +438,34 @@ export default {
         };
 
         let itemFound = false;
-        const filteredArr = this.grantedConsents.filter((theConsent) => theConsent.category === consent.category);
-        for(const cnst of filteredArr){
-          for(const formatedConsent of formatedConsents){
-            if(formatedConsent["category"] === cnst["category"]){
+        const filteredArr = this.grantedConsents.filter(
+          (theConsent) => theConsent.category === consent.category
+        );
+        for (const cnst of filteredArr) {
+          for (const formatedConsent of formatedConsents) {
+            if (formatedConsent["category"] === cnst["category"]) {
               itemFound = true;
             }
           }
-          if(!itemFound){
+          if (!itemFound) {
             consentObj.category = cnst.category;
             consentObj.permissionsArray.push({
               group: cnst.group,
-              permissions: this.convertArrayToString(cnst.permissions.map((permissions) => permissions.permission))
+              permissions: this.convertArrayToString(
+                cnst.permissions.map((permissions) => permissions.permission)
+              ),
             });
           }
         }
 
-        if(consentObj.category){
+        if (consentObj.category) {
           formatedConsents.push(consentObj);
         }
       }
 
       this.grantedConsents = [...formatedConsents];
       this.loading = false;
-    } catch (error){
+    } catch (error) {
       this.errorMessage = error.message;
       this.snackbar = true;
     }

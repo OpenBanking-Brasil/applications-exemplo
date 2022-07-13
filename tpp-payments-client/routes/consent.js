@@ -152,10 +152,16 @@ router.post("/consent/create-consent", async (req, res) => {
 });
 
 router.get("/consent/consent-response", (req, res) => {
+  const consentReqObj = {
+    ...req.session.consentRequestObject,
+    tokenSet: req.session.consentRequestObject.ccToken,
+  };
+  
   return res.json({
     consent: req.session.createdConsent,
     permissionsData: req.session.consentsArr,
     requestData: req.session.consentRequestData,
+    consentReqObj: consentReqObj,
   });
 });
 

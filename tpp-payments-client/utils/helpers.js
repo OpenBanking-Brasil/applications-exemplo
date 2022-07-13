@@ -248,6 +248,12 @@ async function generateRequest(
     requestOptions
   );
 
+  req.session.consentRequestObject = {
+    consentEndpoint,
+    ccToken,
+    requestOptions
+  };
+
   let payload;
   if (flag === "PAYMENTS") {
     consentLog(

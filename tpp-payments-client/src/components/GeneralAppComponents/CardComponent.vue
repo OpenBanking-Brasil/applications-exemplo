@@ -290,8 +290,7 @@
             </v-dialog>
           </v-row>
 
-
-          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_OPERATION'">
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_OPERATION' || flag === 'CUSTOMERS'">
             <v-dialog v-model="dialog" persistent max-width="600px">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -311,7 +310,7 @@
                   <v-container>
                     <v-form ref="form" v-model="valid" lazy-validation>
                       <v-row>
-                          <v-col cols="12" sm="6">
+                          <v-col :cols="ApiVersion === 'v2' ? 4 : 6" :md="ApiVersion === 'v2' ? 4 : 6">
                             <v-text-field
                               dense
                               outlined
@@ -319,12 +318,20 @@
                               v-model="queryParams['page-size']"
                             ></v-text-field>
                           </v-col>
-                          <v-col cols="12" sm="6">
+                          <v-col :cols="ApiVersion === 'v2' ? 4 : 6" :md="ApiVersion === 'v2' ? 4 : 6">
                             <v-text-field
                               dense
                               outlined
                               label="Page"
                               v-model="queryParams['page']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="4" md="4" v-if="ApiVersion === 'v2'">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Pagination Key"
+                              v-model="queryParams['pagination-key']"
                             ></v-text-field>
                           </v-col>
                       </v-row>
@@ -401,6 +408,9 @@ export default {
     },
     getPathWithQueryParams: {
       type: Function,
+    },
+    ApiVersion: {
+      type: String,
     }
   },
   name: "CardComponent",

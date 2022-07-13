@@ -215,6 +215,9 @@ const config = require("./config");
           if(apiFamilyType){
             return resource.ApiFamilyType === apiFamilyType;
           } else if (ApiVersion) {
+            // return resource.ApiDiscoveryEndpoints.some((endpointObj) => {
+            //   return endpointObj.ApiEndpoint.includes(ApiVersion);
+            // });
             return parseInt(resource.ApiVersion) === ApiVersion;
           }
         });

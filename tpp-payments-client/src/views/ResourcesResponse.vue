@@ -11,23 +11,28 @@
               Add Query Parameters
             </h3>
             <v-row>
-              <v-col cols="4" md="4">
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-text-field
                   label="Page Size"
-                  placeholder="Page Size"
                   v-model="resourcesQueryParams['page-size']"
                   outlined
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" md="4">
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-text-field
                   label="Page"
-                  placeholder="Page"
                   outlined
                   v-model="resourcesQueryParams['page']"
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" md="4">
+              <v-col cols="3" md="3" v-if="ApiVersion === 'v2'">
+                <v-text-field
+                  label="Pagination Key"
+                  outlined
+                  v-model="resourcesQueryParams['pagination-key']"
+                ></v-text-field>
+              </v-col>
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-btn
                   depressed
                   height="3.4rem"
@@ -81,6 +86,7 @@
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
+import { mapGetters } from "vuex";
 
 export default {
   name: "ResourcesResponse",
@@ -90,15 +96,19 @@ export default {
   },
   data() {
     return {
+      ApiVersion: "",
       resourcesResponse: "",
       resourcesRequest: "",
       resourcesQueryParams: {
         "page-size": null,
         "page": null,
-        "accountType": ""
+        "pagination-key": ""
       },
       primaryResBannerStyle: "white--text cyan darken-4",
     };
+  },
+  computed: {
+    ...mapGetters(["ApiOption"]),
   },
   methods: {
     getResourcesByQueryParams(){
@@ -135,6 +145,8 @@ export default {
     }
   },
   created() {
+    const optionWords = this.ApiOption.split("-");
+    this.ApiVersion = optionWords[optionWords.length - 1];
     this.getResources();
   },
 };

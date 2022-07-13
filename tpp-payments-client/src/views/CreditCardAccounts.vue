@@ -12,23 +12,28 @@
             </h3>
 
             <v-row>
-              <v-col cols="4" md="4">
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-text-field
                   label="Page Size"
-                  placeholder="Page Size"
                   v-model="creditCardAccountsQueryParams['page-size']"
                   outlined
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" md="4">
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-text-field
                   label="Page"
-                  placeholder="Page"
                   outlined
                   v-model="creditCardAccountsQueryParams['page']"
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" md="4">
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4" v-if="ApiVersion === 'v2'">
+                <v-text-field
+                  label="Pagination Key"
+                  outlined
+                  v-model="creditCardAccountsQueryParams['pagination-key']"
+                ></v-text-field>
+              </v-col>
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-btn
                   depressed
                   height="3.4rem"
@@ -71,7 +76,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Credit Card Bill Transactions API"
-                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/bills/{billId}/transactions"
+                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/bills/{billId}/transactions`"
                   :resourceId="selectedBillId"
                   btnText="RUN"
                   :displayTextField="true"
@@ -91,7 +96,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Credit Card Account API"
-                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}"
+                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}`"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
                   :displayTextField="true"
@@ -103,7 +108,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Credit Card Account Limits API"
-                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/limits"
+                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/limits`"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
                   :displayTextField="true"
@@ -115,7 +120,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Credit Card Account Transactions API"
-                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/transactions"
+                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/transactions`"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
                   :displayTextField="true"
@@ -131,7 +136,7 @@
               <v-col cols="12" sm="3" v-if="ApiVersion === 'v2'">
                 <CardComponent
                   title="Credit Card Account Transactions Current API"
-                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/transactions-current"
+                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/transactions-current`"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
                   :displayTextField="true"
@@ -147,7 +152,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Credit Card Account Bills API"
-                  fullPath="/open-banking/credit-cards-accounts/v1/accounts/{creditCardAccountId}/bills"
+                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/bills`"
                   :resourceId="selectedCreditCardAccountId"
                   btnText="RUN"
                   :displayTextField="true"
@@ -290,6 +295,7 @@ export default {
       creditCardAccountsQueryParams: {
         "page-size": null,
         page: null,
+        "pagination-key": null,
       },
       creditCardAccountTransactionsCurrentQueryParams: {
         fromTransactionDateMaxLimited: null,

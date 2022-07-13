@@ -34,6 +34,8 @@ router.post("/consent/create-consent", async (req, res) => {
     permissions.push(...permission);
   }
 
+  permissions = uniq = [...new Set(permissions)];
+
   const loggedUserId = req.body.loggedUserId || undefined;
   const loggedUserRel = req.body.loggedUserRel || undefined;
 

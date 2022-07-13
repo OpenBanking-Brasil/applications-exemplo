@@ -12,23 +12,28 @@
             </h3>
 
             <v-row>
-              <v-col cols="3" md="3">
+              <v-col :cols="ApiVersion === 'v2' ? 2 : 3" :md="ApiVersion === 'v2' ? 2 : 3">
                 <v-text-field
                   label="Page Size"
-                  placeholder="Page Size"
                   v-model="accountsQueryParams['page-size']"
                   outlined
                 ></v-text-field>
               </v-col>
-              <v-col cols="3" md="3">
+              <v-col :cols="ApiVersion === 'v2' ? 2 : 3" :md="ApiVersion === 'v2' ? 2 : 3">
                 <v-text-field
                   label="Page"
-                  placeholder="Page"
                   outlined
                   v-model="accountsQueryParams['page']"
                 ></v-text-field>
               </v-col>
-              <v-col cols="3" md="3">
+              <v-col cols="2" md="2" v-if="ApiVersion === 'v2'">
+                <v-text-field
+                  label="Pagination Key"
+                  outlined
+                  v-model="accountsQueryParams['pagination-key']"
+                ></v-text-field>
+              </v-col>
+              <v-col :cols="ApiVersion === 'v2' ? 2 : 3" md="3">
                 <v-select
                   :items="['VIEW_DEPOSIT_ACCOUNT', 'SAVINGS_ACCOUNT', 'ACCOUNT_PAGAMENTO_PRE_PAGA']"
                   label="Account Type"
@@ -36,7 +41,7 @@
                   v-model="accountsQueryParams['accountType']"
                 ></v-select>
               </v-col>
-              <v-col cols="3" md="3">
+              <v-col :cols="ApiVersion === 'v2' ? 2 : 3" md="3">
                 <v-btn
                   depressed
                   height="3.4rem"
@@ -79,7 +84,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account API"
-                  fullPath="/open-banking/accounts/v1/accounts/{accountId}"
+                  :fullPath="`/open-banking/accounts/${ApiVersion}/accounts/{accountId}`"
                   :resourceId="selectedAccountId"
                   :displayTextField="true"
                   btnText="RUN"
@@ -91,7 +96,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Overdraft Limits API"
-                  fullPath="/open-banking/accounts/v1/accounts/{accountId}/overdraft-limits"
+                  :fullPath="`/open-banking/accounts/${ApiVersion}/accounts/{accountId}/overdraft-limits`"
                   :resourceId="selectedAccountId"
                   :displayTextField="true"
                   btnText="RUN"
@@ -103,7 +108,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Balances API"
-                  fullPath="/open-banking/accounts/v1/accounts/{accountId}/balances"
+                  :fullPath="`/open-banking/accounts/${ApiVersion}/accounts/{accountId}/balances`"
                   :resourceId="selectedAccountId"
                   btnText="RUN"
                   :displayTextField="true"
@@ -115,7 +120,7 @@
               <v-col cols="12" sm="3" v-if="ApiVersion === 'v2'">
                 <CardComponent
                   title="Account Transactions Current API"
-                  fullPath="/open-banking/accounts/v1/accounts/{accountId}/transactions-current"
+                  :fullPath="`/open-banking/accounts/${ApiVersion}/accounts/{accountId}/transactions-current`"
                   :resourceId="selectedAccountId"
                   btnText="RUN"
                   :displayTextField="true"
@@ -131,7 +136,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Account Transactions API"
-                  fullPath="/open-banking/accounts/v1/accounts/{accountId}/transactions"
+                  :fullPath="`/open-banking/accounts/${ApiVersion}/accounts/{accountId}/transactions`"
                   :resourceId="selectedAccountId"
                   :displayTextField="true"
                   btnText="RUN"
@@ -231,7 +236,8 @@ export default {
       accountsQueryParams: {
         "page-size": null,
         page: null,
-        accountType: ""
+        accountType: "",
+        "pagination-key": null,
       },
       accountTransactionsCurrentQueryParams: {
         fromBookingDateMaxLimited: null,

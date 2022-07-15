@@ -20,7 +20,7 @@
                       Customer Data
                     </v-list-item-title>
                     <v-list-item-subtitle
-                      >Use the Mock TPP for Phase 2</v-list-item-subtitle
+                      >Customer Data (call phase 2 APIs)</v-list-item-subtitle
                     >
                   </v-list-item-content>
 
@@ -31,14 +31,25 @@
                   </v-list-item-avatar>
                 </v-list-item>
                 <v-card-actions>
-                  <v-btn
-                    outlined
-                    rounded
-                    text
-                    @click="optionChoice('customer-data')"
-                  >
-                    Go
-                  </v-btn>
+                  <v-col class="d-flex" cols="12" sm="6">
+                    <v-btn
+                      outlined
+                      rounded
+                      text
+                      @click="optionChoice(`customer-data-${selectedApiVersion}`)"
+                    >
+                      Go
+                    </v-btn>
+                  </v-col>
+                  <v-col class="d-flex" cols="12" sm="6">
+                    <v-select
+                    class="mt-3"
+                      :items="apiVersions"
+                      label="API Version"
+                      dense
+                      v-model="selectedApiVersion"
+                    ></v-select>
+                  </v-col>
                 </v-card-actions>
               </v-card>
             </v-col>
@@ -110,7 +121,12 @@
 
                         <v-tabs-items v-model="tab">
                           <v-tab-item v-for="item in items" :key="item">
-                            <v-card flat v-if="item === 'Authorization and Message Settings'">
+                            <v-card
+                              flat
+                              v-if="
+                                item === 'Authorization and Message Settings'
+                              "
+                            >
                               <v-row class="pa-5">
                                 <v-col cols="12" sm="4" md="4">
                                   <b> Application Type </b>
@@ -450,10 +466,14 @@
                                 </v-col>
                               </v-row>
                             </v-card>
-                            <v-card flat v-else-if="item === 'Mock TPP Settings'">
+                            <v-card
+                              flat
+                              v-else-if="item === 'Payments Polling Settings'"
+                            >
                               <v-row class="pa-5">
                                 <v-col cols="12" sm="6" md="6">
                                   <b> Loop Pause Time (ms) </b>
+                                  <v-icon small title="The total time in milliseconds that the application waits before polling again."> mdi-information </v-icon>
                                   <v-text-field
                                     placeholder=""
                                     outlined
@@ -465,7 +485,8 @@
                                   ></v-text-field>
                                 </v-col>
                                 <v-col cols="12" sm="6" md="6">
-                                  <b> Number of Check Loops </b>
+                                  <b> Number of Requests </b>
+                                  <v-icon small title="The number of times the application polls a payment"> mdi-information </v-icon>
                                   <v-text-field
                                     placeholder=""
                                     outlined
@@ -540,9 +561,14 @@ export default {
       snackbar: false,
       messageText: "",
       statusColour: "red accent-2",
-
+      apiVersions: ["v1", "v2"],
+      selectedApiVersion: "v1",
       tab: null,
-      items: ["Authorization and Message Settings", "Software Statement Settings", "Mock TPP Settings"],
+      items: [
+        "Authorization and Message Settings",
+        "Software Statement Settings",
+        "Payments Polling Settings",
+      ],
       text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
 
       theFormData: {
@@ -630,10 +656,10 @@ export default {
         }
         this.clearFilesInput();
       } catch (error) {
-          this.messageText = error.response.data;
-          this.statusColour = "red accent-2";
-          this.snackbar = true;
-          this.clearFilesInput();
+        this.messageText = error.response.data;
+        this.statusColour = "red accent-2";
+        this.snackbar = true;
+        this.clearFilesInput();
       }
     },
 
@@ -646,10 +672,9 @@ export default {
   },
 
   async created() {
-
     try {
       await axios.get("/", { withCredentials: true });
-    } catch (error){
+    } catch (error) {
       this.messageText = error.message;
       this.snackbar = true;
     }

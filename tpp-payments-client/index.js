@@ -188,10 +188,16 @@ const config = require("./config");
   app.use(express.static(path.join(__dirname, "public")));
 
   app.use("/banks/:option", async (req, res) => {
-    const apiFamilyType =
-      req.params.option === "payments"
-        ? "payments-consents"
-        : "customers-personal";
+    
+    let apiFamilyType;
+    let ApiVersion;
+    if(req.params.option === "payments"){
+      apiFamilyType = "payments-consents";
+    } else if (req.params.option === "customer-data-v1"){
+      apiFamilyType = "customers-personal";
+    } else {
+      ApiVersion = 2;
+    }
 
     //Retrieve the information from the open banking brazil directory of participants on launch
     const instance = axios.create({
@@ -203,13 +209,20 @@ const config = require("./config");
     );
 
     const TotalBanks = axiosResponse.data;
-    req.session.availableBanks = TotalBanks.filter((e) =>
-      e.AuthorisationServers.some((as) =>
-        as.ApiResources.some(
-          (apifamily) => apifamily.ApiFamilyType == apiFamilyType
-        )
-      )
-    );
+    req.session.availableBanks = TotalBanks.filter((e) => {
+      return e.AuthorisationServers.some((as) => {
+        return as.ApiResources.some((resource) => {
+          if(apiFamilyType){
+            return resource.ApiFamilyType === apiFamilyType;
+          } else if (ApiVersion) {
+            // return resource.ApiDiscoveryEndpoints.some((endpointObj) => {
+            //   return endpointObj.ApiEndpoint.includes(ApiVersion);
+            // });
+            return parseInt(resource.ApiVersion) === ApiVersion;
+          }
+        });
+      });
+    });
 
     consentLog(
       "Providing a list of banks to the customer for them to choose from the UI"

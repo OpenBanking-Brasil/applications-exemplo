@@ -1,13 +1,16 @@
 const express = require("express");
-const { fetchData } = require("../utils/helpers.js");
+const { fetchData, getPathWithParams } = require("../utils/helpers.js");
 
 const router = express.Router();
 
 router.get("/customers-business/identifications", async (req, res) => {
+  const queryParams = getPathWithParams(req.query);
+  const path = queryParams;
   const response = await fetchData(
     req,
     "customers-business",
-    "identifications"
+    "identifications",
+    path,
   );
 
   return res
@@ -18,10 +21,13 @@ router.get("/customers-business/identifications", async (req, res) => {
     });
 });
 router.get("/customers-business/financial-relations", async (req, res) => {
+  const queryParams = getPathWithParams(req.query);
+  const path = queryParams;
   const response = await fetchData(
     req,
     "customers-business",
-    "financial-relations"
+    "financial-relations",
+    path
   );
 
   return res
@@ -33,6 +39,8 @@ router.get("/customers-business/financial-relations", async (req, res) => {
 });
 
 router.get("/customers-business/qualifications", async (req, res) => {
+  const queryParams = getPathWithParams(req.query);
+  const path = queryParams;
   const response = await fetchData(req, "customers-business", "qualifications");
 
   return res
@@ -40,6 +48,7 @@ router.get("/customers-business/qualifications", async (req, res) => {
     .json({
       responseData: response.responseBody,
       requestData: response.requestData,
+      path
     });
 });
 

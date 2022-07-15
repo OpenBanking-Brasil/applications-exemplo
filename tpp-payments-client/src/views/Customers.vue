@@ -15,6 +15,11 @@
                   :displayTextField="false"
                   btnText="RUN"
                   path="identifications"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :queryParams="customersQueryParams"
+                  flag="CUSTOMERS"
+                  :ApiVersion="ApiVersion"
                   @fetch-data="fetchCustomersData"
                 />
               </v-col>
@@ -25,6 +30,11 @@
                   :displayTextField="false"
                   btnText="RUN"
                   path="financial-relations"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :queryParams="customersQueryParams"
+                  flag="CUSTOMERS"
+                  :ApiVersion="ApiVersion"
                   @fetch-data="fetchCustomersData"
                 />
               </v-col>
@@ -35,6 +45,11 @@
                   :displayTextField="false"
                   btnText="RUN"
                   path="qualifications"
+                  :supportsQueryParam="true"
+                  :getPathWithQueryParams="getPathWithQueryParams" 
+                  :queryParams="customersQueryParams"
+                  flag="CUSTOMERS"
+                  :ApiVersion="ApiVersion"
                   @fetch-data="fetchCustomersData"
                 />
               </v-col>
@@ -93,6 +108,7 @@ export default {
   },
   data() {
     return {
+      ApiVersion: "",
       identificationTitle: "",
       financialRelationTitle: "",
       qualificationTitle: "",
@@ -103,14 +119,33 @@ export default {
       identificationsFullPath: "",
       financialRelationsFullPath: "",
       qualificationFullPath: "",
+      customersQueryParams: {
+        "page-size": null,
+        page: null,
+        "pagination-key": null,
+      }
     };
   },
-
   computed: {
-    ...mapGetters(["cadastroOption"]),
+    ...mapGetters(["cadastroOption", "ApiOption"]),
   },
-
   methods: {
+    getPathWithQueryParams(invoiceFinancingsQueryParams){
+      let path = "";
+      let isFirstIteration = true;
+      for(let queryParam in invoiceFinancingsQueryParams){
+        if(invoiceFinancingsQueryParams[queryParam]){
+          if(!isFirstIteration){
+            path += `&${queryParam}=${invoiceFinancingsQueryParams[queryParam]}`;
+          } else {
+            isFirstIteration = false;
+            path = `?${queryParam}=${invoiceFinancingsQueryParams[queryParam]}`;
+          }
+        }
+      }
+
+      return path;
+    },
     async fetchCustomersData(path) {
       let response;
       try {
@@ -133,6 +168,8 @@ export default {
   },
 
   created() {
+    const optionWords = this.ApiOption.split("-");
+    this.ApiVersion = optionWords[optionWords.length - 1];
     if (this.cadastroOption === "PF") {
       this.apiFamilyType = "customers-personal";
       this.identificationTitle = "Customers Personal Identifications API";
@@ -141,11 +178,11 @@ export default {
       this.qualificationTitle = "Customers Personal Qualifications API";
 
       this.identificationsFullPath =
-        "/open-banking/customers/v1/personal/identifications";
+        `/open-banking/customers/${this.ApiVersion}/personal/identifications`;
       this.financialRelationsFullPath =
-        "/open-banking/customers/v1/personal/financial-relations";
+        `/open-banking/customers/${this.ApiVersion}/personal/financial-relations`;
       this.qualificationFullPath =
-        "/open-banking/customers/v1/personal/qualifications";
+        `/open-banking/customers/${this.ApiVersion}/personal/qualifications`;
     } else {
       this.apiFamilyType = "customers-business";
       this.identificationTitle = "Customers Business Identifications API";
@@ -153,11 +190,11 @@ export default {
         "Customers Business Financial Relations API";
       this.qualificationTitle = "Customers Business Qualifications API";
       this.identificationsFullPath =
-        "/open-banking/customers/v1/business/identifications";
+        `/open-banking/customers/${this.ApiVersion}/business/identifications`;
       this.financialRelationsFullPath =
-        "/open-banking/customers/v1/business/financial-relations";
+        `/open-banking/customers/${this.ApiVersion}/business/financial-relations`;
       this.qualificationFullPath =
-        "/open-banking/customers/v1/business/qualifications";
+        `/open-banking/customers/${this.ApiVersion}/business/qualifications`;
     }
   },
 };

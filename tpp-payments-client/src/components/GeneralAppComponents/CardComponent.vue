@@ -23,7 +23,7 @@
         </v-list-item-content>
       </v-list-item>
 
-          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'ACCOUNT_TRANSACTIONS'">
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'ACCOUNT_TRANSACTIONS' || flag === 'ACCOUNT_TRANSACTIONS_CURRENT'">
             <v-dialog v-model="dialog" persistent max-width="600px">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -48,8 +48,8 @@
                             <v-text-field
                               dense
                               outlined
-                              label="From Booking Date"
-                              v-model="queryParams['fromBookingDate']"
+                              :label="flag === 'ACCOUNT_TRANSACTIONS_CURRENT' ? 'From Booking Date Max Limited' : 'From Booking Date'"
+                              v-model="queryParams[flag === 'ACCOUNT_TRANSACTIONS_CURRENT' ? 'fromBookingDateMaxLimited' : 'fromBookingDate']"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -57,8 +57,8 @@
                             <v-text-field
                               dense
                               outlined
-                              label="To Booking Date"
-                              v-model="queryParams['toBookingDate']"
+                              :label="flag === 'ACCOUNT_TRANSACTIONS_CURRENT' ? 'To Booking Date Max Limited' : 'To Booking Date'"
+                              v-model="queryParams[flag === 'ACCOUNT_TRANSACTIONS_CURRENT' ? 'toBookingDateMaxLimited' : 'toBookingDate']"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -75,6 +75,14 @@
                               outlined
                               label="Page"
                               v-model="queryParams['page']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6" v-if="flag === 'ACCOUNT_TRANSACTIONS_CURRENT'">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Pagination Key"
+                              v-model="queryParams['pagination-key']"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -107,7 +115,7 @@
             </v-dialog>
           </v-row>
 
-          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS' || flag === 'CREDIT_CARD_ACCOUNT_BILLS_TRANSACTIONS'">
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS' || flag === 'CREDIT_CARD_ACCOUNT_BILLS_TRANSACTIONS' || flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT'">
             <v-dialog v-model="dialog" persistent max-width="600px">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -132,8 +140,8 @@
                             <v-text-field
                               dense
                               outlined
-                              label="From Transaction Date"
-                              v-model="queryParams['fromTransactionDate']"
+                              :label="flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT' ? 'From Transaction Date Max Limited' : 'To Transaction Date'"
+                              v-model="queryParams[flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT' ? 'fromTransactionDateMaxLimited' : 'fromTransactionDate']"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -141,8 +149,8 @@
                             <v-text-field
                               dense
                               outlined
-                              label="To Transaction Date"
-                              v-model="queryParams['toTransactionDate']"
+                              :label="flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT' ? 'To Transaction Date Max Limited' : 'To Transaction Date'"
+                              v-model="queryParams[flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT' ? 'toTransactionDateMaxLimited' : 'toTransactionDate']"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -165,8 +173,16 @@
                             <v-text-field
                               dense
                               outlined
-                              label="Payee MCC"
-                              v-model="queryParams['payeeMCC']"
+                              :label=" flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT' ? 'Credit Card Payee MCC' : 'Payee MCC'"
+                               v-model="queryParams[flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT' ? 'creditCardPayeeMCC' : 'payeeMCC']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="12" sm="6" v-if="flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT'">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Pagination Key"
+                               v-model="queryParams['pagination-key']"
                             ></v-text-field>
                           </v-col>
                           <v-col cols="12" sm="6">
@@ -175,7 +191,7 @@
                               label="Transaction Type"
                               dense
                               outlined
-                              v-model="queryParams['transactionType']"
+                              v-model="queryParams[flag === 'CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT' ? 'creditCardTransactionType' : 'transactionType']"
                             ></v-select>
                           </v-col>
                       </v-row>
@@ -274,8 +290,7 @@
             </v-dialog>
           </v-row>
 
-
-          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_OPERATION'">
+          <v-row justify="center" class="mb-10" v-if="supportsQueryParam && flag === 'CREDIT_OPERATION' || flag === 'CUSTOMERS'">
             <v-dialog v-model="dialog" persistent max-width="600px">
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -295,7 +310,7 @@
                   <v-container>
                     <v-form ref="form" v-model="valid" lazy-validation>
                       <v-row>
-                          <v-col cols="12" sm="6">
+                          <v-col :cols="ApiVersion === 'v2' ? 4 : 6" :md="ApiVersion === 'v2' ? 4 : 6">
                             <v-text-field
                               dense
                               outlined
@@ -303,12 +318,20 @@
                               v-model="queryParams['page-size']"
                             ></v-text-field>
                           </v-col>
-                          <v-col cols="12" sm="6">
+                          <v-col :cols="ApiVersion === 'v2' ? 4 : 6" :md="ApiVersion === 'v2' ? 4 : 6">
                             <v-text-field
                               dense
                               outlined
                               label="Page"
                               v-model="queryParams['page']"
+                            ></v-text-field>
+                          </v-col>
+                          <v-col cols="4" md="4" v-if="ApiVersion === 'v2'">
+                            <v-text-field
+                              dense
+                              outlined
+                              label="Pagination Key"
+                              v-model="queryParams['pagination-key']"
                             ></v-text-field>
                           </v-col>
                       </v-row>
@@ -385,6 +408,9 @@ export default {
     },
     getPathWithQueryParams: {
       type: Function,
+    },
+    ApiVersion: {
+      type: String,
     }
   },
   name: "CardComponent",

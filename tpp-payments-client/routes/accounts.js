@@ -46,7 +46,22 @@ router.get("/accounts/:accountId/balances", async (req, res) => {
     const response = await fetchData(req, accountsApiFamily, "balances", path);
 
     return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
-  });
+});
+
+router.get("/accounts/:accountId/transactions-current", async (req, res) => {
+    const accountId = req.params.accountId;
+    const queryParams = getPathWithParams(req.query);
+    const path = `/${accountId}/transactions-current${queryParams}`;
+
+    const response = await fetchData(
+      req,
+      accountsApiFamily,
+      "transactions-current",
+      path
+    );
+
+    return res.status(response.statusCode).json({responseData: response.responseBody, requestData: response.requestData});
+});
 
 router.get("/accounts/:accountId/transactions", async (req, res) => {
     const accountId = req.params.accountId;

@@ -12,23 +12,28 @@
             </h3>
 
             <v-row>
-              <v-col cols="4" md="4">
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-text-field
                   label="Page Size"
-                  placeholder="Page Size"
                   v-model="financingsQueryParams['page-size']"
                   outlined
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" md="4">
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-text-field
                   label="Page"
-                  placeholder="Page"
                   outlined
                   v-model="financingsQueryParams['page']"
                 ></v-text-field>
               </v-col>
-              <v-col cols="4" md="4">
+              <v-col cols="3" md="3" v-if="ApiVersion === 'v2'">
+                <v-text-field
+                  label="Pagination Key"
+                  outlined
+                  v-model="financingsQueryParams['pagination-key']"
+                ></v-text-field>
+              </v-col>
+              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
                 <v-btn
                   depressed
                   height="3.4rem"
@@ -71,7 +76,7 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Financing API"
-                  fullPath="/open-banking/financings/v1/contracts/{contractId}"
+                  :fullPath="`/open-banking/financings/${ApiVersion}/contracts/{contractId}`"
                   :resourceId="selectedContractId"
                   :displayTextField="true"
                   btnText="RUN"
@@ -83,15 +88,16 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Financing Warranties API"
-                  fullPath="/open-banking/financings/v1/contracts/{contractId}/warranties"
+                  :fullPath="`/open-banking/financings/${ApiVersion}/contracts/{contractId}/warranties`"
                   :resourceId="selectedContractId"
                   :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedContractId}/warranties`"
                   :supportsQueryParam="true"
                   :getPathWithQueryParams="getPathWithQueryParams"
-                  :queryParams="financingWarrantiesQueryParams"
+                  :queryParams="financingGenericQueryParams"
                   flag="CREDIT_OPERATION"
+                  :ApiVersion="ApiVersion"
                   @fetch-data="fetchFinancingData"
                   @resource-id-change="changeResourceId"
                 />
@@ -99,15 +105,16 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Financings Scheduled Instalments API"
-                  fullPath="/open-banking/financings/v1/contracts/{contractId}/scheduled-instalments"
+                  :fullPath="`/open-banking/financings/${ApiVersion}/contracts/{contractId}/scheduled-instalments`"
                   :resourceId="selectedContractId"
                   btnText="RUN"
                   :displayTextField="true"
                   :path="`${selectedContractId}/scheduled-instalments`"
                   :supportsQueryParam="true"
                   :getPathWithQueryParams="getPathWithQueryParams"
-                  :queryParams="financingWarrantiesQueryParams"
+                  :queryParams="financingGenericQueryParams"
                   flag="CREDIT_OPERATION"
+                  :ApiVersion="ApiVersion"
                   @fetch-data="fetchFinancingData"
                   @resource-id-change="changeResourceId"
                 />
@@ -115,15 +122,16 @@
               <v-col cols="12" sm="3">
                 <CardComponent
                   title="Financings Payments API"
-                  fullPath="/open-banking/financings/v1/contracts/{contractId}/payments"
+                  :fullPath="`/open-banking/financings/${ApiVersion}/contracts/{contractId}/payments`"
                   :resourceId="selectedContractId"
                   :displayTextField="true"
                   btnText="RUN"
                   :path="`${selectedContractId}/payments`"
                   :supportsQueryParam="true"
                   :getPathWithQueryParams="getPathWithQueryParams"
-                  :queryParams="financingWarrantiesQueryParams"
+                  :queryParams="financingGenericQueryParams"
                   flag="CREDIT_OPERATION"
+                  :ApiVersion="ApiVersion"
                   @fetch-data="fetchFinancingData"
                   @resource-id-change="changeResourceId"
                 />
@@ -196,6 +204,7 @@ import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import CardComponent from "@/components/GeneralAppComponents/CardComponent.vue";
 import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import axios from "../util/axios.js";
+import { mapGetters } from "vuex";
 
 export default {
   name: "FinancingsMenu",
@@ -206,6 +215,7 @@ export default {
   },
   data() {
     return {
+      ApiVersion: "",
       financingsResponse: "",
       financingsRequest: "",
       financingRequest: "",
@@ -217,15 +227,22 @@ export default {
       financingsQueryParams: {
         "page-size": null,
         page: null,
+        "pagination-key": null,
       },
-      financingWarrantiesQueryParams: {
+      financingGenericQueryParams: {
         "page-size": null,
         page: null,
+        "pagination-key": null,
       },
     };
   },
   created() {
+    const optionWords = this.ApiOption.split("-");
+    this.ApiVersion = optionWords[optionWords.length - 1];
     this.getFinancings();
+  },
+  computed: {
+    ...mapGetters(["ApiOption"]),
   },
   methods: {
     getPathWithQueryParams(financingsQueryParams) {

@@ -16,6 +16,9 @@ router.post("/consent/create-consent", async (req, res) => {
     });
   });
 
+  const optionWords = req.body.ApiOption.split("-");
+  req.session.ApiVersion = optionWords[optionWords.length - 1];
+
   //granted permissions categories
   req.session.consentsArr = req.body.permissionsArr.map((permissionData) => {
     return {
@@ -30,6 +33,8 @@ router.post("/consent/create-consent", async (req, res) => {
   for (let permission of grantedPermissions) {
     permissions.push(...permission);
   }
+
+  permissions = uniq = [...new Set(permissions)];
 
   const loggedUserId = req.body.loggedUserId || undefined;
   const loggedUserRel = req.body.loggedUserRel || undefined;
@@ -147,10 +152,16 @@ router.post("/consent/create-consent", async (req, res) => {
 });
 
 router.get("/consent/consent-response", (req, res) => {
+  const consentReqObj = {
+    ...req.session.consentRequestObject,
+    tokenSet: req.session.consentRequestObject.ccToken,
+  };
+  
   return res.json({
     consent: req.session.createdConsent,
     permissionsData: req.session.consentsArr,
     requestData: req.session.consentRequestData,
+    consentReqObj: consentReqObj,
   });
 });
 

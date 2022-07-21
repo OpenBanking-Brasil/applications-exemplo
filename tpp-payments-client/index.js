@@ -196,7 +196,7 @@ const config = require("./config");
     } else if (req.params.option === "customer-data-v1"){
       apiFamilyType = "customers-personal";
     } else {
-      ApiVersion = 2;
+      ApiVersion = "v2";
     }
 
     //Retrieve the information from the open banking brazil directory of participants on launch
@@ -215,10 +215,9 @@ const config = require("./config");
           if(apiFamilyType){
             return resource.ApiFamilyType === apiFamilyType;
           } else if (ApiVersion) {
-            // return resource.ApiDiscoveryEndpoints.some((endpointObj) => {
-            //   return endpointObj.ApiEndpoint.includes(ApiVersion);
-            // });
-            return parseInt(resource.ApiVersion) === ApiVersion;
+            return resource.ApiDiscoveryEndpoints.some((endpointObj) => {
+              return endpointObj.ApiEndpoint.includes(ApiVersion);
+            });
           }
         });
       });

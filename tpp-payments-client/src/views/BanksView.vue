@@ -204,6 +204,8 @@ export default {
     clientIds: [],
     selectedClientId: "",
     selectedOption: "",
+    cancelRequests: false,
+    ApiVersion: "v1",
   }),
   methods: {
     ...mapActions(["setScopes", "setApiOption"]),
@@ -274,18 +276,35 @@ export default {
 
     async getBanks(data) {
       for (let i = 0; i < data.length; i++) {
-        if (data[i].AuthorisationServers) {
-          for (let y = 0; y < data[i].AuthorisationServers.length; y++) {
+
+        let filteredAuthServers;
+        if(this.ApiVersion === "v2"){
+          filteredAuthServers = data[i].AuthorisationServers.filter((as) => {
+            return as.ApiResources.some((resource) => {
+                return resource.ApiDiscoveryEndpoints.some((endpointObj) => {
+                  return endpointObj.ApiEndpoint.includes(this.ApiVersion);
+                });
+            });
+          });
+        } else {
+          filteredAuthServers = data[i].AuthorisationServers;
+        }
+        
+        if (filteredAuthServers) {
+          for (let y = 0; y < filteredAuthServers.length; y++) {
             this.banks.push({
               id: uuid(),
-              avatar: data[i].AuthorisationServers[y].CustomerFriendlyLogoUri,
-              title: data[i].AuthorisationServers[y].CustomerFriendlyName,
+              avatar: filteredAuthServers[y].CustomerFriendlyLogoUri,
+              title: filteredAuthServers[y].CustomerFriendlyName,
             });
           }
         }
       }
       this.banks.sort((a, b) => a.title.trim().localeCompare(b.title.trim()));
       for (let i = 0; i < this.banks.length; i++) {
+        if(this.cancelRequests){
+          break;
+        }
         try {
           await fetch(this.banks[i].avatar, { mode: "no-cors" });
         } catch (error) {
@@ -371,11 +390,18 @@ export default {
     },
   },
 
+  beforeDestroy(){
+    this.cancelRequests = true;
+  },
+
   async created() {
     this.clientId = "";
     this.registrationAccessToken = "";
     this.selectedOption = this.$route.query.option;
     this.setApiOption(this.selectedOption);
+
+    const optionWords = this.selectedOption.split("-");
+    this.ApiVersion = optionWords[optionWords.length - 1];
 
     try {
       const response = await axios.get(`/banks/${this.selectedOption}`, { withCredentials: true });

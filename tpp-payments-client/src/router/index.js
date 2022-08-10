@@ -17,6 +17,7 @@ import LoansMenu from "../views/LoansMenu.vue";
 import FinancingsMenu from "../views/FinancingsMenu.vue";
 import InvoiceFinancings from "../views/InvoiceFinancings.vue";
 import UnarrangedAccountsOverdraft from "../views/UnarrangedAccountsOverdraft.vue";
+import ConsentsApi from "../views/ConsentsApi.vue";
 
 Vue.use(VueRouter);
 
@@ -105,6 +106,11 @@ const routes = [
     path: "/unarranged-accounts-overdraft",
     name: "unarranged-accounts-overdraft",
     component: UnarrangedAccountsOverdraft,
+  },
+  {
+    path: "/consents",
+    name: "consents",
+    component: ConsentsApi,
   },
 ];
 

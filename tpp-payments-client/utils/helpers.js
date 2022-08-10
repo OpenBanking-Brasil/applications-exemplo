@@ -11,7 +11,7 @@ const { getFapiClient, getCerts } = require("./fapiClient.js");
 const USE_EXISTING_CLIENT = "USE_EXISTING_CLIENT";
 
 //Fetch data for the given API
-async function fetchData(req, apiFamilyType, apiType, path = "") {
+async function fetchData(req, apiFamilyType, apiType, path = "", requestMethod = "GET") {
   const { fapiClient } = await getFapiClient(
     req,
     req.session.clientId,
@@ -46,6 +46,8 @@ async function fetchData(req, apiFamilyType, apiType, path = "") {
     pathRegex = `open-banking/invoice-financings/${ApiVersion}/contracts$`;
   } else if (apiFamilyType === "unarranged-accounts-overdraft") {
     pathRegex = `open-banking/unarranged-accounts-overdraft/${ApiVersion}/contracts$`;
+  } else if (apiFamilyType === "consents") {
+    pathRegex = `open-banking/consents/${ApiVersion}/consents$`;
   }
 
   paymentLog(
@@ -58,9 +60,11 @@ async function fetchData(req, apiFamilyType, apiType, path = "") {
   )}${path}`;
   consentLog(`The ${apiType} endpoint found %O`, endpoint);
 
+  let accessToken = (apiType === "consents") ? req.session.consentRequestData.tokenSet.access_token : req.session.accessToken;
+
   const requestData = {
     endpoint,
-    accessToken: req.session.accessToken,
+    accessToken: accessToken,
   };
 
   if(endpoint.split("/")[0] === "undefined"){
@@ -74,7 +78,8 @@ async function fetchData(req, apiFamilyType, apiType, path = "") {
   paymentLog(`Getting ${apiType} response`);
   const response = await client.requestResource(
     endpoint,
-    req.session.accessToken
+    accessToken,
+    {method: requestMethod}
   );
 
   if (!response.body) {

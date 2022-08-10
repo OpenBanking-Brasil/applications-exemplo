@@ -12,40 +12,63 @@
                 <CardComponent
                   title="Consents GET"
                   :fullPath="`/open-banking/consents/${ApiVersion}/consents/{consentId}`"
-                  :resourceId="consentId"
-                  :displayTextField="false"
+                  :resourceId="selectedConsentId"
+                  :displayTextField="true"
                   btnText="RUN"
+                  :path="`${selectedConsentId}`"
                   @fetch-data="fetchConsentData"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
               <v-col cols="12" sm="6">
                 <CardComponent
                   title="Consents DELETE"
                   :fullPath="`/open-banking/consents/${ApiVersion}/consents/{consentId}`"
-                  :resourceId="consentId"
-                  :displayTextField="false"
+                  :resourceId="selectedConsentId"
+                  :displayTextField="true"
                   btnText="RUN"
+                  :path="`${selectedConsentId}`"
                   @fetch-data="deleteConsent"
+                  @resource-id-change="changeResourceId"
                 />
               </v-col>
             </v-row>
             <v-divider class="mt-5 mb-8"></v-divider>
             <v-row>
-              <v-col cols="12" sm="12">
+              <v-col cols="12" sm="4">
+                <v-card class="mx-auto" max-width="300" tile>
+                  <v-subheader>Available Consent IDs</v-subheader>
+                  <v-list dense max-height="20vh" style="overflow: auto">
+                    <v-list-item-group color="primary">
+                      <v-list-item
+                        v-for="(consentId, i) in consentIds"
+                        :key="i"
+                        @click="
+                          () => {
+                            setConsentId(consentId);
+                          }
+                        "
+                      >
+                        <v-list-item-content>
+                          <v-list-item-title
+                            v-text="consentId"
+                          ></v-list-item-title>
+                        </v-list-item-content>
+                      </v-list-item>
+                    </v-list-item-group>
+                  </v-list>
+                </v-card>
+              </v-col>
+              <v-col cols="12" sm="8">
                 <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4"
-                    >Request</v-card-title
-                  >
+                  <v-card-title class="white--text blue darken-4">Request</v-card-title>
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto">
                         {{ consentsRequestData }}
                     </pre>
                   </v-card-text>
                 </v-card>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="12">
+                 <v-divider class="mt-4"></v-divider>
                 <v-card elevation="2" outlined>
                   <v-card-title :class="resBannerStyle">Response</v-card-title>
                   <v-card-text>
@@ -84,6 +107,8 @@ export default {
   data() {
     return {
       ApiVersion: "",
+      consentIds: [],
+      selectedConsentId: "",
       resBannerStyle: "white--text cyan darken-4",
       consentsRequestData: "",
       consentsDataResponse: "",
@@ -95,11 +120,12 @@ export default {
   created() {
     const optionWords = this.ApiOption.split("-");
     this.ApiVersion = optionWords[optionWords.length - 1];
+    this.consentIds.push(this.consentId);
   },
   methods: {
-    async fetchConsentData() {
+    async fetchConsentData(path) {
       try {
-        const response = await axios.get(`consents/${this.consentId}`, { withCredentials: true });
+        const response = await axios.get(`consents/${path}`, { withCredentials: true });
         if (response.status == 200) {
           this.consentsRequestData = response.data.requestData;
           this.consentsDataResponse = response.data.responseData;
@@ -114,11 +140,11 @@ export default {
       }
     },
 
-    async deleteConsent() {
+    async deleteConsent(path) {
       try {
-        const response = await axios.delete(`consents/${this.consentId}`, { withCredentials: true });
+        const response = await axios.delete(`consents/${path}`, { withCredentials: true });
         if (response.status == 204) {
-          this.consentsRequestData = `${this.consentId} deleted succesfully`;
+          this.consentsRequestData = `${path} deleted succesfully`;
           this.consentsDataResponse = "";
           this.resBannerStyle = "white--text cyan darken-4";
         }
@@ -129,6 +155,14 @@ export default {
           this.resBannerStyle = "white--text red darken-1";
         }
       }
+    },
+
+    setConsentId(consentId) {
+      this.selectedConsentId = consentId;
+    },
+
+    changeResourceId(consentId) {
+      this.selectedConsentId = consentId;
     },
   },
 };

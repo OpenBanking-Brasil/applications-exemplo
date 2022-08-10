@@ -38,6 +38,7 @@ const config = require("./config");
   const unarrangedAccountsOverdraftRoutes = require("./routes/unarranged-accounts-overdraft.js");
   const paymentsRoutes = require("./routes/payments.js");
   const consentRoutes = require("./routes/consent.js");
+  const consentsRoutes = require("./routes/consents.js");
 
   app.use(cors({ credentials: true, origin: "https://tpp.localhost:8080" }));
 
@@ -786,4 +787,6 @@ const config = require("./config");
   app.use(invoiceFinancingsRoutes);
 
   app.use(unarrangedAccountsOverdraftRoutes);
+
+  app.use(consentsRoutes);
 })();

@@ -301,6 +301,13 @@
             >
               5. Resources
             </v-btn>
+            <v-btn
+              color="primary"
+              class="ma-3 mt-5"
+              @click="$router.push('consents')"
+            >
+              6. Consents
+            </v-btn>
           </v-container>
         </v-sheet>
       </v-col>
@@ -353,11 +360,12 @@ export default {
       consentsArr: [],
       selectedCreditOperation: "",
       creditOperationRules: [(v) => !!v || "please select a credit operation"],
+      consentId: "",
     };
   },
 
   methods: {
-    ...mapActions(["setCadastroOption"]),
+    ...mapActions(["setCadastroOption", "setConsentId"]),
     getConsentInfo(consentData) {
       this.grantedConsentsCategory = consentData.category;
       this.consentsArr = consentData.permissionsArray;
@@ -418,6 +426,7 @@ export default {
       this.requestData = response.data.requestData;
       this.grantedConsents = response.data.permissionsData;
       this.consentReqObj = response.data.consentReqObj;
+      this.consentId = response.data.consent.data.consentId;
 
       let cadastroOption;
       this.grantedConsents.forEach((grantedConsent) => {
@@ -429,6 +438,7 @@ export default {
       });
 
       this.setCadastroOption(cadastroOption);
+      this.setConsentId(this.consentId);
 
       let formatedConsents = [];
       for (let consent of this.grantedConsents) {

@@ -482,223 +482,24 @@ const config = require("./config");
           console.log(error);
         }
 
-        req.session.paymentResData = {
+        req.session.createdConsent = {
           claims: tokenSet.claims(),
           errorPayload,
         };
         return res
           .status(302)
-          .redirect("https://tpp.localhost:8080/payment-response");
+          .redirect("https://tpp.localhost:8080/payment-consent-response");
       }
-    }
-
-    consentLog("Consent process finished");
-    if (req.session.flag === "PAYMENTS") {
-      let consentPayload = req.session.createdConsent;
-      consentPayload.stringify = JSON.stringify(
-        req.session.createdConsent,
-        null,
-        2
-      );
-
-      paymentLog(
-        "Find payment endpoint for the selected bank from the directory of participants"
-      );
-      const paymentEndpoint = getEndpoint(
-        req.session.selectedAuthServer,
-        "payments-pix",
-        "open-banking/payments/v1/pix/payments$"
-      );
-      paymentLog("Payment endpoint found %O", paymentEndpoint);
-      let date = new Date();
-      const offset = date.getTimezoneOffset();
-      date = new Date(date.getTime() - offset * 60 * 1000);
-
-      const payment = {
-        creditorAccount:
-          req.session.createdConsent.data.payment.details.creditorAccount,
-        localInstrument:
-          req.session.createdConsent.data.payment.details.localInstrument,
-        proxy: req.session.createdConsent.data.payment.details.proxy,
-        remittanceInformation: "Making a payment",
-        cnpjInitiator: "59285411000113",
-        payment: {
-          amount: req.session.createdConsent.data.payment.amount,
-          currency: req.session.createdConsent.data.payment.currency,
-        },
-      };
-      paymentLog("Create payment object %O", payment);
-      paymentLog("Signing payment");
-      const { signingKey } = getCerts(req.session.certificates);
-      const key = getPrivateKey(signingKey);
-      const jwt = await new jose.SignJWT({ data: payment })
-        .setProtectedHeader({
-          alg: "PS256",
-          typ: "JWT",
-          kid: req.session.privateJwk.kid,
-        })
-        .setIssuedAt()
-        .setIssuer(req.session.config.data.organisation_id)
-        .setJti(nanoid())
-        .setAudience(paymentEndpoint)
-        .setExpirationTime("5m")
-        .sign(key);
-      paymentLog("Signed payment JWT %O", jwt);
-      paymentLog("Create payment resource using the signed payment JWT ");
-      let paymentResponse = await client.requestResource(
-        `${paymentEndpoint}`,
-        tokenSet,
-        {
-          body: jwt,
-          method: "POST",
-          headers: {
-            "content-type": "application/jwt",
-            "x-idempotency-key": nanoid(),
-          },
-        }
-      );
-      paymentLog(
-        "Payment resource created successfully %O",
-        paymentResponse.body.toString()
-      );
-      paymentLog("Validate payment response as it is a JWT");
-      paymentLog(
-        "Retrieve the keyset for the bank (this has already been done and could be cached)"
-      );
-      //Validate the jwt came from teh correct bank and was meant to be sent to me.
-      let { payload } = await jose.jwtVerify(
-        paymentResponse.body.toString(),
-        JWKS,
-        {
-          issuer: req.session.selectedOrganisation.OrganisationId,
-          audience: req.session.config.data.organisation_id,
-          clockTolerance: 2,
-        }
-      );
-      paymentLog("Payment response extracted and validated");
-
-      if (payload.errors) {
-        const errorPayload = { msg: "Payment errored", payload: payload };
-        errorPayload.stringify = JSON.stringify(errorPayload, null, 2);
-        const paymentInfo = payment;
-        paymentInfo.stringify = JSON.stringify(paymentInfo, null, 2);
-
-        req.session.paymentResData = {
-          claims: tokenSet.claims(),
-          errorPayload,
-          paymentInfo,
-          consentPayload,
-        };
-        return res
-          .status(302)
-          .redirect("https://tpp.localhost:8080/payment-response");
-      }
-
-      let x = 0;
-      const loopPauseTime = req.session.useCustomConfig
-        ? req.session.customEnvVars.loop_pause_time
-        : process.env.LOOP_PAUSE_TIME;
-      const numberOfCheckLoops = req.session.useCustomConfig
-        ? req.session.customEnvVars.number_of_check_loops
-        : process.env.NUMBER_OF_CHECK_LOOPS;
-      while (!["ACSP", "ACCC", "RJCT", "SASC"].includes(payload.data.status)) {
-        paymentLog(
-          "Payment still not in a valid end state. Status: %O. Will check again to see if it has gone through.",
-          payload.data.status
-        );
-        paymentLog(payload);
-        paymentLog(
-          "Use the self link on the payment to retrieve the latest record status. %O",
-          payload.links.self
-        );
-        paymentResponse = await client.requestResource(
-          payload.links.self,
-          tokenSet,
-          {
-            headers: {
-              accept: "application/jwt",
-              "x-idempotency-key": nanoid(),
-            },
-          }
-        );
-
-        paymentLog("Validate and extract the payment response from the bank");
-        ({ payload } = await jose.jwtVerify(
-          paymentResponse.body.toString(),
-          JWKS,
-          {
-            issuer: req.session.selectedOrganisation.OrganisationId,
-            audience: req.session.config.data.organisation_id,
-            clockTolerance: 2,
-          }
-        ));
-        x = x + 1;
-        await sleep(loopPauseTime);
-        if (x > numberOfCheckLoops) {
-          paymentLog(
-            "Payment has not reached final state after 5 iterations, failing"
-          );
-          payload = { msg: "Unable To Complete Payment", payload: payload };
-
-          try {
-            payload.stringify = JSON.stringify(payload, null, 2);
-          } catch (error) {
-            console.log("Something went wrong ");
-            console.log(error);
-          }
-
-          consentPayload = {
-            msg: "Unable To Complete Payment",
-            payload: req.session.createdConsent,
-          };
-          consentPayload.stringify = JSON.stringify(
-            req.session.createdConsent,
-            null,
-            2
-          );
-
-          req.session.paymentResData = {
-            claims: tokenSet.claims(),
-            payload,
-            consentPayload,
-          };
-
-          return res
-            .status(302)
-            .redirect("https://tpp.localhost:8080/payment-response");
-        }
-      }
-
-      paymentLog("Payment has reached a final state of", payload.data.status);
-      paymentLog(payload);
-
-      try {
-        payload.stringify = JSON.stringify(payload, null, 2);
-      } catch (e) {
-        console.log("Something went wrong ");
-        console.log(e);
-      }
-
-      consentPayload = req.session.createdConsent;
-      consentPayload.stringify = JSON.stringify(
-        req.session.createdConsent,
-        null,
-        2
-      );
-
-      req.session.paymentResData = {
-        claims: tokenSet.claims(),
-        payload,
-        consentPayload,
-      };
-
-      paymentLog("Payment execution complete");
-      return res
-        .status(302)
-        .redirect("https://tpp.localhost:8080/payment-response");
     }
 
     paymentLog("Consent execution complete");
+    
+    if (req.session.flag === "PAYMENTS") {
+      return res
+          .status(302)
+          .redirect("https://tpp.localhost:8080/payment-consent-response");
+    }
+
     return res
       .status(302)
       .redirect("https://tpp.localhost:8080/consent-response-menu");

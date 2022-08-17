@@ -24,7 +24,7 @@ router.post("/payments/payment-consent", async (req, res) => {
   const offset = date.getTimezoneOffset();
   date = new Date(date.getTime() - offset * 60 * 1000);
 
-  const data = {
+  const dataObj = {
     debtorAccount: {
       number: req.body.debtorAccount_number,
       accountType: req.body.debtorAccount_accountType,
@@ -62,9 +62,9 @@ router.post("/payments/payment-consent", async (req, res) => {
 
   //if date has been selected
   if (req.body.selected === "Yes") {
-    delete data.payment.date;
+    delete dataObj.payment.date;
     req.session.paymentIsScheduled = true;
-    data.payment.schedule = {
+    dataObj.payment.schedule = {
       single: {
         date: req.body.date,
       },
@@ -73,15 +73,71 @@ router.post("/payments/payment-consent", async (req, res) => {
     req.session.paymentIsScheduled = false;
   }
 
-  req.session.paymentConsentPayload = JSON.stringify(data);
+  const data = JSON.stringify(dataObj);
 
-  consentLog(
-    "Sending customer to select the bank they want to make the payment from in the next request from the front-end"
+  const { fapiClient } = await getFapiClient(
+    req,
+    req.session.clientId,
+    req.session.registrationAccessToken,
+    USE_EXISTING_CLIENT
   );
-  return res.status(200).json({ message: "success" });
+  const client = fapiClient;
+
+  //Setup the request
+  const { authUrl, code_verifier, state, nonce, error } = await generateRequest(
+    client,
+    req.session.selectedAuthServer,
+    JSON.parse(data),
+    "PAYMENTS",
+    req.session.selectedOrganisation,
+    req
+  );
+
+  if (error) {
+    const errorPayload = {
+      msg: "Unable To Complete Creating Consent",
+      payload: error,
+    };
+    errorPayload.stringify = JSON.stringify(errorPayload, null, 2);
+    const paymentConsentInfo = JSON.parse(data);
+    paymentConsentInfo.stringify = JSON.stringify(paymentConsentInfo, null, 2);
+
+    req.session.createdConsent = {
+      claims: undefined,
+      errorPayload,
+      paymentConsentInfo,
+    };
+    return res
+      .status(302)
+      .redirect("https://tpp.localhost:8080/payment-consent-response");
+  }
+
+  req.session.state = state;
+  req.session.nonce = nonce;
+  req.session.code_verifier = code_verifier;
+
+  if (!authUrl) {
+    return res.status(400).send({ message: "Bad Request" });
+  }
+
+  consentLog("Send customer to bank to give consent to the payment");
+  return res.status(201).json({ authUrl });
 });
 
-router.options("/payments/make-payment", cors());
+router.get("/payments/payment-consent-response", (req, res) => {
+  const consentReqObj = {
+    ...req.session.consentRequestObject,
+    tokenSet: req.session.consentRequestObject.ccToken,
+  };
+
+  return res.json({
+    consentPayload: req.session.createdConsent,
+    requestData: req.session.consentRequestData,
+    consentReqObj: consentReqObj,
+  });
+});
+
+
 router.post("/payments/make-payment", async (req, res) => {
   const { fapiClient } = await getFapiClient(
     req,
@@ -91,50 +147,198 @@ router.post("/payments/make-payment", async (req, res) => {
   );
   const client = fapiClient;
 
-  let response;
-  try {
-    //Setup the request
-    response = await generateRequest(
-      client,
-      req.session.selectedAuthServer,
-      JSON.parse(req.session.paymentConsentPayload),
-      "PAYMENTS",
-      req.session.selectedOrganisation,
-      req
-    );
-  } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "unable to generate request", error: error });
-  }
+  let consentPayload = req.body.consentPayload;
+  consentPayload.stringify = JSON.stringify(
+    req.body.consentPayload,
+    null,
+    2
+  );
+  paymentLog(
+    "Find payment endpoint for the selected bank from the directory of participants"
+  );
+  const paymentEndpoint = getEndpoint(
+    req.session.selectedAuthServer,
+    "payments-pix",
+    "open-banking/payments/v1/pix/payments$"
+  );
+  paymentLog("Payment endpoint found %O", paymentEndpoint);
+  let date = new Date();
+  const offset = date.getTimezoneOffset();
+  date = new Date(date.getTime() - offset * 60 * 1000);
 
-  const { authUrl, code_verifier, state, nonce, error } = response;
-
-  if (error) {
-    const errorPayload = {
-      msg: "Unable To Complete Payment",
-      payload: error,
-    };
+  const payment = {
+    creditorAccount: {
+      number: req.body.payment_details_creditAccount_number,
+      accountType: req.body.payment_details_creditAccount_accountType,
+      ispb: req.body.payment_details_creditAccount_ispb,
+      issuer: req.body.payment_details_creditAccount_issuer,
+    },
+    localInstrument: req.body.payment_details_localInstrument,
+    proxy: req.body.payment_details_proxy,
+    remittanceInformation: "Making a payment",
+    cnpjInitiator: "59285411000113",
+    payment: {
+      amount: req.body.payment_amount,
+      currency: "BRL",
+    },
+  };
+  paymentLog("Create payment object %O", payment);
+  paymentLog("Signing payment");
+  const { signingKey } = getCerts(req.session.certificates);
+  const key = getPrivateKey(signingKey);
+  const jwt = await new jose.SignJWT({ data: payment })
+    .setProtectedHeader({
+      alg: "PS256",
+      typ: "JWT",
+      kid: req.session.privateJwk.kid,
+    })
+    .setIssuedAt()
+    .setIssuer(req.session.config.data.organisation_id)
+    .setJti(nanoid())
+    .setAudience(paymentEndpoint)
+    .setExpirationTime("5m")
+    .sign(key);
+  paymentLog("Signed payment JWT %O", jwt);
+  paymentLog("Create payment resource using the signed payment JWT ");
+  // const ccToken = await client.grant({
+  //   grant_type: "client_credentials",
+  //   scope: "payments",
+  // });
+  let paymentResponse = await client.requestResource(
+    `${paymentEndpoint}`,
+    req.session.tokenSet.access_token,
+    {
+      body: jwt,
+      method: "POST",
+      headers: {
+        "content-type": "application/jwt",
+        "x-idempotency-key": nanoid(),
+      },
+    }
+  );
+  paymentLog(
+    "Payment resource created successfully %O",
+    paymentResponse.body.toString()
+  );
+  paymentLog("Validate payment response as it is a JWT");
+  paymentLog(
+    "Retrieve the keyset for the bank (this has already been done and could be cached)"
+  );
+  //Validate the jwt came from teh correct bank and was meant to be sent to me.
+  const JWKS = await jose.createRemoteJWKSet(
+    new URL(
+      `https://keystore.sandbox.directory.openbankingbrasil.org.br/${req.session.selectedOrganisation.OrganisationId}/application.jwks`
+    )
+  );
+  let { payload } = await jose.jwtVerify(
+    paymentResponse.body.toString(),
+    JWKS,
+    {
+      issuer: req.session.selectedOrganisation.OrganisationId,
+      audience: req.session.config.data.organisation_id,
+      clockTolerance: 2,
+    }
+  );
+  paymentLog("Payment response extracted and validated");
+  if (payload.errors) {
+    paymentLog(payload);
+    const errorPayload = { msg: "Payment errored", payload: payload };
     errorPayload.stringify = JSON.stringify(errorPayload, null, 2);
-    const paymentInfo = JSON.parse(req.session.paymentConsentPayload);
+    const paymentInfo = payment;
     paymentInfo.stringify = JSON.stringify(paymentInfo, null, 2);
-
     req.session.paymentResData = {
-      claims: undefined,
       errorPayload,
       paymentInfo,
+      consentPayload,
     };
-    return res
-      .status(500)
-      .send(error);
+    return res.status(302).json({message:"Error"});
   }
-
-  req.session.state = state;
-  req.session.nonce = nonce;
-  req.session.code_verifier = code_verifier;
-
-  consentLog("Send customer to bank to give consent to the payment");
-  return res.json({ authUrl });
+  let x = 0;
+  const loopPauseTime = req.session.useCustomConfig
+    ? req.session.customEnvVars.loop_pause_time
+    : process.env.LOOP_PAUSE_TIME;
+  const numberOfCheckLoops = req.session.useCustomConfig
+    ? req.session.customEnvVars.number_of_check_loops
+    : process.env.NUMBER_OF_CHECK_LOOPS;
+  while (!["ACSP", "ACCC", "RJCT", "SASC"].includes(payload.data.status)) {
+    paymentLog(
+      "Payment still not in a valid end state. Status: %O. Will check again to see if it has gone through.",
+      payload.data.status
+    );
+    paymentLog(payload);
+    paymentLog(
+      "Use the self link on the payment to retrieve the latest record status. %O",
+      payload.links.self
+    );
+    paymentResponse = await client.requestResource(
+      payload.links.self,
+      req.session.tokenSet.access_token,
+      {
+        headers: {
+          accept: "application/jwt",
+          "x-idempotency-key": nanoid(),
+        },
+      }
+    );
+    paymentLog("Validate and extract the payment response from the bank");
+    ({ payload } = await jose.jwtVerify(
+      paymentResponse.body.toString(),
+      JWKS,
+      {
+        issuer: req.session.selectedOrganisation.OrganisationId,
+        audience: req.session.config.data.organisation_id,
+        clockTolerance: 2,
+      }
+    ));
+    x = x + 1;
+    await sleep(loopPauseTime);
+    if (x > numberOfCheckLoops) {
+      paymentLog(
+        "Payment has not reached final state after 5 iterations, failing"
+      );
+      payload = { msg: "Unable To Complete Payment", payload: payload };
+      try {
+        payload.stringify = JSON.stringify(payload, null, 2);
+      } catch (error) {
+        console.log("Something went wrong ");
+        console.log(error);
+      }
+      consentPayload = {
+        msg: "Unable To Complete Payment",
+        payload: req.body.consentPayload,
+      };
+      consentPayload.stringify = JSON.stringify(
+        req.body.consentPayload,
+        null,
+        2
+      );
+      req.session.paymentResData = {
+        payload,
+        consentPayload,
+      };
+      return res.status(302).json({message:"Error"});
+    }
+  }
+  paymentLog("Payment has reached a final state of", payload.data.status);
+  paymentLog(payload);
+  try {
+    payload.stringify = JSON.stringify(payload, null, 2);
+  } catch (e) {
+    console.log("Something went wrong ");
+    console.log(e);
+  }
+  consentPayload = req.body.consentPayload;
+  consentPayload.stringify = JSON.stringify(
+    req.body.consentPayload,
+    null,
+    2
+  );
+  req.session.paymentResData = {
+    payload,
+    consentPayload,
+  };
+  paymentLog("Payment execution complete");
+  return res.status(201).json({message:"Payment execution complete"});
 });
 
 router.get("/payments/payment-response", (req, res) => {
@@ -346,6 +550,13 @@ router.patch("/payments/revoke-payment", async (req, res) => {
 
   res.status(response.statusCode).json(payload);
 });
+
+function sleep(ms) {
+  paymentLog("Sleeping");
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 module.exports = router;
 

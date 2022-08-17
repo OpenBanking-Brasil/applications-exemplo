@@ -5,6 +5,7 @@ const state = {
   scopes: "",
   cadastroOption: "",
   consentId: "",
+  consent: "",
   consents: [
     {
       id: 1,
@@ -282,6 +283,7 @@ const getters = {
   registrationAccessToken: (state) => state.registrationAccessToken,
   ApiOption: (state) => state.ApiOption,
   consentId: (state) => state.consentId,
+  consent: (state) => state.consent,
 };
 
 const actions = {
@@ -296,6 +298,9 @@ const actions = {
   },
   setConsentId({ commit }, consentId) {
     commit("setTheConsentId", consentId);
+  },
+  setConsent({ commit }, consent) {
+    commit("setTheConsent", consent);
   }
 };
 
@@ -307,7 +312,8 @@ const mutations = {
     (state.cadastroOption = cadastroOption),
   setTheScopes: (state, scopes) => (state.scopes = scopes),
   setTheApiOption: (state, ApiOption) => (state.ApiOption = ApiOption),
-  setTheConsentId: (state, consentId) => (state.consentId = consentId)
+  setTheConsentId: (state, consentId) => (state.consentId = consentId),
+  setTheConsent: (state, consent) => (state.consent = consent)
 };
 
 export default {

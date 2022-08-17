@@ -4,6 +4,8 @@ import HomeView from "../views/HomeView.vue";
 import BanksView from "../views/BanksView.vue";
 import MainMenuView from "../views/MainMenuView.vue";
 import PaymentDetail from "../views/PaymentDetails.vue";
+import PaymentConsent from "../views/PaymentConsent.vue";
+import PaymentConsentResponse from "../views/PaymentConsentResponse.vue";
 import PatchView from "../views/PatchView.vue";
 import PaymentResponseView from "../views/PaymentResponseView.vue";
 import PatchResponseView from "../views/PatchResponseView.vue";
@@ -41,6 +43,16 @@ const routes = [
     path: "/payment-detail",
     name: "payment-detail",
     component: PaymentDetail,
+  },
+  {
+    path: "/payment-consent",
+    name: "payment-consent",
+    component: PaymentConsent,
+  },
+  {
+    path: "/payment-consent-response",
+    name: "payment-consent-response",
+    component: PaymentConsentResponse,
   },
   {
     path: "/patch-detail",

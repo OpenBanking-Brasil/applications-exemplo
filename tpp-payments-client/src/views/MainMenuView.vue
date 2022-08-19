@@ -118,6 +118,15 @@
           <v-row style="margintop: -60px" align="center">
             <v-col align="center">
               <Button
+                colour="white--text orange darken-1"
+                text="Create Consent"
+                icon="mdi-check"
+                :func="createConsent"
+                :hasIcon="true"
+              />
+            </v-col>
+            <v-col align="center">
+              <Button
                 colour="white--text green lighten-1"
                 text="Create Payment"
                 icon="mdi-file"
@@ -336,6 +345,14 @@ export default {
           this.loading = false;
         }
       }
+    },
+    createConsent() {
+      this.$router.push({
+        name: "payment-consent",
+        params: {
+          data: this.bankName,
+        },
+      });
     },
     createPayment() {
       this.$router.push({

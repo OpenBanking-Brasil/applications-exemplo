@@ -60,7 +60,7 @@ async function fetchData(req, apiFamilyType, apiType, path = "", requestMethod =
   )}${path}`;
   consentLog(`The ${apiType} endpoint found %O`, endpoint);
 
-  let accessToken = (apiType === "consents") ? req.session.consentRequestData.tokenSet.access_token : req.session.accessToken;
+  let accessToken = (apiType === "consents") ? req.session.consentRequestData.ccToken.access_token : req.session.accessToken;
 
   const requestData = {
     endpoint,

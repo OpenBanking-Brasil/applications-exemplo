@@ -74,7 +74,15 @@
                 </v-card>
               </template>
             </v-dialog>
-
+            <v-btn
+              color="primary"
+              class="ma-3"
+              depressed
+              x-medium
+              @click="$router.push('consents')"
+            >
+              Manage Consents
+            </v-btn>
             <div class="pa-2"></div>
             <v-row>
               <v-col cols="12" md="8">
@@ -214,9 +222,13 @@
                     </template>
                   </v-dialog>
                 </v-row>
-                <v-row style="margin-top:50px">
+                <v-row class="mt-10">
+                  <h3 class="grey--text text--darken-1">Selected Consent ID</h3>
+                  <p>{{ this.consentId}}</p>
+                </v-row>
+                <v-row class="mt-6">
                   <h3 class="grey--text text--darken-1">Selected Consent Status</h3>
-                  <div :class="statusColor">{{ this.consentStatus }}</div>
+                  <p :class="statusColor">{{ this.consentStatus }}</p>
                 </v-row>
               </v-col>
             </v-row>
@@ -307,13 +319,6 @@
             >
               5. Resources
             </v-btn>
-            <v-btn
-              color="primary"
-              class="ma-3 mt-5"
-              @click="$router.push('consents')"
-            >
-              6. Consents
-            </v-btn>
           </v-container>
         </v-sheet>
       </v-col>
@@ -373,7 +378,7 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setCadastroOption", "setConsentId", "setSelectedConsent", "addToConsentsList"]),
+    ...mapActions(["setCadastroOption", "setSelectedConsent", "addToConsentsList"]),
     getConsentInfo(consentData) {
       this.grantedConsentsCategory = consentData.category;
       this.consentsArr = consentData.permissionsArray;
@@ -438,12 +443,14 @@ export default {
         this.addToConsentsList(response.data);
       }
 
-      this.consentPayload = this.selectedConsent.consent;
-      this.requestData = this.selectedConsent.requestData;
-      this.consentReqObj = this.selectedConsent.consentReqObj;
-      this.consentId = this.selectedConsent.consent.data.consentId;
-      this.grantedConsents = this.selectedConsent.permissionsData;
-      this.consentStatus = this.selectedConsent.consent.data.status;
+      if (this.selectedConsent != null) {
+        this.consentPayload = this.selectedConsent.consent;
+        this.requestData = this.selectedConsent.requestData;
+        this.consentReqObj = this.selectedConsent.consentReqObj;
+        this.consentId = this.selectedConsent.consent.data.consentId;
+        this.grantedConsents = this.selectedConsent.permissionsData;
+        this.consentStatus = this.selectedConsent.consent.data.status;
+      }
 
       switch(this.consentStatus) {
         case "AUTHORISED":
@@ -469,7 +476,6 @@ export default {
       });
 
       this.setCadastroOption(cadastroOption);
-      this.setConsentId(this.consentId);
 
       let formatedConsents = [];
       for (let consent of this.grantedConsents) {

@@ -36,7 +36,7 @@
             <v-divider class="mt-5 mb-8"></v-divider>
             <v-row>
               <v-col cols="12" sm="4">
-                <v-row>
+                <v-row class="mt-2">
                   <v-card class="mx-auto" max-width="300" tile>
                     <v-subheader>Available Consent IDs</v-subheader>
                     <v-list dense max-height="20vh" style="overflow: auto">
@@ -60,7 +60,7 @@
                     </v-list>
                   </v-card>
                 </v-row>
-                <v-row style="margin-top:50px">
+                <v-row class="mt-10">
                   <v-card class="mx-auto" max-width="300" tile>
                     <v-subheader>Selected Consent ID</v-subheader>
                     {{ this.selectedConsentText }}
@@ -124,6 +124,9 @@
         <BackButton path="consent-response-menu" />
       </v-col>
     </v-row>
+    <v-overlay :value="loading">
+      <v-progress-circular indeterminate size="100"></v-progress-circular>
+    </v-overlay>
   </v-main>
 </template>
 
@@ -152,6 +155,7 @@ export default {
       consentsRequestData: "",
       consentsDataResponse: "",
       selectedConsentText: "",
+      loading: false,
     };
   },
   computed: {
@@ -163,8 +167,9 @@ export default {
     this.selectedConsentText = this.selectedConsent.consent.data.consentId;
   },
   methods: {
-    ...mapActions(["setSelectedConsentFromId", "removeFromConsentsList", "setNewConsent", "updateConsentInConsentsList"]),
+    ...mapActions(["setSelectedConsentFromId", "removeFromConsentsList", "setNewConsent", "updateConsentInConsentsList", "setSelectedConsent"]),
     async fetchConsentData(path) {
+      this.loading = true;
       try {
         const response = await axios.get(`consents/${path}`, { withCredentials: true });
         if (response.status == 200) {
@@ -183,9 +188,11 @@ export default {
           this.resBannerStyle = "white--text red darken-1";
         }
       }
+      this.loading = false;
     },
 
     async deleteConsent(path) {
+      this.loading = true;
       try {
         const response = await axios.delete(`consents/${path}`, { withCredentials: true });
         if (response.status == 204) {
@@ -198,6 +205,7 @@ export default {
           this.resBannerStyle = "white--text red darken-1";
         }
       }
+      this.loading = false;
     },
 
     createConsent() {
@@ -205,6 +213,8 @@ export default {
     },
 
     async selectConsentFromList() {
+      if (this.consentsList.length == 0) { return; }
+      this.loading = true;
       const consent = this.consentsList.find(item => item.consent.data.consentId === this.selectedConsentId);
       axios.defaults.withCredentials = true;
       try {
@@ -230,11 +240,52 @@ export default {
       } catch (error) {
         this.selectedConsentText = "";
       }
-      
+      this.loading = false;
     },
 
-    removeFromList() {
+    async removeFromList() {
+      if (this.consentsList.length == 0) { return; }
+      this.loading = true;
+      const consent = this.consentsList.find(item => item.consent.data.consentId === this.selectedConsentId);
+      if (consent.consent.data.status != "REJECTED") {
+        await this.deleteConsent(this.selectedConsentId);
+      } else {
+        await this.fetchConsentData(this.selectedConsentId);
+      }
       this.removeFromConsentsList(this.selectedConsentId);
+      if (this.selectedConsent.consent.data.consentId == this.selectedConsentId) {
+        // If there still is a consent in the list, choose the next
+        if (this.consentsList.length > 0) {
+          this.selectedConsentId = this.consentsList[0].consent.data.consentId;
+          this.selectedConsentText = this.selectedConsentId;
+          await this.selectConsentFromList();
+        } else {
+          this.setSelectedConsent(null);
+          this.setNewConsent(false);
+          this.selectedConsentText = "";
+          this.selectedConsentId = "";
+          axios.defaults.withCredentials = true;
+          try {
+            await axios.post(
+              "consent/set-consent",
+              {
+                consent: null,
+                permissionsData: null,
+                requestData: null,
+                consentReqObj: null,
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              },
+            );
+          } catch (error) {
+            console.log(error);
+          }
+        }
+      }
+      this.loading = false;
     },
 
     setConsent(consent) {

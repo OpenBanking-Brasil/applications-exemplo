@@ -110,7 +110,7 @@
               <v-col align="center">
                 <Button
                   colour="white--text orange darken-1"
-                  text="Remove"
+                  text="Delete"
                   icon="mdi-cancel"
                   :func="removeFromList"
                   :hasIcon="true"

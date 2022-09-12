@@ -423,7 +423,8 @@ const config = require("./config");
 
       req.session.consentRequestData = {
         endpoint: `${consentEndpoint}/${consentId}`,
-        tokenSet: ccToken,
+        ccToken: ccToken,
+        tokenSet: tokenSet,
         requestOptions,
       };
 

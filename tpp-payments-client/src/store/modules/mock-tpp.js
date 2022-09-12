@@ -273,6 +273,11 @@ const state = {
       consent: false,
     },
   ],
+  newConsent: true,
+  consentsList: [],
+  selectedConsent: null,
+  paymentConsentsList: [],
+  paymentSelectedConsent: null,
 };
 
 const getters = {
@@ -284,6 +289,11 @@ const getters = {
   ApiOption: (state) => state.ApiOption,
   consentId: (state) => state.consentId,
   consent: (state) => state.consent,
+  newConsent: (state) => state.newConsent,
+  consentsList: (state) => state.consentsList,
+  selectedConsent: (state) => state.selectedConsent,
+  paymentConsentsList: (state) => state.paymentConsentsList,
+  paymentSelectedConsent: (state) => state.paymentSelectedConsent,
 };
 
 const actions = {
@@ -301,7 +311,31 @@ const actions = {
   },
   setConsent({ commit }, consent) {
     commit("setTheConsent", consent);
-  }
+  },
+  setNewConsent({ commit }, isNew) {
+    commit("setTheNewConsent", isNew);
+  },
+  addToConsentsList({ commit }, consent) {
+    commit("addToTheConsentsList", consent);
+  },
+  removeFromConsentsList({ commit }, consentId) {
+    commit("removeFromTheConsentsList", consentId);
+  },
+  updateConsentInConsentsList({ commit }, consent) {
+    commit("updateTheConsentInConsentsList", consent);
+  },
+  setSelectedConsent({ commit }, selectedConsent) {
+    commit("setTheSelectedConsent", selectedConsent);
+  },
+  setSelectedConsentFromId({ commit }, selectedConsentId) {
+    commit("setTheSelectedConsentFromId", selectedConsentId);
+  },
+  setPaymentConsentsList({ commit }, paymentConsentsList) {
+    commit("setThePaymentConsentsList", paymentConsentsList);
+  },
+  setPaymentSelectedConsent({ commit }, paymentSelectedConsent) {
+    commit("setThePaymentSelectedConsent", paymentSelectedConsent);
+  },
 };
 
 const mutations = {
@@ -313,7 +347,33 @@ const mutations = {
   setTheScopes: (state, scopes) => (state.scopes = scopes),
   setTheApiOption: (state, ApiOption) => (state.ApiOption = ApiOption),
   setTheConsentId: (state, consentId) => (state.consentId = consentId),
-  setTheConsent: (state, consent) => (state.consent = consent)
+  setTheNewConsent: (state, isNew) => (state.newConsent = isNew),
+  setTheConsent: (state, consent) => (state.consent = consent),
+  addToTheConsentsList: (state, consent) => {
+    const index = state.consentsList.findIndex(item => item.consent.data.consentId === consent.consent.data.consentId);
+    if (index == -1) {
+      state.consentsList.push(consent);
+    }
+  },
+  removeFromTheConsentsList: (state, consentId) => {
+    const index = state.consentsList.findIndex(item => item.consent.data.consentId === consentId);
+    if (index > -1) {
+      state.consentsList.splice(index, 1);
+    }
+  },
+  updateTheConsentInConsentsList: (state, consent) => {
+    const index = state.consentsList.findIndex(item => item.consent.data.consentId === consent.data.consentId);
+    if (index > -1) {
+      state.consentsList[index].consent = consent;
+    }
+  },
+  setTheSelectedConsent: (state, selectedConsent) => (state.selectedConsent = selectedConsent),
+  setTheSelectedConsentFromId: (state, selectedConsentId) => {
+    state.selectedConsent = state.consentsList.find(item => item.consent.data.consentId === selectedConsentId);
+    console.log(state.selectedConsent);
+  },
+  setThePaymentConsentsList: (state, paymentConsentsList) => (state.paymentConsentsList = paymentConsentsList),
+  setThePaymentSelectedConsent: (state, paymentSelectedConsent) => (state.paymentSelectedConsent = paymentSelectedConsent),
 };
 
 export default {

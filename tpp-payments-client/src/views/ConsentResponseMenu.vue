@@ -74,13 +74,21 @@
                 </v-card>
               </template>
             </v-dialog>
-
+            <v-btn
+              color="primary"
+              class="ma-3"
+              depressed
+              x-medium
+              @click="$router.push('consents')"
+            >
+              Manage Consents
+            </v-btn>
             <div class="pa-2"></div>
             <v-row>
               <v-col cols="12" md="8">
                 <v-card elevation="2" outlined>
                   <v-card-title class="white--text blue darken-4"
-                    >Consent POST Request
+                    >Selected Consent POST Request
                     <v-tooltip top>
                       <template v-slot:activator="{ on, attrs }">
                         <v-icon v-bind="attrs" v-on="on" color="white" right
@@ -103,7 +111,7 @@
                 <div class="pa-2"></div>
                 <v-card elevation="2" outlined>
                   <v-card-title class="white--text blue darken-4"
-                    >Consent GET Request
+                    >Selected Consent GET Request
                     <v-tooltip top>
                       <template v-slot:activator="{ on, attrs }">
                         <v-icon v-bind="attrs" v-on="on" color="white" right
@@ -124,7 +132,7 @@
                 <div class="pa-2"></div>
                 <v-card elevation="2" outlined>
                   <v-card-title class="white--text cyan darken-4"
-                    >Consent Response</v-card-title
+                    >Selected Consent Response</v-card-title
                   >
                   <v-card-text>
                     <pre class="pt-4" style="overflow: auto"
@@ -134,84 +142,94 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="3">
-                <h3 class="grey--text text--darken-1">Consents Granted</h3>
-                <v-dialog transition="dialog-bottom-transition" max-width="800">
-                  <template v-slot:activator="{ on, attrs }">
-                    <v-btn
-                      class="ma-1 mt-4"
-                      outlined
-                      color="primary"
-                      v-bind="attrs"
-                      v-on="on"
-                      v-for="(consent, index) in grantedConsents"
-                      :key="index"
-                      @click="
-                        () => {
-                          getConsentInfo(consent);
-                        }
-                      "
-                    >
-                      <v-icon left>mdi-information</v-icon>
-                      {{ consent.category }}
-                    </v-btn>
-                  </template>
-                  <template v-slot:default="dialog">
-                    <v-card>
-                      <v-toolbar
-                        class="blue-grey darken-4 font-weight-bold"
-                        dark
-                        >Permissions</v-toolbar
+                <v-row>
+                  <h3 class="grey--text text--darken-1">Consents Granted</h3>
+                  <v-dialog transition="dialog-bottom-transition" max-width="800">
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-btn
+                        class="ma-1 mt-4"
+                        outlined
+                        color="primary"
+                        v-bind="attrs"
+                        v-on="on"
+                        v-for="(consent, index) in grantedConsents"
+                        :key="index"
+                        @click="
+                          () => {
+                            getConsentInfo(consent);
+                          }
+                        "
                       >
-                      <v-card-text>
-                        <div>
-                          <v-row>
-                            <v-col>
-                              <v-card>
-                                <v-card-title
-                                  class="subheading font-weight-bold mt-6"
-                                >
-                                  {{ grantedConsentsCategory }}
-                                </v-card-title>
-
-                                <v-divider></v-divider>
-                                <v-list-item>
-                                  <v-list-item-content>
-                                    <strong>Group(s)</strong>
-                                  </v-list-item-content>
-                                  <v-list-item-content class="align-end">
-                                    <strong>Permissions</strong>
-                                  </v-list-item-content>
-                                </v-list-item>
-                                <v-divider></v-divider>
-
-                                <v-list
-                                  v-for="(consentObj, index) in consentsArr"
-                                  :key="index"
-                                  dense
-                                >
+                        <v-icon left>mdi-information</v-icon>
+                        {{ consent.category }}
+                      </v-btn>
+                    </template>
+                    <template v-slot:default="dialog">
+                      <v-card>
+                        <v-toolbar
+                          class="blue-grey darken-4 font-weight-bold"
+                          dark
+                          >Permissions</v-toolbar
+                        >
+                        <v-card-text>
+                          <div>
+                            <v-row>
+                              <v-col>
+                                <v-card>
+                                  <v-card-title
+                                    class="subheading font-weight-bold mt-6"
+                                  >
+                                    {{ grantedConsentsCategory }}
+                                  </v-card-title>
+  
+                                  <v-divider></v-divider>
                                   <v-list-item>
                                     <v-list-item-content>
-                                      {{ consentObj.group }}
+                                      <strong>Group(s)</strong>
                                     </v-list-item-content>
-                                    <v-list-item-content
-                                      class="align-end"
-                                      style="overflow: auto"
-                                    >
-                                      {{ consentObj.permissions }}
+                                    <v-list-item-content class="align-end">
+                                      <strong>Permissions</strong>
                                     </v-list-item-content>
                                   </v-list-item>
-                                </v-list>
-                              </v-card>
-                            </v-col>
-                          </v-row>
-                        </div>
-                      </v-card-text>
-                      <v-card-actions class="justify-end">
-                        <v-btn text @click="dialog.value = false">Close</v-btn>
-                      </v-card-actions>
-                    </v-card>
-                  </template>
-                </v-dialog>
+                                  <v-divider></v-divider>
+  
+                                  <v-list
+                                    v-for="(consentObj, index) in consentsArr"
+                                    :key="index"
+                                    dense
+                                  >
+                                    <v-list-item>
+                                      <v-list-item-content>
+                                        {{ consentObj.group }}
+                                      </v-list-item-content>
+                                      <v-list-item-content
+                                        class="align-end"
+                                        style="overflow: auto"
+                                      >
+                                        {{ consentObj.permissions }}
+                                      </v-list-item-content>
+                                    </v-list-item>
+                                  </v-list>
+                                </v-card>
+                              </v-col>
+                            </v-row>
+                          </div>
+                        </v-card-text>
+                        <v-card-actions class="justify-end">
+                          <v-btn text @click="dialog.value = false">Close</v-btn>
+                        </v-card-actions>
+                      </v-card>
+                    </template>
+                  </v-dialog>
+                </v-row>
+                <v-row class="mt-10">
+                  <h3 class="grey--text text--darken-1">Selected Consent ID</h3>
+                  <p>{{ this.consentId}}</p>
+                </v-row>
+                <v-row class="mt-6">
+                  <h3 class="grey--text text--darken-1">Selected Consent Status</h3>
+                  <p :class="statusColor">{{ this.consentStatus }}</p>
+                </v-row>
               </v-col>
             </v-row>
             <div class="pa-2"></div>
@@ -301,13 +319,6 @@
             >
               5. Resources
             </v-btn>
-            <v-btn
-              color="primary"
-              class="ma-3 mt-5"
-              @click="$router.push('consents')"
-            >
-              6. Consents
-            </v-btn>
           </v-container>
         </v-sheet>
       </v-col>
@@ -361,11 +372,13 @@ export default {
       selectedCreditOperation: "",
       creditOperationRules: [(v) => !!v || "please select a credit operation"],
       consentId: "",
+      consentStatus: "",
+      statusColor: "",
     };
   },
 
   methods: {
-    ...mapActions(["setCadastroOption", "setConsentId"]),
+    ...mapActions(["setCadastroOption", "setSelectedConsent", "addToConsentsList"]),
     getConsentInfo(consentData) {
       this.grantedConsentsCategory = consentData.category;
       this.consentsArr = consentData.permissionsArray;
@@ -408,6 +421,8 @@ export default {
       "clientID",
       "registrationAccessToken",
       "ApiOption",
+      "newConsent",
+      "selectedConsent",
     ]),
     creditOperationSelected() {
       if (this.selectedCreditOperation) {
@@ -422,11 +437,34 @@ export default {
       const response = await axios.get("/consent/consent-response", {
         withCredentials: true,
       });
-      this.consentPayload = response.data.consent;
-      this.requestData = response.data.requestData;
-      this.grantedConsents = response.data.permissionsData;
-      this.consentReqObj = response.data.consentReqObj;
-      this.consentId = response.data.consent.data.consentId;
+
+      if (this.newConsent) {
+        this.setSelectedConsent(response.data);
+        this.addToConsentsList(response.data);
+      }
+
+      if (this.selectedConsent != null) {
+        this.consentPayload = this.selectedConsent.consent;
+        this.requestData = this.selectedConsent.requestData;
+        this.consentReqObj = this.selectedConsent.consentReqObj;
+        this.consentId = this.selectedConsent.consent.data.consentId;
+        this.grantedConsents = this.selectedConsent.permissionsData;
+        this.consentStatus = this.selectedConsent.consent.data.status;
+      }
+
+      switch(this.consentStatus) {
+        case "AUTHORISED":
+          this.statusColor = "green--text";
+          break;
+        case "AWAITING_AUTHORISATION":
+          this.statusColor = "yellow--text";
+          break;
+        case "REJECTED":
+          this.statusColor = "red--text";
+          break;
+        default:
+          this.statusColor = "gray--text";
+      }
 
       let cadastroOption;
       this.grantedConsents.forEach((grantedConsent) => {
@@ -438,7 +476,6 @@ export default {
       });
 
       this.setCadastroOption(cadastroOption);
-      this.setConsentId(this.consentId);
 
       let formatedConsents = [];
       for (let consent of this.grantedConsents) {

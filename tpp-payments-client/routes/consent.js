@@ -165,4 +165,17 @@ router.get("/consent/consent-response", (req, res) => {
   });
 });
 
+router.post("/consent/set-consent", async (req, res) => {
+  req.session.createdConsent = req.body.consent;
+  req.session.consentsArr = req.body.permissionsData;
+  req.session.consentRequestData = req.body.requestData;
+  req.session.tokenSet = req.body.requestData.tokenSet;
+  
+  let reqObj = req.body.consentReqObj;
+  delete reqObj.tokenSet;
+  req.session.consentRequestObject = reqObj;
+
+  return res.status(201).json({message: "Consent set"});
+});
+
 module.exports = router;

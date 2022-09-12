@@ -321,7 +321,7 @@ import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
 import DatePicker from "@/components/GeneralAppComponents/DatePicker.vue";
 import axios from "../util/axios.js";
-import { mapGetters } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 
 export default {
   name: "ConsentMenu",
@@ -390,6 +390,7 @@ export default {
   },
 
   methods: {
+    ...mapActions(["setNewConsent"]),
     changeDate(newDate, flag) {
       switch (flag) {
         case "TransactionFromDate":
@@ -462,6 +463,7 @@ export default {
           }
         );
         if (res.status === 201) {
+          this.setNewConsent(true);
           bankConsent.location.href = res.data.authUrl;
         }
       } catch (error) {

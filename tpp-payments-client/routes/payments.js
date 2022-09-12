@@ -165,6 +165,12 @@ router.post("/payments/make-payment", async (req, res) => {
   let date = new Date();
   const offset = date.getTimezoneOffset();
   date = new Date(date.getTime() - offset * 60 * 1000);
+  let year    = new Intl.DateTimeFormat('en-GB', { year: 'numeric' }).format(date);
+  let month   = new Intl.DateTimeFormat('en-GB', { month: '2-digit' }).format(date);
+  let day     = new Intl.DateTimeFormat('en-GB', { day: '2-digit' }).format(date);
+  let hour    = new Intl.DateTimeFormat('en-GB', { hour: '2-digit' }).format(date);
+  let minute  = new Intl.DateTimeFormat('en-GB', { minute: '2-digit' }).format(date);
+  let dateString = `${year}${month}${day}${hour}${minute}`;
 
   const payment = {
     creditorAccount: {
@@ -181,6 +187,7 @@ router.post("/payments/make-payment", async (req, res) => {
       amount: req.body.payment_amount,
       currency: "BRL",
     },
+    endToEndId : "E99999004" + dateString + "123456789ab",
   };
   paymentLog("Create payment object %O", payment);
   paymentLog("Signing payment");

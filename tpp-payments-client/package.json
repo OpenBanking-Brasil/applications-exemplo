@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "start": "concurrently \"DEBUG=tpp* node index.js\" \"npm run serve\"",
-    "start-server": "DEBUG=tpp* node server.js",
+    "start-server": "DEBUG=tpp* node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

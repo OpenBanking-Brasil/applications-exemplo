@@ -325,7 +325,7 @@ const config = require("./config");
 
   app.use(paymentsRoutes);
 
-  app.use(express.urlencoded());
+  app.use(express.urlencoded({ extended: true }));
 
   //This is used for response mode form_post, query and form_post are the most common
   app.post("/cb", async (req, res) => {

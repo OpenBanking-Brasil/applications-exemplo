@@ -25,7 +25,7 @@ exports.data = {
   },
 
   //SET THE KID FOR THE SIGNING KEYID FROM THE JWKS KEYSET
-  signing_kid: "8o-O3VSFOPE8TrULXUTHxhxJcdADKIBmsfE0KWYkHik", //Change to the signing key that you want to use
+  signing_kid: "sR8jDEv9t870VjqZiHB1ON9SI-cAK3BdtJKliZIkm8A", //Change to the signing key that you want to use
   software_statement_id: "7218e1af-195f-42b5-a44b-8c7828470f5a", //Software Statement Id
   organisation_id: "74e929d9-33b6-4d85-8ba7-c146c867a817", //Software Statement Id
 };

@@ -143,7 +143,6 @@ function getEndpoint(authServer, apiFamilyType, apiEndpointRegex) {
           return endpoint;
         }
       });
-      return resource;
     }
   });
   return consentEndpoint;
@@ -164,6 +163,7 @@ async function generateRequest(
   //Find the consent endpoint for this authorisation server
   req.session.flag = flag;
   let apiFamilyType, apiEndpointRegex;
+  const ApiVersion = req.session.ApiVersion;
   if (flag === "PAYMENTS") {
     consentLog(
       "Find the consent endpoint for the payments consent from the selected authorisation server from the directory"
@@ -175,7 +175,7 @@ async function generateRequest(
       "Find the consent endpoint from the selected authorisation server from the directory"
     );
     apiFamilyType = "consents";
-    apiEndpointRegex = "open-banking/consents/v1/consents$";
+    apiEndpointRegex = `open-banking/consents/${ApiVersion}/consents$`;
   }
   const consentEndpoint = getEndpoint(
     authServer,

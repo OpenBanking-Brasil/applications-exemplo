@@ -1,6 +1,8 @@
 <template>
-  <v-footer padless>
-    <v-col> POWERED BY <a href="www.raidiam.com">Raidiam</a> </v-col>
+  <v-footer padless inset>
+    <v-col class="d-flex justify-end pr-0">
+      <a :href="hrefFooter" target="_blank">{{ hrefText }}</a>
+    </v-col>
   </v-footer>
 </template>
 
@@ -8,6 +10,11 @@
 export default {
   name: "FooterBar",
 
-  data: () => ({}),
+  data() {
+    return {
+      hrefFooter: "https://www.raidiam.com",
+      hrefText: "Powered by Raidiam",
+    };
+  },
 };
 </script>

@@ -1,101 +1,60 @@
 <template>
-  <v-main class="consent-menu">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <SheetAppBar header="Resources Response" />
-
-        <v-sheet min-height="70vh" rounded="lg">
-          <v-container class="pa-md-12">
-            <h3 class="mb-3 mt-5 grey--text text--darken-1">
-              Add Query Parameters
-            </h3>
-            <v-row>
-              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
-                <v-text-field
-                  label="Page Size"
-                  v-model="resourcesQueryParams['page-size']"
-                  outlined
-                ></v-text-field>
-              </v-col>
-              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
-                <v-text-field
-                  label="Page"
-                  outlined
-                  v-model="resourcesQueryParams['page']"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="3" md="3" v-if="ApiVersion === 'v2'">
-                <v-text-field
-                  label="Pagination Key"
-                  outlined
-                  v-model="resourcesQueryParams['pagination-key']"
-                ></v-text-field>
-              </v-col>
-              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
-                <v-btn
-                  depressed
-                  height="3.4rem"
-                  width="100%"
-                  color="primary"
-                  @click="getResourcesByQueryParams"
-                >
-                  Run
-                </v-btn>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" md="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4"
-                    >Resources Request</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                        {{ resourcesRequest }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title :class="primaryResBannerStyle"
-                    >Resources Response</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                        {{ resourcesResponse }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-
-          </v-container>
-        </v-sheet>
+  <CardWrapper title="Add Query Parameters">
+    <template v-slot:card-content>
+      <v-col cols="6" sm="12" md="6">
+        <v-text-field label="Page Size" v-model="resourcesQueryParams['page-size']" outlined dense>
+        </v-text-field>
       </v-col>
-      <v-col cols="12" sm="2">
-        <BackButton path="consent-response-menu" />
+      <v-col cols="6" sm="12" md="6">
+        <v-text-field label="Page" outlined dense v-model="resourcesQueryParams['page']"></v-text-field>
       </v-col>
-    </v-row>
-  </v-main>
+      <v-col cols="12" sm="12" md="12" v-if="ApiVersion === 'v2'">
+        <v-text-field label="Pagination Key" outlined dense v-model="resourcesQueryParams['pagination-key']">
+        </v-text-field>
+      </v-col>
+      <v-col cols="6" sm="12" md="3" class="mx-auto">
+        <v-btn depressed height="2.5rem" width="100%" color="primary" @click="getResourcesByQueryParams">
+          Run
+        </v-btn>
+      </v-col>
+    </template>
+    <template v-slot:content>
+      <CardCode 
+        class="mt-8" 
+        color="lightblue" 
+        title="Resources Request" 
+        :code="resourcesRequest" />
+      <CardCode 
+        class="mt-10" 
+        color="lightgreen" 
+        title="Resources Response" 
+        :code="resourcesResponse"
+        :is-error="isResourcesError" />
+    </template>
+  </CardWrapper>
 </template>
 
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
-import axios from "../util/axios.js";
-import { mapGetters } from "vuex";
+import CardCode from "@/components/Shared/CardCode.vue";
+import CardWrapper from "@/components/Shared/CardWrapper.vue";
+
+import axios from "@/util/axios.js";
+import { getPathWithQueryParams } from "@/util/helpers.js";
+
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "ResourcesResponse",
   components: {
     SheetAppBar,
-    BackButton,
+    CardCode,
+    CardWrapper,
   },
   data() {
     return {
+      getPathWithQueryParams,
       ApiVersion: "",
       resourcesResponse: "",
       resourcesRequest: "",
@@ -104,43 +63,34 @@ export default {
         "page": null,
         "pagination-key": ""
       },
-      primaryResBannerStyle: "white--text cyan darken-4",
+      isResourcesError: false,
     };
   },
   computed: {
     ...mapGetters(["ApiOption"]),
   },
   methods: {
-    getResourcesByQueryParams(){
-      this.accountIDs = [];
-      let path = "";
-      let isFirstIteration = true;
-      for(let queryParam in this.resourcesQueryParams){
-        if(this.resourcesQueryParams[queryParam]){
-          if(!isFirstIteration){
-            path += `&${queryParam}=${this.resourcesQueryParams[queryParam]}`;
-          } else {
-            isFirstIteration = false;
-            path = `?${queryParam}=${this.resourcesQueryParams[queryParam]}`;
-          }
-        }
-      }
+    ...mapActions(["setError", "setLoading"]),
 
+    getResourcesByQueryParams() {
+      const path = this.getPathWithQueryParams(this.resourcesQueryParams);
       this.getResources(path);
     },
 
-    async getResources(path=""){
-
+    async getResources(path = "") {
       let response;
       try {
+        this.setLoading(true);
         response = await axios.get(`/resources${path}`, { withCredentials: true });
         this.resourcesResponse = response.data.responseData;
         this.resourcesRequest = response.data.requestData;
-        this.primaryResBannerStyle = "white--text cyan darken-4";
-      } catch (error){
+        this.isResourcesError = false;
+        this.setLoading(false);
+      } catch (error) {
+        this.setError(error.message);
+        this.isResourcesError = true;
         this.resourcesResponse = error.response.data.responseData;
         this.resourcesRequest = error.response.data.requestData;
-        this.primaryResBannerStyle = "white--text red darken-1";
       }
     }
   },

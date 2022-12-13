@@ -1,334 +1,270 @@
 <template>
-  <v-main class="consent-menu">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <SheetAppBar header="Consent Menu" />
+  <div class="consent-menu layout-wrapper">
+    <v-sheet>
+      <v-tabs v-model="tab" height="46px" color="#007199" background-color="transparent" grow>
+        <v-tab v-for="item in items" :key="item">
+          {{ item }}
+        </v-tab>
+      </v-tabs>
 
-        <v-card>
-          <v-tabs v-model="tab" background-color="transparent" grow>
-            <v-tab v-for="item in items" :key="item">
-              {{ item }}
-            </v-tab>
-          </v-tabs>
+      <v-tabs-items v-model="tab">
+        <v-tab-item v-for="item in items" :key="item">
+          <template v-if="item === 'Permissions'">
+            <client-details-dialog
+              v-if="$route.params.data"
+              :messageText="messageText"
+            />
 
-          <v-tabs-items v-model="tab">
-            <v-tab-item v-for="item in items" :key="item">
-              <v-container class="pa-md-12" style="background: #ffffff">
-                <template v-if="item === 'Permissions'">
-                  <v-dialog
-                    transition="dialog-bottom-transition"
-                    max-width="800"
-                    v-model="dialog"
-                    v-if="$route.params.data"
-                  >
-                    <template v-slot:default="dialog">
-                      <v-card>
-                        <v-toolbar
-                          class="blue-grey darken-4 font-weight-bold"
-                          dark
-                          >Client Details</v-toolbar
-                        >
-                        <v-card-text>
-                          <div>
-                            <v-row>
-                              <v-col>
-                                <v-alert dense text type="success" class="mt-5">
-                                  {{ messageText }}
-                                </v-alert>
-                                <v-card class="mt-5">
-                                  <v-list dense>
-                                    <v-list-item>
-                                      <v-list-item-content
-                                        >Client ID:</v-list-item-content
-                                      >
-                                      <v-list-item-content class="align-end">
-                                        {{ clientID }}
-                                      </v-list-item-content>
-                                    </v-list-item>
+            <v-data-table
+              :hide-default-footer="true"
+              :items-per-page="11"
+              :headers="headers"
+              :items="consentsArr"
+              class="elevation-0"
+            >
+              <template v-slot:[`item.group`]="{ item }" class="d-flex">
+                <div class="d-flex">
+                  <v-simple-checkbox
+                    color="#007199"
+                    on-icon="mdi-circle-slice-8"
+                    off-icon="mdi-circle-outline"
+                    :ripple="false"
+                    v-model="item.consent"
+                  />
 
-                                    <v-list-item>
-                                      <v-list-item-content
-                                        >Registration Access
-                                        Token:</v-list-item-content
-                                      >
-                                      <v-list-item-content class="align-end">
-                                        {{ registrationAccessToken }}
-                                      </v-list-item-content>
-                                    </v-list-item>
+                  <span>{{ item.group }}</span>
+                </div>
+              </template>
 
-                                    <v-list-item>
-                                      <v-list-item-content
-                                        >Granted Scopes:</v-list-item-content
-                                      >
-                                      <v-list-item-content class="align-end">
-                                        {{ scopes }}
-                                      </v-list-item-content>
-                                    </v-list-item>
-                                  </v-list>
-                                </v-card>
-                              </v-col>
-                            </v-row>
-                          </div>
-                        </v-card-text>
-                        <v-card-actions class="justify-end">
-                          <v-btn text @click="dialog.value = false">OK</v-btn>
-                        </v-card-actions>
-                      </v-card>
-                    </template>
-                  </v-dialog>
+              <template v-slot:[`item.permissions`]="{ item }">
+                <ul>
+                  <li v-for="(i, index) in item.permissions" :key="index">
+                    <v-simple-checkbox
+                      :ripple="false"
+                      color="#007199"
+                      on-icon="mdi-circle-slice-8"
+                      off-icon="mdi-circle-outline"
+                      v-model="i.consent"
+                      style="transform: scale(0.7)"
+                    />
 
-                  <v-data-table
-                    :hide-default-footer="true"
-                    :items-per-page="11"
-                    :headers="headers"
-                    :items="consentsArr"
-                    class="elevation-1"
-                  >
-                    <template v-slot:[`item.permissions`]="{ item }">
-                      <div v-for="(i, index) in item.permissions" :key="index">
-                        <li class="mb-1">
-                          {{ i.permission }}
-                        </li>
-                      </div>
-                    </template>
+                    <span>{{ i.permission }}</span>
+                  </li>
+                </ul>
+              </template>
+            </v-data-table>
+          </template>
 
-                    <template v-slot:[`item.consent`]="{ item }">
-                      <v-row>
-                        <v-col cols="6" md="6" class="d-flex align-center">
-                          <v-simple-checkbox
-                            :ripple="false"
-                            v-model="item.consent"
-                            style="transform: scale(1.3)"
-                          ></v-simple-checkbox>
-                        </v-col>
-                        <v-col cols="6" md="6">
-                          <v-simple-checkbox
-                            v-for="(consentItem, i) in item.permissions"
-                            :key="i"
-                            :ripple="false"
-                            v-model="consentItem.consent"
-                          ></v-simple-checkbox>
-                        </v-col>
-                      </v-row>
-                    </template>
-                  </v-data-table>
-                </template>
+          <template v-else>
+            <v-row>
+              <v-col cols="12" sm="5" md="5">
+                <v-divider />
+              </v-col>
+              <v-col cols="12" sm="2" md="2" class="text-center mt-n3">
+                <h4>Logged User</h4>
+              </v-col>
+              <v-col cols="12" sm="5" md="5">
+                <v-divider />
+              </v-col>
+            </v-row>
 
-                <template v-else>
-                  <v-row>
-                    <v-col cols="12" sm="5" md="5">
-                      <v-divider />
-                    </v-col>
-                    <v-col cols="12" sm="2" md="2" class="text-center mt-n3">
-                      <h4>Logged User</h4>
-                    </v-col>
-                    <v-col cols="12" sm="5" md="5">
-                      <v-divider />
-                    </v-col>
-                  </v-row>
-                  <v-row align="center">
-                    <v-col cols="12" sm="6">
-                      <v-text-field
-                        dense
-                        outlined
-                        label="Identification"
-                        v-model="loggedUserId"
-                        class="mt-6"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6">
-                      <v-icon
-                        small
-                        title="CPF or CNPJ are acceptable"
-                        class="mb-2"
-                      >
-                        mdi-information
-                      </v-icon>
-                      <v-text-field
-                        dense
-                        outlined
-                        label="Rel"
-                        v-model="loggedUserRel"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
+            <v-row class="px-7">
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  dense
+                  outlined
+                  label="Identification"
+                  v-model="loggedUserId"
+                  class="mt-4"
+                ></v-text-field>
+              </v-col>
 
-                  <v-row>
-                    <v-col cols="12" sm="5" md="5">
-                      <v-divider />
-                    </v-col>
-                    <v-col cols="12" sm="2" md="2" class="text-center mt-n3">
-                      <h4>Business Entity</h4>
-                    </v-col>
-                    <v-col cols="12" sm="5" md="5">
-                      <v-divider />
-                    </v-col>
-                  </v-row>
-                  <v-row align="center">
-                    <v-col cols="12" sm="6">
-                      <v-text-field
-                        dense
-                        outlined
-                        label="Identification"
-                        v-model="businessEntityId"
-                        class="mt-6"
-                      ></v-text-field>
-                    </v-col>
-                    <v-col cols="12" sm="6">
-                      <v-icon
-                        small
-                        title="CPF or CNPJ are acceptable"
-                        class="mb-2"
-                      >
-                        mdi-information
-                      </v-icon>
-                      <v-text-field
-                        dense
-                        outlined
-                        label="Rel"
-                        v-model="businessEntityRel"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                  <v-row>
-                    <v-col cols="12" sm="5" md="5">
-                      <v-divider />
-                    </v-col>
-                    <v-col cols="12" sm="2" md="2" class="text-center mt-n3">
-                      <h4>Date and Time</h4>
-                    </v-col>
-                    <v-col cols="12" sm="5" md="5">
-                      <v-divider />
-                    </v-col>
-                  </v-row>
-                  <v-row align="center">
-                    <v-col cols="12" sm="3" md="3">
-                      <DatePicker
-                        :date="transactionFromDate"
-                        dateLabel="Transaction From Date"
-                        @change-date="changeDate"
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="3" md="3">
-                      <v-icon
-                        small
-                        title="Acceptable time format: hh:mm:ss"
-                        class="ml-8 mt-n5"
-                        style="position: absolute"
-                      >
-                        mdi-information
-                      </v-icon>
-                      <v-text-field
-                        outlined
-                        dense
-                        v-model="transactionFromTime"
-                        label="Transaction From Time"
-                        prepend-icon="mdi-clock"
-                      ></v-text-field>
-                    </v-col>
+              <v-col cols="12" sm="6">
+                <div class="app-label-holder d-flex justify-end">
+                  <v-icon
+                    small
+                    title="CPF or CNPJ are acceptable"
+                    color="rgba(57, 75, 101, 0.2)"
+                  >mdi-help-circle</v-icon>
+                </div>
 
-                    <v-col cols="12" sm="3" md="3">
-                      <DatePicker
-                        :date="transactionToDate"
-                        dateLabel="Transaction To Date"
-                        @change-date="changeDate"
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="3" md="3">
-                      <v-icon
-                        small
-                        title="Acceptable time format: hh:mm:ss"
-                        class="ml-8 mt-n5"
-                        style="position: absolute"
-                      >
-                        mdi-information
-                      </v-icon>
-                      <v-text-field
-                        outlined
-                        dense
-                        v-model="transactionToTime"
-                        label="Transaction To Time"
-                        prepend-icon="mdi-clock"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
+                <v-text-field
+                  dense
+                  outlined
+                  label="Rel"
+                  v-model="loggedUserRel"
+                ></v-text-field>
+              </v-col>
+            </v-row>
 
-                  <v-row align="center">
-                    <v-col cols="12" sm="3" md="3">
-                      <DatePicker
-                        :date="expirationDate"
-                        dateLabel="Expiration Date"
-                        @change-date="changeDate"
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="3" md="3">
-                      <v-icon
-                        small
-                        title="Acceptable time format: hh:mm:ss"
-                        class="ml-8 mt-n5"
-                        style="position: absolute"
-                      >
-                        mdi-information
-                      </v-icon>
-                      <v-text-field
-                        outlined
-                        dense
-                        v-model="expirationTime"
-                        label="Expiration Time"
-                        prepend-icon="mdi-clock"
-                      ></v-text-field>
-                    </v-col>
-                  </v-row>
-                </template>
-                <v-col class="text-right">
-                  <v-btn
-                    class="mt-8 mx-auto"
-                    depressed
-                    color="primary"
-                    @click="continueConsent"
-                  >
-                    Continue
-                  </v-btn>
-                </v-col>
-              </v-container>
-            </v-tab-item>
-          </v-tabs-items>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="2">
-        <BackButton path="banks" />
-      </v-col>
-    </v-row>
-    <v-overlay :value="loading">
-      <v-progress-circular indeterminate size="100"></v-progress-circular>
-    </v-overlay>
-    <v-snackbar v-model="snackbar" :multi-line="multiLine">
-      {{ snackbarMessage }}
+            <v-row>
+              <v-col cols="12" sm="5" md="5">
+                <v-divider />
+              </v-col>
+              <v-col cols="12" sm="2" md="2" class="text-center mt-n3">
+                <h4>Business Entity</h4>
+              </v-col>
+              <v-col cols="12" sm="5" md="5">
+                <v-divider />
+              </v-col>
+            </v-row>
 
-      <template v-slot:action="{ attrs }">
-        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </v-main>
+            <v-row class="px-7">
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  dense
+                  outlined
+                  label="Identification"
+                  v-model="businessEntityId"
+                  class="mt-4"
+                ></v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="6">
+                <div class="app-label-holder d-flex justify-end">
+                  <v-icon
+                    small
+                    title="CPF or CNPJ are acceptable"
+                    color="rgba(57, 75, 101, 0.2)"
+                  >mdi-help-circle</v-icon>
+                </div>
+
+                <v-text-field
+                  dense
+                  outlined
+                  label="Rel"
+                  v-model="businessEntityRel"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-row>
+              <v-col cols="12" sm="5" md="5">
+                <v-divider />
+              </v-col>
+              <v-col cols="12" sm="2" md="2" class="text-center mt-n3">
+                <h4>Date and Time</h4>
+              </v-col>
+              <v-col cols="12" sm="5" md="5">
+                <v-divider />
+              </v-col>
+            </v-row>
+            
+            <v-row class="px-7">
+              <v-col cols="12" sm="6" md="6" class="mt-4">
+                <DatePicker
+                  :date="transactionFromDate"
+                  dateLabel="Transaction From Date"
+                  @change-date="changeDate"
+                />
+              </v-col>
+
+              <v-col cols="12" sm="6" md="6">
+                <div class="app-label-holder d-flex justify-end">
+                  <v-icon
+                    small
+                    title="Acceptable time format: hh:mm:ss"
+                    color="rgba(57, 75, 101, 0.2)"
+                  >mdi-help-circle</v-icon>
+                </div>
+
+                <v-text-field
+                  outlined
+                  dense
+                  v-model="transactionFromTime"
+                  label="Transaction From Time"
+                  append-icon="mdi-clock"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-row class="px-7">
+              <v-col cols="12" sm="6" md="6" class="mt-4">
+                <DatePicker
+                  :date="transactionToDate"
+                  dateLabel="Transaction To Date"
+                  @change-date="changeDate"
+                />
+              </v-col>
+              
+              <v-col cols="12" sm="6" md="6">
+                <div class="app-label-holder d-flex justify-end">
+                  <v-icon
+                    small
+                    title="Acceptable time format: hh:mm:ss"
+                    color="rgba(57, 75, 101, 0.2)"
+                  >mdi-help-circle</v-icon>
+                </div>
+
+                <v-text-field
+                  outlined
+                  dense
+                  v-model="transactionToTime"
+                  label="Transaction To Time"
+                  append-icon="mdi-clock"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
+            <v-row class="px-7 mb-2">
+              <v-col cols="12" sm="6" md="6" class="mt-4">
+                <DatePicker
+                  :date="expirationDate"
+                  dateLabel="Expiration Date"
+                  @change-date="changeDate"
+                />
+              </v-col>
+
+              <v-col cols="12" sm="6" md="6">
+                <div class="app-label-holder d-flex justify-end">
+                  <v-icon
+                    small
+                    title="Acceptable time format: hh:mm:ss"
+                    color="rgba(57, 75, 101, 0.2)"
+                  >mdi-help-circle</v-icon>
+                </div>
+
+                <v-text-field
+                  outlined
+                  dense
+                  v-model="expirationTime"
+                  label="Expiration Time"
+                  append-icon="mdi-clock"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </template>
+        </v-tab-item>
+      </v-tabs-items>
+
+      <v-row class="layout-wrapper__bottom-btns">
+        <v-col cols="12" class="pa-0">
+          <v-btn
+            depressed
+            block 
+            text
+            height="57"
+            @click="continueConsent"
+          >
+            Continue
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-sheet>
+  </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
-import DatePicker from "@/components/GeneralAppComponents/DatePicker.vue";
-import axios from "../util/axios.js";
+import DatePicker from "@/components/Shared/DatePicker.vue";
+import ClientDetailsDialog from "@/components/Dialogs/ClientDetailsDialog";
+import axios from "@/util/axios.js";
 import { mapActions, mapGetters } from "vuex";
 
 export default {
   name: "ConsentMenu",
   components: {
-    SheetAppBar,
-    BackButton,
     DatePicker,
+    ClientDetailsDialog,
   },
   data() {
     return {
@@ -337,10 +273,6 @@ export default {
       text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
 
       dialog: true,
-      multiLine: true,
-      snackbar: false,
-      snackbarMessage: "",
-      loading: false,
       modal: false,
       consentsArr: [],
       consentsDeepCopy: [],
@@ -363,7 +295,6 @@ export default {
         },
         { text: "AGRUPAMENTO", value: "group" },
         { text: "PERMISSIONS", value: "permissions" },
-        { text: "GIVE CONSENT", value: "consent" },
       ],
       messageText: "",
     };
@@ -390,7 +321,7 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setNewConsent"]),
+    ...mapActions(["setNewConsent", "setError", "setLoading"]),
     changeDate(newDate, flag) {
       switch (flag) {
         case "TransactionFromDate":
@@ -404,7 +335,7 @@ export default {
       }
     },
     async continueConsent() {
-      this.loading = true;
+      this.setLoading(true);
       axios.defaults.withCredentials = true;
       const selectedConsentsbyGroup = this.consentsArr.filter(
         (rowData) => rowData.consent === true
@@ -466,12 +397,13 @@ export default {
           this.setNewConsent(true);
           bankConsent.location.href = res.data.authUrl;
         }
+        this.setLoading(false);
       } catch (error) {
         if (error.response.status !== 201) {
-          this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
-          this.snackbar = true;
+          this.setError(`Error ${error.response.status} - ${error.message}`);
+        } else {
+          this.setError(error.message);
         }
-        this.loading = false;
       }
     },
   },

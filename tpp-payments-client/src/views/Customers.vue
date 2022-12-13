@@ -1,113 +1,89 @@
 <template>
-  <v-main class="consent-menu">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <SheetAppBar header="Customers" />
-
-        <v-sheet min-height="70vh" rounded="lg">
-          <v-container class="pa-md-12">
-            <v-row>
-              <v-col cols="12" sm="4">
-                <CardComponent
-                  :fullPath="identificationsFullPath"
-                  :title="identificationTitle"
-                  :displayTextField="false"
-                  btnText="RUN"
-                  path="identifications"
-                  :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams" 
-                  :queryParams="customersQueryParams"
-                  flag="CUSTOMERS"
-                  :ApiVersion="ApiVersion"
-                  @fetch-data="fetchCustomersData"
-                />
-              </v-col>
-              <v-col cols="12" sm="4">
-                <CardComponent
-                  :fullPath="financialRelationsFullPath"
-                  :title="financialRelationTitle"
-                  :displayTextField="false"
-                  btnText="RUN"
-                  path="financial-relations"
-                  :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams" 
-                  :queryParams="customersQueryParams"
-                  flag="CUSTOMERS"
-                  :ApiVersion="ApiVersion"
-                  @fetch-data="fetchCustomersData"
-                />
-              </v-col>
-              <v-col cols="12" sm="4">
-                <CardComponent
-                  :fullPath="qualificationFullPath"
-                  :title="qualificationTitle"
-                  :displayTextField="false"
-                  btnText="RUN"
-                  path="qualifications"
-                  :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams" 
-                  :queryParams="customersQueryParams"
-                  flag="CUSTOMERS"
-                  :ApiVersion="ApiVersion"
-                  @fetch-data="fetchCustomersData"
-                />
-              </v-col>
-            </v-row>
-            <v-divider class="mt-5 mb-8"></v-divider>
-            <v-row>
-              <v-col cols="12" sm="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4"
-                    >Request</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                        {{ customersRequestData }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title :class="resBannerStyle">Response</v-card-title>
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                        {{ customersDataResponse }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-sheet>
+  <CardWrapper title="">
+    <template v-slot:card-content>
+      <v-col cols="12" md="6">
+        <CardComponent 
+          :fullPath="identificationsFullPath"
+          :resourceId="resourceId"
+          :title="identificationTitle" 
+          path="identifications" 
+          :supportsQueryParam="true"
+          :getPathWithQueryParams="getPathWithQueryParams" 
+          :queryParams="customersQueryParams" 
+          flag="CUSTOMERS"
+          :ApiVersion="ApiVersion" 
+          @fetch-data="fetchCustomersData"
+          @resource-id-change="changeResourceId" />
       </v-col>
-      <v-col cols="12" sm="2">
-        <BackButton path="consent-response-menu" />
+      <v-col cols="12" md="6">
+        <CardComponent 
+          :fullPath="financialRelationsFullPath"
+          :resourceId="resourceId"
+          :title="financialRelationTitle"
+          path="financial-relations" 
+          :supportsQueryParam="true"
+          :getPathWithQueryParams="getPathWithQueryParams" 
+          :queryParams="customersQueryParams" 
+          flag="CUSTOMERS"
+          :ApiVersion="ApiVersion" 
+          @fetch-data="fetchCustomersData"
+          @resource-id-change="changeResourceId" />
       </v-col>
-    </v-row>
-  </v-main>
+      <v-col cols="12" md="6">
+        <CardComponent 
+          :fullPath="qualificationFullPath"
+          :resourceId="resourceId"
+          :title="qualificationTitle" 
+          path="qualifications" 
+          :supportsQueryParam="true"
+          :getPathWithQueryParams="getPathWithQueryParams" 
+          :queryParams="customersQueryParams" 
+          flag="CUSTOMERS"
+          :ApiVersion="ApiVersion" 
+          @fetch-data="fetchCustomersData"
+          @resource-id-change="changeResourceId" />
+      </v-col>
+    </template>
+    <template v-slot:content>
+      <CardCode 
+        class="mt-10" 
+        color="lightblue" 
+        title="Request" 
+        :code="customersRequestData" />
+      <CardCode 
+        class="mt-10" 
+        color="lightgreen" 
+        title="Response" 
+        :code="customersDataResponse"
+        :is-error="isFetchCustomersDataError" />
+    </template>
+  </CardWrapper>
 </template>
 
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
-import CardComponent from "@/components/GeneralAppComponents/CardComponent.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
-import { mapGetters } from "vuex";
-import axios from "../util/axios.js";
+import CardComponent from "@/components/Shared/CardComponent.vue";
+import CardCode from "@/components/Shared/CardCode.vue";
+import CardWrapper from "@/components/Shared/CardWrapper.vue";
+
+import axios from "@/util/axios.js";
+import { getPathWithQueryParams } from "@/util/helpers.js";
+
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "CustomersMenu",
   components: {
     SheetAppBar,
     CardComponent,
-    BackButton,
+    CardCode,
+    CardWrapper,
   },
   data() {
     return {
+      getPathWithQueryParams,
+      resourceId: "",
       ApiVersion: "",
       identificationTitle: "",
       financialRelationTitle: "",
@@ -115,7 +91,7 @@ export default {
       customersDataResponse: "",
       customersRequestData: "",
       apiFamilyType: "",
-      resBannerStyle: "white--text cyan darken-4",
+      isFetchCustomersDataError: false,
       identificationsFullPath: "",
       financialRelationsFullPath: "",
       qualificationFullPath: "",
@@ -130,40 +106,32 @@ export default {
     ...mapGetters(["cadastroOption", "ApiOption"]),
   },
   methods: {
-    getPathWithQueryParams(invoiceFinancingsQueryParams){
-      let path = "";
-      let isFirstIteration = true;
-      for(let queryParam in invoiceFinancingsQueryParams){
-        if(invoiceFinancingsQueryParams[queryParam]){
-          if(!isFirstIteration){
-            path += `&${queryParam}=${invoiceFinancingsQueryParams[queryParam]}`;
-          } else {
-            isFirstIteration = false;
-            path = `?${queryParam}=${invoiceFinancingsQueryParams[queryParam]}`;
-          }
-        }
-      }
+    ...mapActions(["setError", "setLoading"]),
 
-      return path;
-    },
     async fetchCustomersData(path) {
       let response;
       try {
+        this.setLoading(true);
         response = await axios.get(`${this.apiFamilyType}/${path}`, {
           withCredentials: true,
         });
         if (response.status === 200) {
           this.customersRequestData = response.data.requestData;
           this.customersDataResponse = response.data.responseData;
-          this.resBannerStyle = "white--text cyan darken-4";
+          this.isFetchCustomersDataError = false;
         }
+        this.setLoading(false);
       } catch (error) {
+        this.setError(error.message);
+        this.isFetchCustomersDataError = true;
         if (error.response.status !== 200) {
-          this.resBannerStyle = "white--text red darken-1";
           this.customersDataResponse = error.response.data.responseData;
           this.customersRequestData = error.response.data.requestData;
         }
       }
+    },
+    changeResourceId(resourceId) {
+      this.resourceId = resourceId;
     },
   },
 

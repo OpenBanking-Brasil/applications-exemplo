@@ -1,290 +1,129 @@
 <template>
-  <v-main class="main">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <v-sheet
-          min-height="70vh"
-          elevation="20"
-          rounded="lg"
-          class="grey lighten-3"
-        >
-          <SheetAppBar header="Mock TPP" />
-          <v-container class="pa-md-12">
-            <v-dialog
-              transition="dialog-bottom-transition"
-              max-width="800"
-              v-model="dialog"
-              v-if="$route.params.data"
+  <div class="main-menu layout-wrapper">
+    <v-form>
+      <v-sheet>
+        <v-card elevation="0" class="pa-0">
+          <client-details-dialog
+            v-if="$route.params.data"
+            :messageText="messageText"
+          />
+
+          <v-row>
+            <v-col cols="6" >
+              <b class="app-label-holder">Client ID</b>
+              <v-text-field
+                placeholder="123456"
+                outlined
+                v-model="clientID"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="6" >
+              <b class="app-label-holder">Refresh Token</b>
+              <v-text-field
+                placeholder="123456"
+                outlined
+                v-model="refreshToken"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+
+          <v-row>
+            <v-col cols="6" >
+              <b class="app-label-holder">Consent ID</b>
+              <v-text-field
+                placeholder="123456"
+                outlined
+                v-model="consentID"
+              ></v-text-field>
+            </v-col>
+
+            <v-col cols="6" >
+              <b class="app-label-holder">Payment ID</b>
+              <v-text-field
+                placeholder="123456"
+                outlined
+                v-model="paymentID"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+        </v-card>
+
+        <v-row class="layout-wrapper__bottom-btns mt-4">
+          <v-col cols="6" class="pa-0">
+            <v-btn
+              depressed
+              block
+              text
+              height="57"
+              class="rounded-0"
+              @click="createConsent"
             >
-              <template v-slot:default="dialog">
-                <v-card>
-                  <v-toolbar class="blue-grey darken-4 font-weight-bold" dark
-                    >Client Details</v-toolbar
-                  >
-                  <v-card-text>
-                    <div>
-                      <v-row>
-                        <v-col>
-                          <v-alert dense text type="success" class="mt-5">
-                            {{ messageText }}
-                          </v-alert>
-                          <v-card class="mt-5">
-                            <v-list dense>
-                              <v-list-item>
-                                <v-list-item-content
-                                  >Client ID:</v-list-item-content
-                                >
-                                <v-list-item-content class="align-end">
-                                  {{ clientID }}
-                                </v-list-item-content>
-                              </v-list-item>
+              <v-icon left> mdi-file-document-plus-outline </v-icon>
+              <span>Create Consent</span>
+            </v-btn>
+          </v-col>
 
-                              <v-list-item>
-                                <v-list-item-content
-                                  >Registration Access
-                                  Token:</v-list-item-content
-                                >
-                                <v-list-item-content class="align-end">
-                                  {{ registrationAccessToken }}
-                                </v-list-item-content>
-                              </v-list-item>
+          <v-col cols="6" class="pa-0">
+            <v-btn
+              depressed
+              block
+              text
+              height="57"
+              class="rounded-0"
+              :disabled="!paymentIsScheduled"
+              @click="revokePayment"
+            >
+              <v-icon left> mdi-cancel </v-icon>
+              <span>Revoke Payment</span>
+            </v-btn>
+          </v-col>
+        </v-row>
 
-                              <v-list-item>
-                                <v-list-item-content
-                                  >Granted Scopes:</v-list-item-content
-                                >
-                                <v-list-item-content class="align-end">
-                                  {{ scopes }}
-                                </v-list-item-content>
-                              </v-list-item>
-                            </v-list>
-                          </v-card>
-                        </v-col>
-                      </v-row>
-                    </div>
-                  </v-card-text>
-                  <v-card-actions class="justify-end">
-                    <v-btn text @click="dialog.value = false">OK</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </template>
-            </v-dialog>
-            <v-row>
-              <v-col cols="12" sm="6" md="3">
-                <b>Client ID</b>
-                <v-text-field
-                  placeholder="123456"
-                  outlined
-                  filled
-                  v-model="clientID"
-                ></v-text-field>
-              </v-col>
-              <v-col> </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <b>Refresh Token</b>
-                <v-text-field
-                  placeholder="123456"
-                  outlined
-                  filled
-                  v-model="refreshToken"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="6" md="3">
-                <b>Consent ID</b>
-                <v-text-field
-                  placeholder="123456"
-                  outlined
-                  filled
-                  v-model="consentID"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="12" sm="6" md="3">
-                <b>Payment ID</b>
-                <v-text-field
-                  placeholder="123456"
-                  outlined
-                  filled
-                  v-model="paymentID"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-          </v-container>
-
-          <v-row style="margintop: -60px" align="center">
-            <v-col align="center">
-              <Button
-                colour="white--text orange darken-1"
-                text="Create Consent"
-                icon="mdi-check"
-                :func="createConsent"
-                :hasIcon="true"
-              />
-            </v-col>
-            <v-col align="center">
-              <Button
-                colour="white--text green lighten-1"
-                text="Create Payment"
-                icon="mdi-file"
-                :func="createPayment"
-                :hasIcon="true"
-              />
-            </v-col>
-            <v-col align="center">
-              <v-dialog transition="dialog-bottom-transition" max-width="800">
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    color="primary"
-                    v-bind="attrs"
-                    v-on="on"
-                    depressed
-                    x-large
-                    @click="getPayment"
-                  >
-                    <v-icon left>mdi-refresh</v-icon>
-                    Check Status</v-btn
-                  >
-                </template>
-                <template v-slot:default="dialog">
-                  <v-card>
-                    <v-toolbar class="blue-grey darken-4 font-weight-bold" dark
-                      >Payment Status</v-toolbar
-                    >
-                    <v-card-text>
-                      <div>
-                        <v-row>
-                          <v-col>
-                            <v-card>
-                              <v-card-title
-                                class="subheading font-weight-bold mt-6"
-                              >
-                                {{ bankName }}
-                              </v-card-title>
-
-                              <v-divider></v-divider>
-
-                              <v-list dense>
-                                <v-list-item>
-                                  <v-list-item-content
-                                    >Amount:</v-list-item-content
-                                  >
-                                  <v-list-item-content class="align-end">
-                                    {{ paymentAmount }}
-                                  </v-list-item-content>
-                                </v-list-item>
-
-                                <v-list-item>
-                                  <v-list-item-content
-                                    >Status:</v-list-item-content
-                                  >
-                                  <v-list-item-content class="align-end">
-                                    {{ status }}
-                                  </v-list-item-content>
-                                </v-list-item>
-
-                                <v-list-item>
-                                  <v-list-item-content
-                                    >Currency:</v-list-item-content
-                                  >
-                                  <v-list-item-content class="align-end">
-                                    {{ currency }}
-                                  </v-list-item-content>
-                                </v-list-item>
-
-                                <v-list-item>
-                                  <v-list-item-content
-                                    >Creation Date and
-                                    Time:</v-list-item-content
-                                  >
-                                  <v-list-item-content class="align-end">
-                                    {{ creationDateTime }}
-                                  </v-list-item-content>
-                                </v-list-item>
-
-                                <v-list-item v-if="paymentIsScheduled">
-                                  <v-list-item-content
-                                    >Scheduled Date :</v-list-item-content
-                                  >
-                                  <v-list-item-content class="align-end">
-                                    {{ scheduledDate }}
-                                  </v-list-item-content>
-                                </v-list-item>
-                              </v-list>
-                              <v-progress-linear
-                                v-if="loading"
-                                indeterminate
-                                color="primary"
-                              ></v-progress-linear>
-                            </v-card>
-                          </v-col>
-                        </v-row>
-                      </div>
-                    </v-card-text>
-                    <v-card-actions class="justify-end">
-                      <v-btn text @click="dialog.value = false">Close</v-btn>
-                    </v-card-actions>
-                  </v-card>
-                </template>
-              </v-dialog>
-            </v-col>
-            <v-col align="center" v-if="paymentIsScheduled">
-              <Button
-                colour="white--text light-blue darken-4"
-                text="Revoke Payment"
-                icon="mdi-cancel"
-                :hasIcon="true"
-                :func="revokePayment"
-              />
-            </v-col>
-          </v-row>
-
-          <v-row justify="space-around">
-            <v-col cols="auto"> </v-col>
-          </v-row>
-        </v-sheet>
-      </v-col>
-      <v-col cols="12" sm="2">
-        <BackButton />
-      </v-col>
-    </v-row>
-    <v-snackbar v-model="snackbar" :multi-line="multiLine">
-      {{ snackbarMessage }}
-
-      <template v-slot:action="{ attrs }">
-        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </v-main>
+        <v-row class="layout-wrapper__bottom-btns mt-0">
+          <v-col cols="6" class="pa-0">
+            <payment-status-dialog
+              :loading="loading"
+              :scheduledDate="scheduledDate"
+              :creationDateTime="creationDateTime"
+              :currency="currency"
+              :status="status"
+              :paymentAmount="paymentAmount"
+              :bankName="bankName"
+              :paymentIsScheduled="paymentIsScheduled"
+              @getPayment="getPayment"
+            />
+          </v-col>
+          
+          <v-col cols="6" class="pa-0">
+            <v-btn depressed block text height="57" @click="createPayment">
+              <v-icon left> mdi-file-outline </v-icon>
+              <span>Create Payment</span>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-sheet>
+    </v-form>
+  </div>
 </template>
 
 <script>
-// @ is an alias to /src
-import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
 import Button from "@/components/Buttons/Button.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
-import axios from "../util/axios.js";
-import { mapGetters } from "vuex";
+import PaymentStatusDialog from "@/components/Dialogs/PaymentStatusDialog";
+import ClientDetailsDialog from "@/components/Dialogs/ClientDetailsDialog";
+import axios from "@/util/axios.js";
+import { mapGetters, mapActions} from "vuex";
 
 export default {
   name: "MainMenuView",
   components: {
-    SheetAppBar,
     Button,
-    BackButton,
+    PaymentStatusDialog,
+    ClientDetailsDialog,
   },
 
   data: () => ({
-    dialog: true,
-    multiLine: true,
-    snackbar: false,
     loading: false,
-    snackbarMessage: "",
     bankName: "",
     clientId: "",
     refreshToken: "",
@@ -304,6 +143,8 @@ export default {
   },
 
   methods: {
+    ...mapActions(["setError", "setInfo"]),
+
     async getPayment() {
       this.loading = true;
 
@@ -330,8 +171,7 @@ export default {
             })
             .catch((error) => {
               if (error.response.status !== 200) {
-                this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
-                this.snackbar = true;
+                this.setError(`Error ${error.response.status} - ${error.message}`);
                 this.loading = false;
               }
             });
@@ -340,8 +180,7 @@ export default {
         }
       } catch (error) {
         if (error.response.status !== 200) {
-          this.snackbarMessage = `Error ${error.response.status} - ${error.message}`;
-          this.snackbar = true;
+          this.setError(`Error ${error.response.status} - ${error.message}`);
           this.loading = false;
         }
       }
@@ -387,8 +226,7 @@ export default {
         this.paymentIsScheduled = response?.data.scheduled ? true : false;
       }
     } catch (error) {
-      this.snackbarMessage = error.message;
-      this.snackbar = true;
+      this.setError(error.message);
     }
   },
 };

@@ -1,191 +1,104 @@
 <template>
-  <v-main class="patch">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <SheetAppBar header="Patch Details" />
-        <v-sheet min-height="70vh" rounded="lg">
-          <v-container class="pa-md-12">
-            <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
-              <v-card-title class="white--text cyan darken-4"
-                >Logged User</v-card-title
-              >
-              <v-card-text>
-                <v-row class="pa-6">
-                  <v-col cols="12" sm="4" md="4">
-                    <b>Document Identification </b
-                    ><v-icon
-                      small
-                      title="
-                type: string
-            maxLength: 14
-            description: Número do documento de identificação oficial do titular pessoa jurídica.
-            example: '11111111111111'
-            pattern: '^\d{14}$'"
-                    >
-                      mdi-information
-                    </v-icon>
-                    <v-text-field
-                      class="text-green"
-                      placeholder="76109277673"
-                      outlined
-                      filled
-                      id="loggedUser_document_identification"
-                      v-model="formData.document_identification"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="4" md="4">
-                    <b>Document Rel </b
-                    ><v-icon
-                      small
-                      title="
-                type: string
-            maxLength: 4
-            description: Tipo do documento de identificação oficial do titular pessoa jurídica.
-            example: CNPJ
-            pattern: '^[A-Z]{4}$'"
-                    >
-                      mdi-information
-                    </v-icon>
-                    <v-text-field
-                      placeholder="CPF"
-                      outlined
-                      filled
-                      id="loggedUser_document_rel"
-                      v-model="formData.document_rel"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-            <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
-              <v-card-title class="white--text cyan darken-4"
-                >Information</v-card-title
-              >
-              <v-card-text>
-                <v-row class="pa-6">
-                  <v-col cols="12" sm="4" md="4">
-                    <b>Revoked By </b
-                    ><v-icon
-                      small
-                      title="
-                type: string
-                maxLength: 8
-                enum:
-                - USER
-                - ASPSP
-                - TPP
-                example: USER
-                description:
-                Define qual das partes envolvidas na transação está realizando a revogação. Valores possíveis:
-                - USER (Revogado pelo usuário)
-                - ASPSP (Provedor de serviços de pagamento para serviços de conta - Detentora de conta)
-                - TPP (Instituições Provedoras - iniciadora de pagamentos)"
-                    >
-                      mdi-information
-                    </v-icon>
-                    <v-text-field
-                      placeholder="USER"
-                      outlined
-                      filled
-                      id="revokedBy"
-                      v-model="formData.revoked_by"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="4" md="4">
-                    <b>Code </b
-                    ><v-icon
-                      small
-                      title="
-                type: string
-                maxLength: 22
-                enum:
-                - FRAUD
-                - ACCOUNT_CLOSURE
-                - OTHER
-                example: OTHER
-                description: Define o código da razão pela qual o consentimento foi revogado.
-                Valores possíveis:
-                FRAUD - Indica suspeita de fraude
-                ACCOUNT_CLOSURE - Indica que a conta do usuário foi encerrada
-                OTHER - Indica que motivo do cancelamento está fora dos motivos pré-estabelecidos."
-                    >
-                      mdi-information
-                    </v-icon>
-                    <v-text-field
-                      placeholder="OTHER"
-                      outlined
-                      filled
-                      id="revokedCode"
-                      v-model="formData.code"
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="4" md="4">
-                    <b>Additional Information </b
-                    ><v-icon
-                      small
-                      title="
-                type: string
-                maxLength: 140
-                pattern: '[\w\W\s]*'
-                example: Não quero mais o serviço
-                description: 
-                Contém informações adicionais definidas pelo requisitante da revogação.
-                [Restrição] Deverá ser obrigatoriamente preenchido quando a revogação for feita pela iniciadora ou pela detentora unilateralmente, ou seja, quando o campo revokedBy for igual a TPP ou ASPSP e o motivo de revogação for OTHER."
-                    >
-                      mdi-information
-                    </v-icon>
-                    <v-text-field
-                      placeholder="Não quero mais o serviço"
-                      outlined
-                      filled
-                      id="revokedAdditionalInfo"
-                      v-model="formData.additional_info"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-            <v-container class="pt-16">
-              <v-col align="center">
-                <v-btn
-                  depressed
-                  color="primary"
-                  x-large
-                  :loading="loading"
-                  @click="revokePayment"
-                  ><v-icon left> mdi-file </v-icon>
-                  Confirm Patch
-                </v-btn>
+  <div class="patch layout-wrapper">
+    <v-form @submit.prevent="revokePayment">
+      <v-sheet>
+        <v-card elevation="0" class="pa-0">
+          <v-card-title class="px-0 pt-0 pb-5">Logged User</v-card-title>
+          <v-card-text class="px-0">
+            <v-row class="pa-0 align-end">
+              <v-col cols="6" md="6" sm="12">
+                <div class="app-label-holder d-flex justify-space-between">
+                  <span>Document Identification</span>
+                  <v-icon small color="secondary" :title="documentIdentificationTitle">
+                    mdi-information
+                  </v-icon>
+                </div>
+                <v-text-field class="text-green" placeholder="76109277673" outlined dense
+                  id="loggedUser_document_identification" v-model="formData.document_identification"></v-text-field>
               </v-col>
-            </v-container>
-          </v-container>
-        </v-sheet>
-      </v-col>
-
-      <v-col cols="12" sm="2">
-        <BackButton path="payment-menu" />
-      </v-col>
-    </v-row>
-  </v-main>
+              <v-col cols="6" md="6" sm="12">
+                <div class="app-label-holder d-flex justify-space-between">
+                  <span>Document Rel</span>
+                  <v-icon small color="secondary" :title="documentRelTitle">
+                    mdi-information
+                  </v-icon>
+                </div>
+                <v-text-field placeholder="CPF" outlined dense id="loggedUser_document_rel"
+                  v-model="formData.document_rel"></v-text-field>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+        <v-card elevation="0" class="pa-0">
+          <v-card-title class="px-0 pt-0 pb-5">Information</v-card-title>
+          <v-card-text class="px-0">
+            <v-row class="pa-0">
+              <v-col cols="6" md="6" sm="12">
+                <div class="app-label-holder d-flex justify-space-between">
+                  <span>Revoked By </span>
+                  <v-icon small color="secondary" :title="revokedByTitle">
+                    mdi-information
+                  </v-icon>
+                </div>
+                <v-text-field placeholder="USER" outlined dense id="revokedBy" v-model="formData.revoked_by">
+                </v-text-field>
+              </v-col>
+              <v-col cols="6" md="6" sm="12">
+                <div class="app-label-holder d-flex justify-space-between">
+                  <span>Code </span>
+                  <v-icon small color="secondary" :title="codeTitle">
+                    mdi-information
+                  </v-icon>
+                </div>
+                <v-text-field placeholder="OTHER" outlined dense id="revokedCode" v-model="formData.code">
+                </v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <div class="app-label-holder d-flex justify-space-between">
+                  <span>Additional Information</span>
+                  <v-icon small color="secondary" :title="additionalInformationTitle">
+                    mdi-information
+                  </v-icon>
+                </div>
+                <v-text-field placeholder="Não quero mais o serviço" outlined dense id="revokedAdditionalInfo"
+                  v-model="formData.additional_info"></v-text-field>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-card>
+        <v-row class="layout-wrapper__bottom-btns">
+          <v-col class="pa-0">
+            <v-btn block depressed height="57" color="primary" class="consent-create-btn" type="submit"
+              :loading="loading">
+              <v-icon left>mdi-file </v-icon>
+              <span>Confirm Patch</span>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-sheet>
+    </v-form>
+  </div>
 </template>
 
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
-import axios from "../util/axios.js";
+import axios from "@/util/axios.js";
+
+import { documentIdentificationTitle, documentRelTitle, revokedByTitle, codeTitle, additionalInformationTitle } from "@/config/patchView.js";
 
 export default {
   name: "PatchView",
   components: {
     SheetAppBar,
-    BackButton,
   },
 
   data: () => ({
+    documentIdentificationTitle,
+    documentRelTitle,
+    revokedByTitle,
+    codeTitle,
+    additionalInformationTitle,
     loading: false,
     formData: {
       document_identification: 76109277673,
@@ -238,3 +151,8 @@ export default {
   },
 };
 </script>
+<style scoped>
+.layout-wrapper {
+  padding: 40px 40px 0 40px;
+}
+</style>

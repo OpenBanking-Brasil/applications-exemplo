@@ -1,6 +1,7 @@
 <template>
-  <div class="pa-md-12" align="center">
-    <v-btn depressed :color="colour" x-large @click="clickAction">
+  <div class="pa-md-2" align="center">
+    <v-btn class="inner-btn" depressed :color="colour" x-large @click="clickAction"
+    style="width:100%;">
       <v-icon left v-if="hasIcon"> {{ icon }} </v-icon>
       {{ text }}
     </v-btn>

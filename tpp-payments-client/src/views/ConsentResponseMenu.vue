@@ -1,368 +1,222 @@
 <template>
-  <v-main class="consent-menu">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <SheetAppBar header="Consent Response Menu" />
-
-        <v-sheet min-height="70vh" rounded="lg" v-if="!loading">
-          <v-container class="pa-md-12">
-            <v-dialog transition="dialog-bottom-transition" max-width="800">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  color="primary"
-                  v-bind="attrs"
-                  v-on="on"
-                  depressed
-                  x-medium
-                >
-                  Client Details</v-btn
-                >
-              </template>
-              <template v-slot:default="dialog">
-                <v-card>
-                  <v-toolbar class="blue-grey darken-4 font-weight-bold" dark
-                    >Client Details</v-toolbar
-                  >
-                  <v-card-text>
-                    <div>
-                      <v-row>
-                        <v-col>
-                          <v-card class="mt-5">
-                            <v-list dense>
-                              <v-list-item>
-                                <v-list-item-content
-                                  >Client ID:</v-list-item-content
-                                >
-                                <v-list-item-content class="align-end">
-                                  {{ clientID }}
-                                </v-list-item-content>
-                              </v-list-item>
-
-                              <v-list-item>
-                                <v-list-item-content
-                                  >Registration Access
-                                  Token:</v-list-item-content
-                                >
-                                <v-list-item-content class="align-end">
-                                  {{ registrationAccessToken }}
-                                </v-list-item-content>
-                              </v-list-item>
-
-                              <v-list-item>
-                                <v-list-item-content
-                                  >Scopes Granted:</v-list-item-content
-                                >
-                                <v-list-item-content class="align-end">
-                                  {{ scopes }}
-                                </v-list-item-content>
-                              </v-list-item>
-                            </v-list>
-                            <v-progress-linear
-                              v-if="loading"
-                              indeterminate
-                              color="primary"
-                            ></v-progress-linear>
-                          </v-card>
-                        </v-col>
-                      </v-row>
-                    </div>
-                  </v-card-text>
-                  <v-card-actions class="justify-end">
-                    <v-btn text @click="dialog.value = false">Close</v-btn>
-                  </v-card-actions>
-                </v-card>
-              </template>
-            </v-dialog>
-            <v-btn
-              color="primary"
-              class="ma-3"
-              depressed
-              x-medium
-              @click="$router.push('consents')"
-            >
-              Manage Consents
-            </v-btn>
-            <div class="pa-2"></div>
-            <v-row>
-              <v-col cols="12" md="8">
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4"
-                    >Selected Consent POST Request
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-icon v-bind="attrs" v-on="on" color="white" right
-                          >mdi-information</v-icon
-                        >
-                      </template>
-                      <span
-                        >POST request to the consents endpoint was made when
-                        permissions were selected from the permissions
-                        table.</span
-                      >
-                    </v-tooltip>
-                  </v-card-title>
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto"
-                      >{{ consentReqObj }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-                <div class="pa-2"></div>
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4"
-                    >Selected Consent GET Request
-                    <v-tooltip top>
-                      <template v-slot:activator="{ on, attrs }">
-                        <v-icon v-bind="attrs" v-on="on" color="white" right
-                          >mdi-information</v-icon
-                        >
-                      </template>
-                      <span
-                        >GET request to the consents endpoint was made before this page got mounted to the DOM to get the created consent.</span
-                      >
-                    </v-tooltip>
-                  </v-card-title>
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto"
-                      >{{ requestData }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-                <div class="pa-2"></div>
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text cyan darken-4"
-                    >Selected Consent Response</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto"
-                      >{{ consentPayload }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="12" md="3">
+  <CardWrapper title="Consents Granted">
+    <template v-slot:top>
+      <v-dialog transition="dialog-bottom-transition" max-width="800">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn color="primary" v-bind="attrs" v-on="on" depressed x-medium>
+            Client Details
+          </v-btn>
+        </template>
+        <template v-slot:default="dialog">
+          <v-card>
+            <v-toolbar class="blue-grey darken-4 font-weight-bold" dark>Client Details</v-toolbar>
+            <v-card-text>
+              <div>
                 <v-row>
-                  <h3 class="grey--text text--darken-1">Consents Granted</h3>
-                  <v-dialog transition="dialog-bottom-transition" max-width="800">
-                    <template v-slot:activator="{ on, attrs }">
-                      <v-btn
-                        class="ma-1 mt-4"
-                        outlined
-                        color="primary"
-                        v-bind="attrs"
-                        v-on="on"
-                        v-for="(consent, index) in grantedConsents"
-                        :key="index"
-                        @click="
-                          () => {
-                            getConsentInfo(consent);
-                          }
-                        "
-                      >
-                        <v-icon left>mdi-information</v-icon>
-                        {{ consent.category }}
-                      </v-btn>
-                    </template>
-                    <template v-slot:default="dialog">
+                  <v-col>
+                    <v-card class="mt-5">
+                      <v-list dense>
+                        <v-list-item>
+                          <v-list-item-content>Client ID:</v-list-item-content>
+                          <v-list-item-content class="align-end">
+                            {{ clientID }}
+                          </v-list-item-content>
+                        </v-list-item>
+
+                        <v-list-item>
+                          <v-list-item-content>Registration Access
+                            Token:</v-list-item-content>
+                          <v-list-item-content class="align-end">
+                            {{ registrationAccessToken }}
+                          </v-list-item-content>
+                        </v-list-item>
+
+                        <v-list-item>
+                          <v-list-item-content>Scopes Granted:</v-list-item-content>
+                          <v-list-item-content class="align-end">
+                            {{ scopes }}
+                          </v-list-item-content>
+                        </v-list-item>
+                      </v-list>
+                    </v-card>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-card-text>
+            <v-card-actions class="justify-end">
+              <v-btn text @click="dialog.value = false">Close</v-btn>
+            </v-card-actions>
+          </v-card>
+        </template>
+      </v-dialog>
+      <v-btn color="primary" class="ma-3" depressed x-medium @click="$router.push('consents')">
+        Manage Consents
+      </v-btn>
+    </template>
+    <template v-slot:card-content>
+      <v-dialog transition="dialog-bottom-transition" max-width="800">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn class="ma-1 mt-4" outlined color="primary" v-bind="attrs" v-on="on"
+              v-for="(consent, index) in grantedConsents" :key="index" @click="getConsentInfo(consent)">
+              <v-icon left>mdi-information</v-icon>
+              {{ consent.category }}
+            </v-btn>
+          </template>
+          <template v-slot:default="dialog">
+            <v-card>
+              <v-toolbar class="blue-grey darken-4 font-weight-bold" dark>Permissions</v-toolbar>
+              <v-card-text>
+                <div>
+                  <v-row>
+                    <v-col>
                       <v-card>
-                        <v-toolbar
-                          class="blue-grey darken-4 font-weight-bold"
-                          dark
-                          >Permissions</v-toolbar
-                        >
-                        <v-card-text>
-                          <div>
-                            <v-row>
-                              <v-col>
-                                <v-card>
-                                  <v-card-title
-                                    class="subheading font-weight-bold mt-6"
-                                  >
-                                    {{ grantedConsentsCategory }}
-                                  </v-card-title>
-  
-                                  <v-divider></v-divider>
-                                  <v-list-item>
-                                    <v-list-item-content>
-                                      <strong>Group(s)</strong>
-                                    </v-list-item-content>
-                                    <v-list-item-content class="align-end">
-                                      <strong>Permissions</strong>
-                                    </v-list-item-content>
-                                  </v-list-item>
-                                  <v-divider></v-divider>
-  
-                                  <v-list
-                                    v-for="(consentObj, index) in consentsArr"
-                                    :key="index"
-                                    dense
-                                  >
-                                    <v-list-item>
-                                      <v-list-item-content>
-                                        {{ consentObj.group }}
-                                      </v-list-item-content>
-                                      <v-list-item-content
-                                        class="align-end"
-                                        style="overflow: auto"
-                                      >
-                                        {{ consentObj.permissions }}
-                                      </v-list-item-content>
-                                    </v-list-item>
-                                  </v-list>
-                                </v-card>
-                              </v-col>
-                            </v-row>
-                          </div>
-                        </v-card-text>
-                        <v-card-actions class="justify-end">
-                          <v-btn text @click="dialog.value = false">Close</v-btn>
-                        </v-card-actions>
+                        <v-card-title class="subheading font-weight-bold mt-6">
+                          {{ grantedConsentsCategory }}
+                        </v-card-title>
+
+                        <v-divider></v-divider>
+                        <v-list-item>
+                          <v-list-item-content>
+                            <strong>Group(s)</strong>
+                          </v-list-item-content>
+                          <v-list-item-content class="align-end">
+                            <strong>Permissions</strong>
+                          </v-list-item-content>
+                        </v-list-item>
+                        <v-divider></v-divider>
+
+                        <v-list v-for="(consentObj, index) in consentsArr" :key="index" dense>
+                          <v-list-item>
+                            <v-list-item-content>
+                              {{ consentObj.group }}
+                            </v-list-item-content>
+                            <v-list-item-content class="align-end" style="overflow: auto">
+                              {{ consentObj.permissions }}
+                            </v-list-item-content>
+                          </v-list-item>
+                        </v-list>
                       </v-card>
-                    </template>
-                  </v-dialog>
-                </v-row>
-                <v-row class="mt-10">
-                  <h3 class="grey--text text--darken-1">Selected Consent ID</h3>
-                  <p>{{ this.consentId}}</p>
-                </v-row>
-                <v-row class="mt-6">
-                  <h3 class="grey--text text--darken-1">Selected Consent Status</h3>
-                  <p :class="statusColor">{{ this.consentStatus }}</p>
-                </v-row>
-              </v-col>
-            </v-row>
-            <div class="pa-2"></div>
-            <v-divider class="mt-5"></v-divider>
-            <h3 class="ma-3 mt-5 grey--text text--darken-1">
-              Select which API to call with the consents that have been granted:
-            </h3>
-            <v-btn
-              color="primary"
-              class="ma-3 mt-5"
-              @click="$router.push('customers')"
-            >
-              1. Personal/Business Info
-            </v-btn>
-            <v-btn
-              color="primary"
-              class="ma-3 mt-5"
-              @click="$router.push('accounts')"
-            >
-              2. Accounts
-            </v-btn>
-            <v-btn
-              color="primary"
-              class="ma-3 mt-5"
-              @click="$router.push('credit-card-accounts')"
-            >
-              3. Credit Card
-            </v-btn>
+                    </v-col>
+                  </v-row>
+                </div>
+              </v-card-text>
+              <v-card-actions class="justify-end">
+                <v-btn text @click="dialog.value = false">Close</v-btn>
+              </v-card-actions>
+            </v-card>
+          </template>
+        </v-dialog>
+    </template>
+    <template v-slot:content>
+      <v-card elevation="0" class="pa-0">
+        <v-card-title class="px-0 pt-0 pb-5">Selected Consent ID</v-card-title>
+        <span>{{ consentId }}</span>
+      </v-card>
+      <v-card elevation="0" class="pa-0">
+        <v-card-title class="px-0 pt-0 pb-5">Selected Consent Status</v-card-title>
+        <span :class="statusColor">{{ consentStatus }}</span>
+      </v-card>
+      <CardCode 
+        class="mt-10" 
+        color="lightblue" 
+        title="Selected Consent POST Request" 
+        :code="consentReqObj" 
+        tooltip="POST request to the consents endpoint was made when
+        permissions were selected from the permissions
+        table." />
+      <CardCode 
+        class="mt-10" 
+        color="lightblue" 
+        title="Selected Consent GET Request" 
+        :code="requestData" 
+        tooltip="GET request to the consents endpoint was made before this page got mounted to the DOM to get the
+        created consent." />
+      <CardCode 
+        class="mt-10" 
+        color="lightgreen" 
+        title="Selected Consent Response" 
+        :code="consentPayload" />
 
-            <v-dialog v-model="dialog" persistent max-width="600px">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  color="primary"
-                  v-bind="attrs"
-                  v-on="on"
-                  class="ma-3 mt-5"
-                >
-                  4. Credit Operations
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card-title>
-                  <span class="text-h5">Credit Operation Options</span>
-                </v-card-title>
-                <v-card-text>
-                  <v-container>
-                    <v-form ref="form" v-model="valid" lazy-validation>
-                      <v-row>
-                        <v-col class="d-flex" cols="12" sm="12">
-                          <v-select
-                            :items="[
-                              'Loans',
-                              'Financings',
-                              'Unarranged Accounts Overdraft',
-                              'Invoice Financings',
-                            ]"
-                            label="Credit Operations"
-                            dense
-                            outlined
-                            v-model="selectedCreditOperation"
-                            :rules="creditOperationRules"
-                          ></v-select>
-                        </v-col>
-                      </v-row>
-                    </v-form>
-                  </v-container>
-                </v-card-text>
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn color="blue darken-1" text @click="dialog = false">
-                    Close
-                  </v-btn>
-                  <v-btn
-                    color="blue darken-1"
-                    text
-                    @click="selectCreditOperationOption"
-                  >
-                    Save
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-            <v-btn
-              color="primary"
-              class="ma-3 mt-5"
-              @click="$router.push('resources')"
-            >
-              5. Resources
-            </v-btn>
-          </v-container>
-        </v-sheet>
-      </v-col>
-      <v-col cols="12" sm="2">
-        <BackButton path="consent-menu" />
-      </v-col>
-    </v-row>
-    <v-overlay :value="loading">
-      <v-progress-circular indeterminate size="100"></v-progress-circular>
-    </v-overlay>
-    <v-snackbar v-model="snackbar" :multi-line="multiLine" color="red accent-2">
-      {{ errorMessage }}
-
-      <template v-slot:action="{ attrs }">
-        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
-          Close
+      <v-card elevation="0" class="pa-0 mt-10">
+        <v-card-title class="px-0 pt-0 pb-5">
+          Select which API to call with the consents that have been granted:
+        </v-card-title>
+        <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('customers')">
+          1. Personal/Business Info
         </v-btn>
-      </template>
-    </v-snackbar>
-  </v-main>
+        <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('accounts')">
+          2. Accounts
+        </v-btn>
+        <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('credit-card-accounts')">
+          3. Credit Card
+        </v-btn>
+        <v-dialog v-model="dialog" persistent max-width="600px">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn color="primary" v-bind="attrs" v-on="on" class="ma-3 mt-5">
+              4. Credit Operations
+            </v-btn>
+          </template>
+          <v-card>
+            <v-card-title>
+              <span class="text-h5">Credit Operation Options</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-form ref="form" v-model="valid" lazy-validation>
+                  <v-row>
+                    <v-col class="d-flex" cols="12" sm="12">
+                      <v-select :items="[
+                        'Loans',
+                        'Financings',
+                        'Unarranged Accounts Overdraft',
+                        'Invoice Financings',
+                      ]" label="Credit Operations" dense outlined v-model="selectedCreditOperation"
+                        :rules="creditOperationRules"></v-select>
+                    </v-col>
+                  </v-row>
+                </v-form>
+              </v-container>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="dialog = false">
+                Close
+              </v-btn>
+              <v-btn color="blue darken-1" text @click="selectCreditOperationOption">
+                Save
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-btn color="primary" class="ma-3 mt-5" @click="$router.push('resources')">
+          5. Resources
+        </v-btn>
+      </v-card>
+    </template>
+  </CardWrapper>
 </template>
 
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
-import axios from "../util/axios.js";
+import CardCode from "@/components/Shared/CardCode.vue";
+import CardWrapper from "@/components/Shared/CardWrapper.vue";
+import axios from "@/util/axios.js";
+
 import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "ConsentResponseMenu",
   components: {
     SheetAppBar,
-    BackButton,
+    CardCode,
+    CardWrapper,
   },
   data() {
     return {
-      multiLine: true,
-      snackbar: false,
-      errorMessage: "",
       valid: true,
       dialog: false,
       selected: true,
-      loading: true,
       consentPayload: "",
       requestData: "",
       consentReqObj: "",
@@ -378,7 +232,8 @@ export default {
   },
 
   methods: {
-    ...mapActions(["setCadastroOption", "setSelectedConsent", "addToConsentsList"]),
+    ...mapActions(["setError", "setLoading", "setCadastroOption", "setSelectedConsent", "addToConsentsList"]),
+
     getConsentInfo(consentData) {
       this.grantedConsentsCategory = consentData.category;
       this.consentsArr = consentData.permissionsArray;
@@ -386,7 +241,7 @@ export default {
 
     async selectCreditOperationOption() {
       this.$refs.form.validate();
-      await setTimeout(() => {}, 100);
+      await setTimeout(() => { }, 100);
       if (!this.valid) {
         return;
       }
@@ -425,15 +280,12 @@ export default {
       "selectedConsent",
     ]),
     creditOperationSelected() {
-      if (this.selectedCreditOperation) {
-        return false;
-      }
-
-      return true;
+      return !(this.selectedCreditOperation);
     },
   },
   async created() {
     try {
+      this.setLoading(true);
       const response = await axios.get("/consent/consent-response", {
         withCredentials: true,
       });
@@ -452,7 +304,7 @@ export default {
         this.consentStatus = this.selectedConsent.consent.data.status;
       }
 
-      switch(this.consentStatus) {
+      switch (this.consentStatus) {
         case "AUTHORISED":
           this.statusColor = "green--text";
           break;
@@ -511,10 +363,9 @@ export default {
       }
 
       this.grantedConsents = [...formatedConsents];
-      this.loading = false;
+      this.setLoading(false);
     } catch (error) {
-      this.errorMessage = error.message;
-      this.snackbar = true;
+      this.setError(error.message);
     }
   },
 };

@@ -1,185 +1,189 @@
 <template>
-  <v-main class="banks">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <v-sheet min-height="70vh" elevation="20" rounded="lg">
-          <SheetAppBar header="Mock TPP" />
-          <v-row>
-            <v-col> </v-col>
-            <v-col cols="10">
-              <div class="pa-md-4 transition-swing text-h6" align="center">
-                {{ headerText }}
-              </div>
-              <v-text-field
-                label="Search"
-                outlined
-                clearable
-                v-model="search"
-              ></v-text-field>
+  <div class="banks layout-wrapper">
+    <div>
+      <v-row>
+        <v-col cols="12">
+          <v-text-field
+            clearable
+            flat
+            class="banks__search"
+            color="#338DAD"
+            v-model="search"
+          >
+            <template v-slot:label>
+              <v-icon>mdi-magnify</v-icon>
+              <span>Please choose a bank</span>
+            </template>
+          </v-text-field>
 
-              <v-skeleton-loader
-                class="mx-auto"
-                type="list-item-avatar, list-item-avatar, list-item-avatar, list-item-avatar"
-                v-if="loadingBanks"
-              ></v-skeleton-loader>
+          <v-skeleton-loader
+            class="mx-auto"
+            type="list-item-avatar, list-item-avatar, list-item-avatar, list-item-avatar"
+            v-if="loadingBanks"
+          ></v-skeleton-loader>
 
-              <v-card class="mx-auto" else>
-                <v-list-item-group
-                  style="max-height: 300px"
-                  class="overflow-y-auto"
-                >
-                  <v-list-item
-                    v-for="(bank, i) in searchBank"
-                    :key="bank.id"
-                    class="pa-md-4"
-                    @click="selectBank(bank.title)"
+          <v-list-item-group
+            v-else
+          >
+            <v-list-item
+              v-for="(bank, i) in searchBank"
+              :key="bank.id"
+              class=""
+              @click="selectBank(bank.title)"
+            >
+              <v-list-item-avatar width="95px">
+                <v-img contain :src="bank.avatar" @error="onImgError(i)"></v-img>
+              </v-list-item-avatar>
+
+              <v-list-item-content>
+                <v-list-item-title
+                  class="text-h5"
+                  v-text="bank.title"
+                ></v-list-item-title>
+              </v-list-item-content>
+
+              <v-list-item-action>
+                  <v-checkbox
+                    :value="selectedBank === bank.title"
+                    color="#007199"
+                    on-icon="mdi-circle-slice-8"
+                    off-icon="mdi-circle-outline"
                   >
-                    <v-list-item-avatar>
-                      <v-img contain :src="bank.avatar" @error="onImgError(i)"></v-img>
-                    </v-list-item-avatar>
+                  </v-checkbox>
+                </v-list-item-action>
+            </v-list-item>
+          </v-list-item-group>
+        </v-col>
+      </v-row>
 
-                    <v-list-item-content>
-                      <v-list-item-title
-                        class="text-h5"
-                        v-text="bank.title"
-                      ></v-list-item-title>
-                    </v-list-item-content>
-                  </v-list-item>
-                </v-list-item-group>
-              </v-card>
+      <v-dialog
+        v-model="dialog"
+        transition="dialog-bottom-transition"
+        content-class="dialog-content"
+        persistent
+        max-width="600px"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-row class="layout-wrapper__bottom-btns mx-0">
+            <v-col class="pa-0">
+              <v-btn
+                :disabled="selectedBank ? false : true"
+                depressed
+                block
+                height="57"
+                v-bind="attrs"
+                v-on="on"
+                class="banks__next-btn"
+                @click="getClients"
+              >
+                <span>Next</span>
+                <v-icon>mdi-chevron-right</v-icon>
+              </v-btn>
             </v-col>
-            <v-col> </v-col>
           </v-row>
+        </template>
 
-          <v-row justify="center" class="mt-12">
-            <v-dialog v-model="dialog" persistent max-width="600px">
-              <template v-slot:activator="{ on, attrs }">
-                <v-btn
-                  :disabled="selectedBank ? false : true"
-                  color="primary"
-                  v-bind="attrs"
-                  x-large
-                  v-on="on"
-                  @click="getClients"
-                  class="mb-10"
+        <v-card>
+          <v-toolbar height="46" dark>
+            <span>Client Options</span>
+
+            <v-btn
+              icon
+              height="36"
+              width="36"
+              class="mr-0"
+              @click="dialog = false"
+            >
+              <v-icon small>mdi-close</v-icon>
+            </v-btn>
+          </v-toolbar >
+
+          <v-card-text class="pt-8">
+            <v-form ref="form" v-model="valid" lazy-validation>
+              <v-row>
+                <v-col class="d-flex" cols="12" sm="12">
+                  <v-select
+                    :items="dcrOptions"
+                    label="Client Options"
+                    outlined
+                    color="#338DAD"
+                    v-model="selectedDcrOption"
+                  ></v-select>
+                </v-col>
+
+                <template
+                  v-if="selectedDcrOption === this.dcrOptions[1]"
                 >
-                  Continue
-                </v-btn>
-              </template>
-              <v-card>
-                <v-card-title>
-                  <span class="text-h5">Client Options</span>
-                </v-card-title>
-                <v-card-text>
-                  <v-container>
-                    <v-form ref="form" v-model="valid" lazy-validation>
-                      <v-row>
-                        <v-col class="d-flex" cols="12" sm="12">
-                          <v-select
-                            :items="dcrOptions"
-                            label="Client Options"
-                            dense
-                            outlined
-                            v-model="selectedDcrOption"
-                          ></v-select>
-                        </v-col>
-
-                        <v-col
-                          class="d-flex"
-                          cols="12"
-                          sm="12"
-                          v-if="selectedDcrOption === this.dcrOptions[1]"
-                        >
-                          <v-select
-                            :items="clientIds"
-                            label="Client Ids"
-                            dense
-                            outlined
-                            v-model="selectedClientId"
-                          ></v-select>
-                        </v-col>
-
-                        <template
-                          v-if="selectedDcrOption === this.dcrOptions[1]"
-                        >
-                          <v-col cols="12" sm="6">
-                            <v-text-field
-                              dense
-                              outlined
-                              label="Client ID"
-                              v-model="clientId"
-                              required
-                              :rules="clientIdRules"
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="12" sm="6">
-                            <v-text-field
-                              dense
-                              outlined
-                              label="Registration Access Token"
-                              v-model="registrationAccessToken"
-                              required
-                              :rules="registrationAccessTokenRules"
-                            ></v-text-field>
-                          </v-col>
-                        </template>
-                      </v-row>
-                    </v-form>
-                  </v-container>
-                </v-card-text>
-                <v-card-actions>
-                  <v-spacer></v-spacer>
-                  <v-btn color="blue darken-1" text @click="dialog = false">
-                    Close
-                  </v-btn>
-                  <v-btn
-                    color="blue darken-1"
-                    text
-                    @click="confirmSelectedBank"
+                  <v-col
+                    class="d-flex"
+                    cols="12"
+                    sm="12"
                   >
-                    Save
-                  </v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </v-row>
-        </v-sheet>
-      </v-col>
-      <v-col cols="12" sm="2">
-        <BackButton path="/" />
-      </v-col>
-    </v-row>
-    <v-overlay :value="loading">
-      <v-progress-circular indeterminate size="100"></v-progress-circular>
-    </v-overlay>
-    <v-snackbar v-model="snackbar" :multi-line="multiLine" color="red accent-2">
-      {{ text }}
+                    <v-select
+                      :items="clientIds"
+                      label="Client Ids"
+                      outlined
+                      v-model="selectedClientId"
+                    ></v-select>
+                  </v-col>
 
-      <template v-slot:action="{ attrs }">
-        <v-btn color="white" text v-bind="attrs" @click="snackbar = false">
-          Close
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </v-main>
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      outlined
+                      label="Client ID"
+                      v-model="clientId"
+                      required
+                      :rules="clientIdRules"
+                    ></v-text-field>
+                  </v-col>
+
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      outlined
+                      label="Registration Access Token"
+                      v-model="registrationAccessToken"
+                      required
+                      :rules="registrationAccessTokenRules"
+                    ></v-text-field>
+                  </v-col>
+                </template>
+              </v-row>
+            </v-form>
+          </v-card-text>
+
+          <v-card-actions>
+            <v-row class="layout-wrapper__bottom-btns">
+              <v-col class="col-6 pa-0">
+                <v-btn depressed block text height="57" @click="dialog = false">Close</v-btn>
+              </v-col>
+
+              <v-col class="col-6 pa-0">
+                <v-btn
+                  depressed
+                  block
+                  text
+                  height="57"
+                  @click="confirmSelectedBank"
+                >
+                  Save
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+  </div>
 </template>
 
 <script>
-// @ is an alias to /src
-
-import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
-import axios from "../util/axios.js";
+import axios from "@/util/axios.js";
 import { v1 as uuid } from "uuid";
 import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "BankView",
-  components: {
-    SheetAppBar,
-    BackButton,
-  },
+
   data: () => ({
     dcrOptions: [
       "Dynamically Register A New Client",
@@ -192,10 +196,7 @@ export default {
     ],
     valid: true,
     dialog: false,
-    multiLine: true,
-    snackbar: false,
     text: "Please select a bank",
-    loading: false,
     selectedBank: "",
     banks: [],
     search: "",
@@ -206,9 +207,11 @@ export default {
     selectedOption: "",
     cancelRequests: false,
     ApiVersion: "v1",
+    defaultOption: "customer-data-v1",
   }),
   methods: {
-    ...mapActions(["setScopes", "setApiOption"]),
+    ...mapActions(["setScopes", "setApiOption", "setError", "setLoading"]),
+
     selectBank(bankTitle) {
       if (this.selectedBank === bankTitle) {
         this.selectedBank = "";
@@ -226,9 +229,9 @@ export default {
       }
       this.dialog = false;
       axios.defaults.withCredentials = true;
-      this.loading = true;
 
       try {
+        this.setLoading(true);
         const res = await axios.post(
           "/dcr",
           {
@@ -267,10 +270,9 @@ export default {
             },
           });
         }
+        this.setLoading(false);
       } catch (error) {
-        this.text = error.response.statusText;
-        this.snackbar = true;
-        this.loading = false;
+        this.setError(error.response.statusText);
       }
     },
 
@@ -327,8 +329,7 @@ export default {
           }
         });
       } catch (error){
-        this.text = `Cannot get clients: error ${error.response.status}`;
-        this.snackbar = true;
+        this.setError(`Cannot get clients: error ${error.response.status}`);
       }
     },
   },
@@ -350,9 +351,10 @@ export default {
       }
     },
     searchBank() {
-      return this.banks.filter((bank) => {
-        return bank.title.toLowerCase().includes(this.search.toLowerCase());
-      });
+      return this.search ? this.banks.filter((bank) => {
+          return bank.title.toLowerCase().includes(this.search.toLowerCase());
+        })
+      : this.banks;
     },
 
     clientId: {
@@ -397,19 +399,23 @@ export default {
   async created() {
     this.clientId = "";
     this.registrationAccessToken = "";
-    this.selectedOption = this.$route.query.option;
+
+    this.selectedOption = this.$route.query.option || 
+      this.$router.push({ path: "banks", query: { option: this.defaultOption }}) && this.defaultOption;
+
     this.setApiOption(this.selectedOption);
 
     const optionWords = this.selectedOption.split("-");
     this.ApiVersion = optionWords[optionWords.length - 1];
 
     try {
+      this.setLoading(true);
       const response = await axios.get(`/banks/${this.selectedOption}`, { withCredentials: true });
       this.loadingBanks = false;
       this.getBanks(response.data);
+      this.setLoading(false);
     } catch (error){
-      this.text = error.message;
-      this.snackbar = true;
+      this.setError(error.message);
     }
   },
 };

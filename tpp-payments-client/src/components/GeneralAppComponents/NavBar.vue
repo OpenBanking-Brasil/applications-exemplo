@@ -1,52 +1,78 @@
 <template>
-  <v-app-bar app color="secondary" dark>
-
-    <router-link to="/" style="text-decoration: none">
-      <v-btn text>
-        <span class="mr-2">Home</span>
-        <v-icon>mdi-home</v-icon>
-      </v-btn>
-    </router-link>
-
-    <router-link to="/banks" style="text-decoration: none">
-      <v-btn text>
-        <span class="mr-2">Banks</span>
-        <v-icon>mdi-domain</v-icon>
-      </v-btn>
-    </router-link>
-
-    <router-link to="/payment-menu" style="text-decoration: none">
-      <v-btn text>
-        <span class="mr-2">Payments</span>
-        <v-icon>mdi-cash</v-icon>
-      </v-btn>
-    </router-link>
-
-    <v-divider inset vertical class="mr-5 ml-5"></v-divider>
-
-    <v-btn
-      href="https://github.com/OpenBanking-Brasil/applications-exemplo"
-      target="_blank"
-      text
+    <v-navigation-drawer
+      floating
+      permanent
+      width="180"
+      class="app-nav"
     >
-      <span class="mr-2">Mock TPP Github</span>
-      <v-icon>mdi-github</v-icon>
-    </v-btn>
-    <v-btn
-      href="https://gitlab.com/obb1/certification/-/wikis/Overview-of-the-Mock-TPP"
-      target="_blank"
-      text
-    >
-      <span class="mr-2">Documentation</span>
-      <v-icon>mdi-folder-open</v-icon>
-    </v-btn>
-  </v-app-bar>
+      <template v-slot:prepend>
+        <div class="logo-holder">
+          <img :src="logo" alt="logo" />
+        </div>
+      </template>
+
+      <v-list dense>
+        <v-list-item
+          v-for="item in navData"
+          :key="item.text"
+          :to="item.to"
+          :href="item.href"
+          :target="item.target"
+          link
+          class="app-nav__item"
+        >
+          <v-list-item-content>
+            <v-list-item-title>{{ item.text }}</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
 </template>
 
 <script>
+import logo from "@/assets/MockTPP.svg";
+
 export default {
   name: "NavBar",
 
-  data: () => ({}),
+  data() {
+    return {
+      logo,
+      items: [
+          { title: "Home", icon: "mdi-view-dashboard" },
+          { title: "About", icon: "mdi-forum" },
+        ],
+
+      navData: [
+        {
+          to: "/",
+          text: " Go Home",
+          icon: "mdi-home",
+        },
+        {
+          to: "/banks",
+          text: "Banks",
+          icon: "mdi-domain",
+        },
+        {
+          to: "/payment-menu",
+          text: "Payments",
+          icon: "mdi-cash",
+        },
+        {
+          href: "https://github.com/OpenBanking-Brasil/applications-exemplo",
+          target: "_blank",
+          text: "Mock TPP Github",
+          icon: "mdi-github",
+        },
+        {
+          href: "https://gitlab.com/obb1/certification/-/wikis/Overview-of-the-Mock-TPP",
+          target: "_blank",
+          text: "Documentation",
+          icon: "mdi-folder-open",
+        },
+      ]
+    };
+  },
 };
 </script>

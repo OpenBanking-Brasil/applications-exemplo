@@ -1,88 +1,57 @@
 <template>
-  <v-main class="payment-response">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <SheetAppBar header="Patch Response" />
-        <v-sheet min-height="70vh" rounded="lg">
-          <v-container class="pa-md-12">
-            <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
-              <v-card-title class="white--text cyan darken-4"
-                >Information</v-card-title
-              >
-              <v-card-text>
-                <v-row class="pt-6">
-                  <v-col cols="12" sm="4" md="4">
-                    <b>Payment Value</b>
-                    <v-text-field
-                      class="text-green"
-                      placeholder="1335.0"
-                      outlined
-                      filled
-                    ></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="2" md="2">
-                    <b>Revoked By</b>
-                    <v-text-field
-                      placeholder="USER"
-                      outlined
-                      filled
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
-              </v-card-text>
-            </v-card>
-            <div class="pa-2"></div>
-            <div class="pa-2"></div>
-            <v-card elevation="2" outlined color="">
-              <v-card-title :class="resBannerStyle"
-                >Patch Response Payload</v-card-title
-              >
-              <v-card-text>
-                <pre class="pt-4" style="overflow: auto">
-                  {{ patchResponse }}
-                </pre>
-              </v-card-text>
-            </v-card>
-            <div class="pa-2"></div>
-          </v-container>
-        </v-sheet>
+  <CardWrapper>
+    <template v-slot:card-content>
+      <v-col cols="6" sm="12" md="6">
+        <div class="app-label-holder d-flex justify-space-between">
+          <span>Payment Value</span>
+        </div>
+        <v-text-field class="text-green" placeholder="1335.0" outlined dense></v-text-field>
       </v-col>
-
-      <v-col cols="12" sm="2">
-        <BackButton />
+      <v-col cols="6" sm="12" md="6">
+        <div class="app-label-holder d-flex justify-space-between">
+          <span>Revoked By</span>
+        </div>
+        <v-text-field placeholder="USER" outlined dense></v-text-field>
       </v-col>
-    </v-row>
-  </v-main>
+    </template>
+    <template v-slot:content>
+      <CardCode 
+        class="mt-10" 
+        color="lightgreen" 
+        title="Patch Response Payload" 
+        :code="patchResponse"
+        :is-error="isPatchResponseError" />
+    </template>
+  </CardWrapper>
 </template>
 
 <script>
 // @ is an alias to /src
-
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
+import CardCode from "@/components/Shared/CardCode.vue";
+import CardWrapper from "@/components/Shared/CardWrapper.vue";
 
 export default {
   name: "PatchResponseView",
   components: {
     SheetAppBar,
-    BackButton,
+    CardCode,
+    CardWrapper,
   },
 
   data: () => ({
     patchResponse: {},
-    resBannerStyle: "white--text cyan darken-4",
+    isPatchResponseError: false,
     amount: null,
   }),
 
   created() {
     if (this.$route.params.status === 200) {
       this.patchResponse = this.$route.params.patchResponse;
-      this.resBannerStyle = "white--text cyan darken-4";
+      this.isPatchResponseError = true;
     } else {
       this.patchResponse = this.$route.params.patchErrorResponse;
-      this.resBannerStyle = "white--text red darken-1";
+      this.isPatchResponseError = false;
     }
   },
 };

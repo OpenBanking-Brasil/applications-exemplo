@@ -1,283 +1,183 @@
 <template>
-  <v-main class="consent-menu">
-    <v-row>
-      <v-col cols="12" sm="2"> </v-col>
-      <v-col cols="12" sm="8">
-        <SheetAppBar header="Credit Card Accounts" />
-
-        <v-sheet min-height="70vh" rounded="lg">
-          <v-container class="pa-md-12">
-            <h3 class="mb-3 mt-5 grey--text text--darken-1">
-              Add Query Parameters
-            </h3>
-
-            <v-row>
-              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
-                <v-text-field
-                  label="Page Size"
-                  v-model="creditCardAccountsQueryParams['page-size']"
-                  outlined
-                ></v-text-field>
-              </v-col>
-              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
-                <v-text-field
-                  label="Page"
-                  outlined
-                  v-model="creditCardAccountsQueryParams['page']"
-                ></v-text-field>
-              </v-col>
-              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4" v-if="ApiVersion === 'v2'">
-                <v-text-field
-                  label="Pagination Key"
-                  outlined
-                  v-model="creditCardAccountsQueryParams['pagination-key']"
-                ></v-text-field>
-              </v-col>
-              <v-col :cols="ApiVersion === 'v2' ? 3 : 4" :md="ApiVersion === 'v2' ? 3 : 4">
-                <v-btn
-                  depressed
-                  height="3.4rem"
-                  width="100%"
-                  color="primary"
-                  @click="getCreditCardAccountsByQueryParams"
-                >
-                  Run
-                </v-btn>
-              </v-col>
-            </v-row>
-
-            <v-row>
-              <v-col cols="12" md="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4"
-                    >Credit Card Accounts API Request</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                         {{ creditCardAccountsRequest }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-              <v-col cols="12" md="12">
-                <v-card elevation="2" outlined>
-                  <v-card-title :class="primaryResBannerStyle"
-                    >Credit Card Accounts API Response</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                         {{ creditCardAccountsResponse }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-            <v-row v-if="billIdSelected">
-              <v-col cols="12" sm="3">
-                <CardComponent
-                  title="Credit Card Bill Transactions API"
-                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/bills/{billId}/transactions`"
-                  :resourceId="selectedBillId"
-                  btnText="RUN"
-                  :displayTextField="true"
-                  :path="`${selectedCreditCardAccountId}/bills/${selectedBillId}/transactions`"
-                  :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams"
-                  :queryParams="creditCardAccountTransactionsQueryParams"
-                  flag="CREDIT_CARD_ACCOUNT_BILLS_TRANSACTIONS"
-                  @fetch-data="fetchAccountData"
-                  @resource-id-change="
-                    (billId) => changeResourceId(billId, true)
-                  "
-                />
-              </v-col>
-            </v-row>
-            <v-row v-else>
-              <v-col cols="12" sm="3">
-                <CardComponent
-                  title="Credit Card Account API"
-                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}`"
-                  :resourceId="selectedCreditCardAccountId"
-                  btnText="RUN"
-                  :displayTextField="true"
-                  :path="`${selectedCreditCardAccountId}`"
-                  @fetch-data="fetchAccountData"
-                  @resource-id-change="changeResourceId"
-                />
-              </v-col>
-              <v-col cols="12" sm="3">
-                <CardComponent
-                  title="Credit Card Account Limits API"
-                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/limits`"
-                  :resourceId="selectedCreditCardAccountId"
-                  btnText="RUN"
-                  :displayTextField="true"
-                  :path="`${selectedCreditCardAccountId}/limits`"
-                  @fetch-data="fetchAccountData"
-                  @resource-id-change="changeResourceId"
-                />
-              </v-col>
-              <v-col cols="12" sm="3">
-                <CardComponent
-                  title="Credit Card Account Transactions API"
-                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/transactions`"
-                  :resourceId="selectedCreditCardAccountId"
-                  btnText="RUN"
-                  :displayTextField="true"
-                  :path="`${selectedCreditCardAccountId}/transactions`"
-                  :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams"
-                  :queryParams="creditCardAccountTransactionsQueryParams"
-                  flag="CREDIT_CARD_ACCOUNT_TRANSACTIONS"
-                  @fetch-data="fetchAccountData"
-                  @resource-id-change="changeResourceId"
-                />
-              </v-col>
-              <v-col cols="12" sm="3" v-if="ApiVersion === 'v2'">
-                <CardComponent
-                  title="Credit Card Account Transactions Current API"
-                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/transactions-current`"
-                  :resourceId="selectedCreditCardAccountId"
-                  btnText="RUN"
-                  :displayTextField="true"
-                  :path="`${selectedCreditCardAccountId}/transactions-current`"
-                  :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams"
-                  :queryParams="creditCardAccountTransactionsCurrentQueryParams"
-                  flag="CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT"
-                  @fetch-data="fetchAccountData"
-                  @resource-id-change="changeResourceId"
-                />
-              </v-col>
-              <v-col cols="12" sm="3">
-                <CardComponent
-                  title="Credit Card Account Bills API"
-                  :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/bills`"
-                  :resourceId="selectedCreditCardAccountId"
-                  btnText="RUN"
-                  :displayTextField="true"
-                  :path="`${selectedCreditCardAccountId}/bills`"
-                  :supportsQueryParam="true"
-                  :getPathWithQueryParams="getPathWithQueryParams"
-                  :queryParams="creditCardAccountBillsQueryParams"
-                  flag="CREDIT_CARD_ACCOUNT_BILLS"
-                  @fetch-data="fetchAccountData"
-                  @resource-id-change="changeResourceId"
-                />
-              </v-col>
-            </v-row>
-            <div class="pa-2"></div>
-            <v-divider class="mt-5 mb-8"></v-divider>
-            <v-row>
-              <v-col cols="12" sm="4">
-                <v-card class="mx-auto" max-width="300" tile>
-                  <v-subheader>Available Account IDs</v-subheader>
-                  <v-list dense max-height="20vh" style="overflow: auto">
-                    <v-list-item-group
-                      color="primary"
-                      v-model="selectedAccountIdIndex"
-                    >
-                      <v-list-item
-                        v-for="(creditCardAccountId, i) in creditCardAccountIDs"
-                        :key="i"
-                        @click="
-                          () => {
-                            setAccountId(creditCardAccountId);
-                          }
-                        "
-                      >
-                        <v-list-item-content>
-                          <v-list-item-title
-                            v-text="creditCardAccountId"
-                          ></v-list-item-title>
-                        </v-list-item-content>
-                      </v-list-item>
-                    </v-list-item-group>
-                  </v-list>
-                </v-card>
-                <br />
-                <v-card
-                  class="mx-auto"
-                  max-width="300"
-                  tile
-                  v-if="billIDs.length > 0"
-                >
-                  <v-subheader>Available Bill IDs</v-subheader>
-                  <v-list dense max-height="20vh" style="overflow: auto">
-                    <v-list-item-group
-                      color="primary"
-                      v-model="selectedBillIdIndex"
-                    >
-                      <v-list-item
-                        v-for="(billId, i) in billIDs"
-                        :key="i"
-                        @click="
-                          () => {
-                            setBillId(billId);
-                          }
-                        "
-                      >
-                        <v-list-item-content>
-                          <v-list-item-title
-                            v-text="billId"
-                          ></v-list-item-title>
-                        </v-list-item-content>
-                      </v-list-item>
-                    </v-list-item-group>
-                  </v-list>
-                </v-card>
-              </v-col>
-              <v-col cols="12" sm="8">
-                <v-card elevation="2" outlined>
-                  <v-card-title class="white--text blue darken-4"
-                    >Request</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                        {{ creditCardAccountRequest }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-                <v-divider class="mt-5"></v-divider>
-                <v-card elevation="2" outlined>
-                  <v-card-title :class="secondaryResBannerStyle"
-                    >Response</v-card-title
-                  >
-                  <v-card-text>
-                    <pre class="pt-4" style="overflow: auto">
-                        {{ creditCardAccountResponse }}
-                    </pre>
-                  </v-card-text>
-                </v-card>
-              </v-col>
-            </v-row>
-          </v-container>
-        </v-sheet>
+  <CardWrapper title="Add Query Parameters">
+    <template v-slot:card-content>
+      <v-col cols="6" sm="12" md="6">
+        <v-text-field label="Page Size" v-model="creditCardAccountsQueryParams['page-size']" outlined dense>
+        </v-text-field>
       </v-col>
-      <v-col cols="12" sm="2">
-        <BackButton path="consent-response-menu" />
+      <v-col cols="6" sm="12" md="6">
+        <v-text-field label="Page" outlined v-model="creditCardAccountsQueryParams['page']" dense>
+        </v-text-field>
       </v-col>
-    </v-row>
-  </v-main>
+      <v-col cols="12" sm="12" md="12" v-if="ApiVersion === 'v2'">
+        <v-text-field label="Pagination Key" outlined v-model="creditCardAccountsQueryParams['pagination-key']"
+          dense>
+        </v-text-field>
+      </v-col>
+
+      <v-col cols="6" sm="12" md="3" class="mx-auto">
+        <v-btn depressed height="2.5rem" width="100%" color="primary"
+          @click="getCreditCardAccountsByQueryParams">
+          Run
+        </v-btn>
+      </v-col>
+    </template>
+    <template v-slot:content>
+      <CardCode 
+        class="mt-8" 
+        color="lightblue" 
+        title="Credit Card Accounts API Request"
+        :code="creditCardAccountsRequest" 
+        :is-error="isFetchCreditCardAccountsError" />
+      <CardCode 
+        class="mt-10" 
+        color="lightgreen" 
+        title="Credit Card Accounts API Response"
+        :code="creditCardAccountsResponse" 
+        :is-error="isFetchCreditCardAccountsError" />
+
+      <v-row class="mt-8" v-if="billIdSelected">
+        <v-col cols="12">
+          <CardComponent 
+            title="Credit Card Bill Transactions API"
+            :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/bills/{billId}/transactions`"
+            :resourceId="selectedBillId" 
+            :path="`${selectedCreditCardAccountId}/bills/${selectedBillId}/transactions`" 
+            :supportsQueryParam="true"
+            :getPathWithQueryParams="getPathWithQueryParams" 
+            :queryParams="creditCardAccountTransactionsQueryParams"
+            flag="CREDIT_CARD_ACCOUNT_BILLS_TRANSACTIONS" 
+            @fetch-data="fetchAccountData" 
+            @resource-id-change="
+              (billId) => changeResourceId(billId, true)
+            " />
+        </v-col>
+      </v-row>
+      <v-row class="mt-8" v-else>
+        <v-col cols="12" md="6">
+          <CardComponent 
+            title="Credit Card Account API"
+            :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}`"
+            :resourceId="selectedCreditCardAccountId" 
+            :path="`${selectedCreditCardAccountId}`" 
+            @fetch-data="fetchAccountData"
+            @resource-id-change="changeResourceId" />
+        </v-col>
+        <v-col cols="12" md="6">
+          <CardComponent 
+            title="Credit Card Account Limits API"
+            :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/limits`"
+            :resourceId="selectedCreditCardAccountId" 
+            :path="`${selectedCreditCardAccountId}/limits`" 
+            @fetch-data="fetchAccountData"
+            @resource-id-change="changeResourceId" />
+        </v-col>
+        <v-col cols="12" md="6">
+          <CardComponent 
+            title="Credit Card Account Transactions API"
+            :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/transactions`"
+            :resourceId="selectedCreditCardAccountId" 
+            :path="`${selectedCreditCardAccountId}/transactions`" 
+            :supportsQueryParam="true"
+            :getPathWithQueryParams="getPathWithQueryParams" 
+            :queryParams="creditCardAccountTransactionsQueryParams"
+            flag="CREDIT_CARD_ACCOUNT_TRANSACTIONS" 
+            @fetch-data="fetchAccountData"
+            @resource-id-change="changeResourceId" />
+        </v-col>
+        <v-col v-if="ApiVersion === 'v2'" cols="12" md="6">
+          <CardComponent 
+            title="Credit Card Account Transactions Current API"
+            :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/transactions-current`"
+            :resourceId="selectedCreditCardAccountId" 
+            :path="`${selectedCreditCardAccountId}/transactions-current`" 
+            :supportsQueryParam="true"
+            :getPathWithQueryParams="getPathWithQueryParams"
+            :queryParams="creditCardAccountTransactionsCurrentQueryParams"
+            flag="CREDIT_CARD_ACCOUNT_TRANSACTIONS_CURRENT" 
+            @fetch-data="fetchAccountData"
+            @resource-id-change="changeResourceId" />
+        </v-col>
+        <v-col cols="12" md="6">
+          <CardComponent 
+            title="Credit Card Account Bills API"
+            :fullPath="`/open-banking/credit-cards-accounts/${ApiVersion}/accounts/{creditCardAccountId}/bills`"
+            :resourceId="selectedCreditCardAccountId" 
+            :path="`${selectedCreditCardAccountId}/bills`" 
+            :supportsQueryParam="true"
+            :getPathWithQueryParams="getPathWithQueryParams" 
+            :queryParams="creditCardAccountBillsQueryParams"
+            flag="CREDIT_CARD_ACCOUNT_BILLS" 
+            @fetch-data="fetchAccountData" 
+            @resource-id-change="changeResourceId" />
+        </v-col>
+      </v-row>
+      <div class="pa-2"></div>
+      <v-divider class="mt-5 mb-8"></v-divider>
+
+      <v-card v-if="creditCardAccountIDs.length" elevation="0" class="pa-0">
+        <v-card-title class="px-0 pt-0 pb-5">Available Account IDs</v-card-title>
+        <v-list dense max-height="20vh" style="overflow: auto">
+          <v-list-item-group color="primary" v-model="selectedAccountIdIndex">
+            <v-list-item 
+              v-for="(creditCardAccountId, i) in creditCardAccountIDs" :key="i" @click="setAccountId(creditCardAccountId)">
+              <v-list-item-content>
+                <v-list-item-title v-text="creditCardAccountId"></v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </v-card>
+      <v-card v-if="billIDs.length" elevation="0" class="pa-0">
+        <v-card-title class="px-0 pt-0 pb-5">Available Bill IDs</v-card-title>
+        <v-list dense max-height="20vh" style="overflow: auto">
+          <v-list-item-group color="primary" v-model="selectedBillIdIndex">
+            <v-list-item v-for="(billId, i) in billIDs" :key="i" @click="setBillId(billId)">
+              <v-list-item-content>
+                <v-list-item-title v-text="billId"></v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </v-card>
+
+      <CardCode 
+        class="mt-10" 
+        color="lightblue" 
+        title="Request" 
+        :code="creditCardAccountRequest" />
+      <CardCode 
+        class="mt-10" 
+        color="lightgreen" 
+        title="Response" 
+        :code="creditCardAccountResponse" />
+    </template>
+  </CardWrapper>
 </template>
 
 <script>
 // @ is an alias to /src
 import SheetAppBar from "@/components/GeneralAppComponents/SheetAppBar.vue";
-import CardComponent from "@/components/GeneralAppComponents/CardComponent.vue";
-import BackButton from "@/components/GeneralAppComponents/BackButton.vue";
-import axios from "../util/axios.js";
-import { mapGetters } from "vuex";
+import CardComponent from "@/components/Shared/CardComponent.vue";
+import CardCode from "@/components/Shared/CardCode.vue";
+import CardWrapper from "@/components/Shared/CardWrapper.vue";
+
+import axios from "@/util/axios.js";
+import { getPathWithQueryParams } from "@/util/helpers.js";
+
+import { mapGetters, mapActions } from "vuex";
 
 export default {
   name: "CreditCardAccounts",
   components: {
     SheetAppBar,
     CardComponent,
-    BackButton,
+    CardCode,
+    CardWrapper,
   },
   data() {
     return {
+      getPathWithQueryParams,
       selectedAccountIdIndex: null,
       selectedBillIdIndex: null,
       acccountIdSelected: false,
@@ -290,8 +190,8 @@ export default {
       selectedBillId: "",
       creditCardAccountResponse: "",
       billIDs: [],
-      primaryResBannerStyle: "white--text cyan darken-4",
-      secondaryResBannerStyle: "white--text cyan darken-4",
+      isFetchCreditCardAccountsError: false,
+      isFetchAccountDataError: false,
       creditCardAccountsQueryParams: {
         "page-size": null,
         page: null,
@@ -331,22 +231,7 @@ export default {
     ...mapGetters(["ApiOption"]),
   },
   methods: {
-    getPathWithQueryParams(queryParams) {
-      let path = "";
-      let isFirstIteration = true;
-      for (let queryParam in queryParams) {
-        if (queryParams[queryParam]) {
-          if (!isFirstIteration) {
-            path += `&${queryParam}=${queryParams[queryParam]}`;
-          } else {
-            isFirstIteration = false;
-            path = `?${queryParam}=${queryParams[queryParam]}`;
-          }
-        }
-      }
-
-      return path;
-    },
+    ...mapActions(["setError", "setLoading"]),
 
     getCreditCardAccountsByQueryParams() {
       this.creditCardAccountIDs = [];
@@ -358,7 +243,7 @@ export default {
     },
 
     async getCreditCardAccounts(path = "") {
-
+      this.setLoading(true);
       try {
         const response = await axios.get(`/credit-cards-accounts${path}`, { withCredentials: true });
         this.creditCardAccountsResponse = response.data.responseData;
@@ -368,12 +253,14 @@ export default {
             creditCardAccount.creditCardAccountId
           );
         });
-        this.primaryResBannerStyle = "white--text cyan darken-4";
+        this.isFetchCreditCardAccountsError = false;
       } catch (error) {
-          this.creditCardAccountsResponse = error.response.data.responseData;
-          this.creditCardAccountsRequest = error.response.data.requestData;
-          this.primaryResBannerStyle = "white--text red darken-1";
+        this.setError(error.message);
+        this.isFetchCreditCardAccountsError = true;
+        this.creditCardAccountsResponse = error.response.data.responseData;
+        this.creditCardAccountsRequest = error.response.data.requestData;
       }
+      this.setLoading(false);
     },
     setAccountId(creditCardAccountId) {
       this.creditCardAccountResponse = "";
@@ -393,6 +280,7 @@ export default {
     },
 
     async fetchAccountData(path) {
+      this.setLoading(true);
       let response;
       try {
         response = await axios.get(`credit-cards-accounts/${path}`, {
@@ -401,8 +289,8 @@ export default {
         if (response.status === 200) {
           this.creditCardAccountResponse = response.data.responseData;
           this.creditCardAccountRequest = response.data.requestData;
-          this.secondaryResBannerStyle = "white--text cyan darken-4";
 
+          this.isFetchAccountDataError = false;
           if (path.match(`${this.selectedCreditCardAccountId}/bills/*`)) {
             response.data.responseData.data.forEach((bill) => {
               this.billIDs.push(bill.billId);
@@ -411,11 +299,13 @@ export default {
         }
       } catch (error) {
         if (error.response.status !== 200) {
-          this.secondaryResBannerStyle = "white--text red darken-1";
+          this.isFetchAccountDataError = true;
+          this.setError(error.message);
           this.creditCardAccountResponse = error.response.data.responseData;
           this.creditCardAccountRequest = error.response.data.requestData;
         }
       }
+      this.setLoading(false);
     },
 
     changeResourceId(resourceId, billdIdProvided = false) {

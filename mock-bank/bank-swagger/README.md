@@ -42,6 +42,6 @@ During our Continuous Integration builds we will add the `build number` to the v
 
 ## Client Generation
 
-The following clients will be automatically built and published to our Maven repository:
+The following clients will be automatically built and published to our Maven repository :
 
 - Java

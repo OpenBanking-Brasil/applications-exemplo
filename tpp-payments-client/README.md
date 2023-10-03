@@ -27,7 +27,7 @@ Open Banking Brasil Mock Payments Client
 
     4. Enter the administrator password when requested
     5. Once the hosts file is loaded within nano, use the arrow keys to navigate to the bottom of the hosts file to make your modifications
-    6. When finished, hit Control+O followed by ENTER/RETURN to save changes to /private/etc/hosts, then hit Control+X to exit out of nano
+    6. When finished, hit Control+O followed by ENTER/RETURN to save changes to /private/etc/hosts, then hit Control+X to exit out of nano 
 
 4. Run the following command to install all the required packages
 

@@ -1,0 +1,1372 @@
+[ {
+  "name" : "com.raidiam.trustframework.bank.domain.VariableIncomesBalanceEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessPhoneEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardsAccountPaymentMethodEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.controllers.BaseBankController",
+  "fields" : [ {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  }, {
+    "name" : "statusHandler"
+  } ]
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VariableIncomesBalanceEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractChargeOverParcelEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.util.UUID", "com.raidiam.trustframework.bank.domain.ContractReleasesEntity", "java.util.UUID", "java.lang.String", "java.lang.String", "double" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessIdentificationsCompanyCnpjEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FidoJwkEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalNationalityDocumentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEventEntity$ExchangesDeliveryForeignCurrency[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessPartyEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.util.Date", "java.util.UUID", "com.raidiam.trustframework.bank.domain.BusinessIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$PeriodConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.JtiEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FundsBalanceEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractFeeOverParcelEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.util.UUID", "com.raidiam.trustframework.bank.domain.ContractReleasesEntity", "java.util.UUID", "java.lang.String", "java.lang.String", "double" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AccountHolderEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Set", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalFinancialRelationsProductsServicesTypeEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalFinancialRelationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentExtensionEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "com.raidiam.trustframework.bank.domain.ConsentEntity", "java.util.Date", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentRiskSignalsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentRiskSignalsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.Boolean", "java.lang.Double", "java.lang.Long", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.Integer", "java.lang.Integer", "java.time.LocalDate", "java.math.BigDecimal", "java.math.BigDecimal", "java.lang.String", "java.lang.Boolean", "java.lang.Boolean", "java.lang.Boolean", "java.lang.Boolean", "java.lang.Boolean", "java.lang.Boolean", "java.lang.String", "java.lang.Boolean", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesEntity$VoucherPaymentIndicatorConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FundsBalanceEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesEntity$VoucherPaymentPeriodicityConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractReleasesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalEmailEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "boolean", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BaseEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VrpRecurringConfiguration[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.services.PaymentsService",
+  "fields" : [ {
+    "name" : "jtiRepository"
+  } ]
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentCreditCardAccountsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentFidoRegistrationOptionsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "com.raidiam.trustframework.bank.domain.EnrollmentEntity", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.Integer", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalNationalityEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEntity$ExchangesDeliveryForeignCurrency[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BankFixedIncomesBalanceEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractBalloonPaymentsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.util.UUID", "com.raidiam.trustframework.bank.domain.ContractEntity", "java.util.UUID", "java.time.LocalDate", "java.lang.String", "double" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEntity$ExchangesOperationType",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.services.FidoService",
+  "fields" : [ {
+    "name" : "enrollmentService"
+  } ]
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessQualificationsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.lang.String", "java.lang.String", "java.lang.Double", "java.lang.String", "java.lang.Integer", "java.lang.Double", "java.lang.String", "java.util.Date", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentFidoSignOptionsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractChargeOverParcelEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesBalanceEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessOtherDocumentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.util.UUID", "com.raidiam.trustframework.bank.domain.BusinessIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessIdentificationsCompanyCnpjEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "com.raidiam.trustframework.bank.domain.BusinessIdentificationsEntity", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentInvestmentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "java.util.UUID", "java.util.UUID", "java.util.UUID", "java.util.UUID", "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.BankFixedIncomesEntity" ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "com.raidiam.trustframework.bank.domain.ConsentEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.TreasureTitlesBalanceEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PeriodicLimitsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentConsentPaymentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesBalanceEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalOtherDocumentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesEntity$VoucherPaymentPeriodicityConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditorAccountEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentConsentEntity$PaymentDataEnrichment",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEventEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEntity$ExchangesOperationType[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardsAccountPaymentMethodEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsLimitsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalNationalityDocumentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.util.Date", "java.util.Date", "java.lang.String", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalNationalityEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentConsentEntity$PaymentDataEnrichment[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractedFinanceChargesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.util.UUID", "java.util.UUID", "com.raidiam.trustframework.bank.domain.ContractEntity", "java.lang.String", "java.lang.String", "java.lang.Double" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentInvestmentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$MonthConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsBillsPaymentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VariableIncomesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessQualificationsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessQualificationsEconomicActivitiesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.services.DefaultCnpjVerifier",
+  "fields" : [ {
+    "name" : "client"
+  } ]
+}, {
+  "name" : "com.raidiam.trustframework.bank.controllers.UserController",
+  "fields" : [ {
+    "name" : "userService"
+  } ]
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentContractEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalCompanyCnpjEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessIdentificationsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.lang.String", "java.util.Set", "java.util.Set", "java.util.Set", "java.util.Set", "java.util.Set", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PixPaymentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractFeeOverParcelEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractWarrantyEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$DayOfWeekConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentFidoRegistrationOptionsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BankFixedIncomesBalanceEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalFinancialRelationsProcuratorEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FundsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesEntity$TaxExemptConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalFiliationEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.utils.JtiHousekeeping",
+  "fields" : [ {
+    "name" : "jtiRepository"
+  } ]
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessFinancialRelationsProductsServicesTypeEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.BusinessFinancialRelationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsBillsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalFinancialRelationsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VariableIncomesBrokerNotesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalOtherDocumentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FidoJwkEntity$Base64URLConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentEntity$EnrollmentDataEnrichment",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEventEntity$ExchangesOperationType",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PeriodicLimitsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentConsentDetailsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$PeriodConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsTransactionEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalPostalAddressEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "boolean", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessIdentificationsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AccountTransactionsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.Double", "java.lang.String", "java.time.LocalDate", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "com.raidiam.trustframework.bank.domain.AccountEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FundsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$AccountTypeConsentsConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesEntity$VoucherPaymentIndicatorConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessEntityDocumentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "com.raidiam.trustframework.bank.domain.ConsentEntity", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractedFeesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEventEntity$ExchangesEventType",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentContractEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.ContractEntity" ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.ContractEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PixPaymentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "com.raidiam.trustframework.bank.domain.PaymentConsentEntity", "com.raidiam.trustframework.bank.domain.PixPaymentPaymentEntity", "com.raidiam.trustframework.bank.domain.CreditorAccountEntity", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.util.Date", "java.lang.String", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FidoJwkEntity$Base64URLConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsLimitsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VariableIncomesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractedFeesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalPhoneEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentsSimulateResponseEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BankFixedIncomesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessPostalAddressEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BaseEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessFinancialRelationsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentExchangeOperationEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessFinancialRelationsProcuratorEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.BusinessFinancialRelationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.JtiEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.time.OffsetDateTime" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentFidoSignOptionsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "com.raidiam.trustframework.bank.domain.EnrollmentEntity", "java.lang.String", "java.lang.String", "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractReleasesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.util.UUID", "java.util.UUID", "com.raidiam.trustframework.bank.domain.ContractEntity", "java.util.UUID", "boolean", "java.lang.String", "java.time.LocalDate", "java.lang.String", "double", "java.util.Set", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentPermissionEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "com.raidiam.trustframework.bank.domain.ConsentEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesTransactionsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentConsentDetailsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEntity$ExchangesDeliveryForeignCurrency",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AccountHolderEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalFiliationEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentEntity$EnrollmentDataEnrichment[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VariableIncomesBrokerNotesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VrpRecurringConfiguration",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentConsentPaymentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.Date", "java.lang.String", "java.lang.String", "java.util.Date", "com.raidiam.trustframework.bank.domain.PaymentConsentDetailsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalCompanyCnpjEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$MonthConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalNationalityEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.lang.String", "java.util.Set", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractInterestRatesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalPostalAddressEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalFinancialRelationsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.util.Date", "java.lang.String", "java.util.Set", "java.util.Set", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentAccountEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.AccountEntity" ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.AccountEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.TreasureTitlesTransactionsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentConsentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "com.raidiam.trustframework.bank.domain.BusinessEntityDocumentEntity", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "com.raidiam.trustframework.bank.domain.CreditorEntity", "com.raidiam.trustframework.bank.domain.PaymentConsentPaymentEntity", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountEntity", "java.lang.String", "java.lang.String", "java.util.Date", "java.util.Date", "java.util.Date", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.TreasureTitlesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditorEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessEntityDocumentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VariableIncomesTransactionsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FundsTransactionsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalFinancialRelationsProductsServicesTypeEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$PaymentTypeConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEventEntity$ExchangesEventType[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticPaymentRiskSignalsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsTransactionEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEventEntity$ExchangesOperationType[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalFinancialRelationsProcuratorEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.PersonalFinancialRelationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessFinancialRelationsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.util.Date", "java.util.Set", "java.util.Set", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.EnrollmentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountEntity", "java.lang.String", "java.util.Date", "java.util.Date", "java.util.Date", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "org.postgresql.Driver",
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AccountEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessFinancialRelationsProductsServicesTypeEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PixPaymentPaymentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.lang.String" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticPaymentRiskSignalsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BankFixedIncomesTransactionsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentPermissionEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentExtensionEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsBillsPaymentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalQualificationsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.Double", "java.lang.String", "java.util.Date", "java.lang.Double", "java.lang.String", "java.lang.Integer" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessPartyEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsBillsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "com.raidiam.trustframework.bank.domain.BusinessEntityDocumentEntity", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.util.Date", "java.util.Date", "java.util.Date", "java.util.Date", "java.util.Date", "java.lang.String", "java.lang.String", "java.util.Set", "java.util.Set", "java.util.Set", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsBillsFinanceChargeEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalPhoneEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "boolean", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$AccountTypeConsentsConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEventEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PostSweepingRecurringConfiguration[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditorEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessEmailEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "boolean", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.BusinessIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AccountTransactionsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractWarrantyEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$DayOfWeekConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ExchangesOperationEventEntity$ExchangesDeliveryForeignCurrency",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessEmailEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FidoJwkEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "com.raidiam.trustframework.bank.domain.EnrollmentEntity", "java.lang.String", "com.nimbusds.jose.util.Base64URL", "com.nimbusds.jose.util.Base64URL" ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "com.nimbusds.jose.jwk.RSAKey", "com.raidiam.trustframework.bank.domain.EnrollmentEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.VariableIncomesTransactionsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessFinancialRelationsProcuratorEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AutomaticRecurringConfiguration$PaymentTypeConverter[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalQualificationsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractedFinanceChargesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PixPaymentPaymentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.TreasureTitlesTransactionsEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentExchangeOperationEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.ExchangesOperationEntity" ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.ExchangesOperationEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PostSweepingRecurringConfiguration",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentConsentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessOtherDocumentEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PaymentsSimulateResponseEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.FundsTransactionsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalEmailEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BankFixedIncomesTransactionsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractInterestRatesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessPhoneEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "boolean", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "com.raidiam.trustframework.bank.domain.BusinessIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.TreasureTitlesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BankFixedIncomesEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesTransactionsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditorAccountEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentAccountEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessPostalAddressEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "boolean", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "com.raidiam.trustframework.bank.domain.BusinessIdentificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.AccountEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.Double", "java.lang.String", "java.lang.Double", "java.lang.String", "java.lang.Double", "java.lang.String", "java.lang.Double", "java.lang.String", "java.lang.Double", "java.lang.String", "java.lang.Double", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.BusinessQualificationsEconomicActivitiesEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.Integer", "boolean", "java.util.UUID", "com.raidiam.trustframework.bank.domain.BusinessQualificationsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditCardAccountsBillsFinanceChargeEntity[]"
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.PersonalIdentificationsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.util.UUID", "java.util.UUID", "com.raidiam.trustframework.bank.domain.AccountHolderEntity", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.lang.String", "java.lang.String", "java.lang.String", "boolean", "java.lang.String", "java.lang.String", "java.lang.String", "java.util.Date", "java.util.Date", "java.util.Set", "java.util.Set", "java.util.Set", "java.util.Set", "java.util.Set", "java.util.Set", "java.util.Set" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ConsentCreditCardAccountsEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ "java.lang.Integer", "java.lang.String", "java.util.UUID", "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.CreditCardAccountsEntity" ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  }, {
+    "name" : "<init>",
+    "parameterTypes" : [ "com.raidiam.trustframework.bank.domain.ConsentEntity", "com.raidiam.trustframework.bank.domain.CreditCardAccountsEntity" ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.CreditFixedIncomesEntity$TaxExemptConverter",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.TreasureTitlesBalanceEntity",
+  "allDeclaredFields" : true,
+  "allPublicMethods" : true,
+  "methods" : [ {
+    "name" : "<init>",
+    "parameterTypes" : [ ]
+  } ],
+  "allDeclaredConstructors" : true
+}, {
+  "name" : "com.raidiam.trustframework.bank.domain.ContractBalloonPaymentsEntity[]"
+} ]

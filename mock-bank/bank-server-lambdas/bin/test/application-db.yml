@@ -1,0 +1,53 @@
+micronaut:
+  application:
+    name: lambdas
+  security:
+    enabled: true
+  data:
+    pageable:
+      max-page-size: 50000
+      default-page-size: 25
+      size-parameter-name: "page-size"
+
+jpa:
+  default:
+    properties:
+      hibernate:
+        hbm2ddl:
+          auto: null
+        bytecode:
+          provider: none
+        show_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+datasources:
+  default:
+    url: jdbc:tc:postgresql:11.9://localhost/bank?TC_REUSABLE=true
+    username: test
+    password: test
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+flyway:
+  datasources:
+    default:
+      locations:
+        - classpath:db/migration
+      enabled: true
+
+aws:
+  region: ${REGION:us-east-1}
+  jwksBucket: ${JWKS_BUCKET:foo-bucket}
+  sns:
+    endpoint_notification:
+      enabled: ${SNS_WEBHOOK_ENABLED:true}
+
+trustframework:
+  organisation: OpenBanking
+  region: GB
+  keystoreBaseUrl: https://keystore.example.com
+  pkiUrl: http://localhost:4567/restapis/
+
+jackson:
+  serialization:
+    writeDatesAsTimestamps: true
+  serialization-inclusion: NON_ABSENT

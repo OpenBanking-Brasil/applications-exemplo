@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @RolesAllowed({"VARIABLE_INCOMES_READ"})
-@Controller("/open-banking/variable-incomes/v1/investments")
+@Controller("/open-banking/variable-incomes/v1")
 public class VariableIncomesController extends BaseBankController {
 
     private static final Logger LOG = LoggerFactory.getLogger(VariableIncomesController.class);
@@ -32,7 +32,7 @@ public class VariableIncomesController extends BaseBankController {
         this.investmentService = service;
     }
 
-    @Get
+    @Get("/investments")
     public ResponseVariableIncomesProductList getVariableIncomes(Pageable pageable, @NotNull HttpRequest<?> request) {
         var consentId = bankLambdaUtils.getConsentIdFromRequest(request);
         LOG.info("Looking up all Variable Incomes for consent id {}", consentId);
@@ -43,7 +43,7 @@ public class VariableIncomesController extends BaseBankController {
         return response;
     }
 
-    @Get("/{investmentId}")
+    @Get("/investments/{investmentId}")
     public ResponseVariableIncomesProductIdentification getVariableIncomesByInvestmentId(@PathVariable("investmentId") UUID investmentId, @NotNull HttpRequest<?> request) {
         var consentId = bankLambdaUtils.getConsentIdFromRequest(request);
         LOG.info("Looking up Variable Incomes for consent id {}", consentId);
@@ -54,7 +54,7 @@ public class VariableIncomesController extends BaseBankController {
         return response;
     }
 
-    @Get("/{investmentId}/balances")
+    @Get("/investments/{investmentId}/balances")
     public ResponseVariableIncomesBalance getVariableIncomesBalanceByInvestmentId(@PathVariable("investmentId") UUID investmentId, @NotNull HttpRequest<?> request) {
         var consentId = bankLambdaUtils.getConsentIdFromRequest(request);
         LOG.info("Looking up Variable Incomes balances for consent id {}", consentId);
@@ -65,7 +65,7 @@ public class VariableIncomesController extends BaseBankController {
         return response;
     }
 
-    @Get("/{investmentId}/transactions")
+    @Get("/investments/{investmentId}/transactions")
     public ResponseVariableIncomesTransactions getVariableIncomesTransactionsByInvestmentId(@PathVariable("investmentId") UUID investmentId,
                                                                                             Pageable pageable, @NotNull HttpRequest<?> request) {
         var consentId = bankLambdaUtils.getConsentIdFromRequest(request);
@@ -81,7 +81,7 @@ public class VariableIncomesController extends BaseBankController {
         return response;
     }
 
-    @Get("/{investmentId}/transactions-current")
+    @Get("/investments/{investmentId}/transactions-current")
     public ResponseVariableIncomesTransactions getVariableIncomesTransactionsCurrentByInvestmentId(@PathVariable("investmentId") UUID investmentId, Pageable pageable, @NotNull HttpRequest<?> request) {
         var consentId = bankLambdaUtils.getConsentIdFromRequest(request);
         LOG.info("Looking up Variable Incomes current transactions for consent id {}", consentId);
@@ -96,11 +96,11 @@ public class VariableIncomesController extends BaseBankController {
         return response;
     }
 
-    @Get("/{investmentId}/broker-notes/{brokerNoteId}")
-    public ResponseVariableIncomesBroker getVariableIncomesBrokerNotesByInvestmentIdAndBrokerNotesId(@PathVariable("investmentId") UUID investmentId, @PathVariable("brokerNoteId") UUID brokerNoteId, @NotNull HttpRequest<?> request) {
+    @Get("/broker-notes/{brokerNoteId}")
+    public ResponseVariableIncomesBroker getVariableIncomesBrokerNotesByBrokerNotesId(@PathVariable("brokerNoteId") UUID brokerNoteId, @NotNull HttpRequest<?> request) {
         var consentId = bankLambdaUtils.getConsentIdFromRequest(request);
         LOG.info("Looking up Variable Incomes broker notes for consent id {}", consentId);
-        var response = investmentService.getVariableIncomesBroker(consentId, investmentId, brokerNoteId);
+        var response = investmentService.getVariableIncomesBroker(consentId, brokerNoteId);
         BankLambdaUtils.decorateResponse(response::setLinks, response::setMeta, appBaseUrl + request.getPath(), 1);
         LOG.info("Returning variable incomes broker notes");
         BankLambdaUtils.logObject(mapper, response);

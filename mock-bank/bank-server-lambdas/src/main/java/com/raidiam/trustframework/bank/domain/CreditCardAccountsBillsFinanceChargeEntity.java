@@ -1,11 +1,11 @@
 package com.raidiam.trustframework.bank.domain;
 
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.CreditCardAccountsBillsFinanceCharge;
+import com.raidiam.trustframework.mockbank.models.generated.CreditCardAccountsBillsFinanceChargeV2;
 import com.raidiam.trustframework.mockbank.models.generated.EnumCreditCardAccountsFinanceChargeType;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import com.raidiam.trustframework.mockbank.models.generated.EnumCreditCardAccountsFinanceChargeTypeV2;
+import lombok.*;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.Type;
@@ -17,7 +17,6 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
 @Entity
 @Audited
 @Table(name = "credit_card_accounts_bills_finance_charge")
@@ -47,14 +46,10 @@ public class CreditCardAccountsBillsFinanceChargeEntity extends BaseEntity {
     private Double amount;
 
     @NotNull
-    @Type(type = "pg-uuid")
-    @Column(name = "bill_id", nullable = false)
-    private UUID billId;
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bill_id", referencedColumnName = "bill_id", insertable = false, nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "bill_id")
     private CreditCardAccountsBillsEntity bill;
 
     public CreditCardAccountsBillsFinanceCharge getDTO() {
@@ -63,5 +58,23 @@ public class CreditCardAccountsBillsFinanceChargeEntity extends BaseEntity {
                 .additionalInfo(this.additionalInfo)
                 .amount(this.amount)
                 .currency(this.currency);
+    }
+
+    public CreditCardAccountsBillsFinanceChargeV2 getDTOV2() {
+        return new CreditCardAccountsBillsFinanceChargeV2()
+                .type(EnumCreditCardAccountsFinanceChargeTypeV2.valueOf(this.type))
+                .additionalInfo(this.additionalInfo)
+                .amount(BankLambdaUtils.formatAmountV2(this.amount))
+                .currency(this.currency);
+    }
+
+    public static CreditCardAccountsBillsFinanceChargeEntity from(CreditCardAccountsBillsEntity bill, CreditCardAccountsBillsFinanceCharge financeCharge) {
+        var financeChargeEntity = new CreditCardAccountsBillsFinanceChargeEntity();
+        financeChargeEntity.setBill(bill);
+        financeChargeEntity.setType(financeCharge.getType().name());
+        financeChargeEntity.setAdditionalInfo(financeCharge.getAdditionalInfo());
+        financeChargeEntity.setAmount(financeCharge.getAmount());
+        financeChargeEntity.setCurrency(financeCharge.getCurrency());
+        return financeChargeEntity;
     }
 }

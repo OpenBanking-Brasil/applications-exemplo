@@ -1,6 +1,6 @@
 package com.raidiam.trustframework.bank.controllers;
 
-import com.raidiam.trustframework.bank.enums.AccountOrContractType;
+import com.raidiam.trustframework.bank.enums.ResourceType;
 import com.raidiam.trustframework.bank.services.UserService;
 import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountList;
@@ -36,7 +36,7 @@ public class UserController extends BaseBankController {
     @Get(value = "/loans", produces = {"application/json"})
     public ResponseAccountList getLoans(@PathVariable("userId") String userId, HttpRequest<?> request) {
         LOG.info("Getting loans for user id {}", userId);
-        var response =  userService.getContractList(userId, AccountOrContractType.LOAN);
+        var response =  userService.getContractList(userId, ResourceType.LOAN);
         BankLambdaUtils.decorateResponse(response::setLinks, response::setMeta, appBaseUrl + request.getPath(), 1);
         LOG.info("Retrieved loans for user id {}", userId);
         BankLambdaUtils.logObject(mapper, response);
@@ -56,7 +56,7 @@ public class UserController extends BaseBankController {
     @Get(value = "/financings", produces = {"application/json"})
     public ResponseAccountList getFinancings(@PathVariable("userId") String userId, HttpRequest<?> request) {
         LOG.info("Getting financings for user id {}", userId);
-        var response =  userService.getContractList(userId, AccountOrContractType.FINANCING);
+        var response =  userService.getContractList(userId, ResourceType.FINANCING);
         BankLambdaUtils.decorateResponse(response::setLinks, response::setMeta, appBaseUrl + request.getPath(), 1);
         LOG.info("Retrieved financings for user id {}", userId);
         BankLambdaUtils.logObject(mapper, response);
@@ -66,7 +66,7 @@ public class UserController extends BaseBankController {
     @Get(value = "/invoice-financings", produces = {"application/json"})
     public ResponseAccountList getInvoiceFinancings(@PathVariable("userId") String userId, HttpRequest<?> request) {
         LOG.info("Getting invoice-financings for user id {}", userId);
-        var response =  userService.getContractList(userId, AccountOrContractType.INVOICE_FINANCING);
+        var response =  userService.getContractList(userId, ResourceType.INVOICE_FINANCING);
         BankLambdaUtils.decorateResponse(response::setLinks, response::setMeta, appBaseUrl + request.getPath(), 1);
         LOG.info("Retrieved invoice-financings for user id {}", userId);
         BankLambdaUtils.logObject(mapper, response);
@@ -76,9 +76,19 @@ public class UserController extends BaseBankController {
     @Get(value = "/unarranged-accounts-overdraft", produces = {"application/json"})
     public ResponseAccountList getUnarrangedAccountsOverdraft(@PathVariable("userId") String userId, HttpRequest<?> request) {
         LOG.info("Getting unarranged-accounts-overdraft for user id {}", userId);
-        var response =  userService.getContractList(userId, AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT);
+        var response =  userService.getContractList(userId, ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT);
         BankLambdaUtils.decorateResponse(response::setLinks, response::setMeta, appBaseUrl + request.getPath(), 1);
         LOG.info("Retrieved unarranged-accounts-overdraft for user id {}", userId);
+        BankLambdaUtils.logObject(mapper, response);
+        return response;
+    }
+
+    @Get(value = "/exchanges", produces = {"application/json"})
+    public ResponseAccountList getExchangesOperation(@PathVariable("userId") String userId, HttpRequest<?> request) {
+        LOG.info("Getting exchanges operation for user id {}", userId);
+        var response =  userService.getExchangesList(userId);
+        BankLambdaUtils.decorateResponse(response::setLinks, response::setMeta, appBaseUrl + request.getPath(), 1);
+        LOG.info("Retrieved exchanges operation for user id {}", userId);
         BankLambdaUtils.logObject(mapper, response);
         return response;
     }

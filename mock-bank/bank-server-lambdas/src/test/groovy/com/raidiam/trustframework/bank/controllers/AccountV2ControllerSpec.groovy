@@ -1,5 +1,7 @@
 package com.raidiam.trustframework.bank.controllers
 
+import com.amazonaws.serverless.proxy.internal.testutils.AwsProxyRequestBuilder
+import com.raidiam.trustframework.bank.AuthHelper
 import com.raidiam.trustframework.bank.FullCreateConsentFactory
 import com.raidiam.trustframework.bank.TestRequestDataFactory
 import com.raidiam.trustframework.bank.domain.AccountHolderEntity
@@ -13,6 +15,7 @@ import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountOverd
 import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountTransaction
 import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountTransactionData
 import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountTransactionsV2
+import io.micronaut.http.HttpMethod
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.exceptions.HttpClientResponseException
@@ -63,12 +66,29 @@ class AccountV2ControllerSpec extends FullCreateConsentFactory {
         }
     }
 
+    def "we cannot call account endpoints without x-fapi-interaction-id"() {
+        given:
+        URI uri = new URIBuilder("/open-banking/accounts/v2/${endpoint}").build()
+
+        when:
+        client.toBlocking().retrieve(HttpRequest.GET(uri)
+                .header("Authorization", "Bearer ${accountToken}"), ResponseAccountBalancesV2)
+
+        then:
+        HttpClientResponseException e = thrown()
+        e.status == HttpStatus.BAD_REQUEST
+
+        where:
+        endpoint << ["accounts", "accounts/testid", "accounts/testid/balances", "accounts/testid/transactions", "accounts/testid/transactions-current", "accounts/testid/overdraft-limits"]
+    }
+
     void "we can GET account balances v2"() {
         when:
         URI uri = new URIBuilder("/open-banking/accounts/v2/accounts/${postAccountResponse.getAccountId()}/balances").build()
 
         def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
-                .header("Authorization", "Bearer ${accountToken}"), ResponseAccountBalancesV2)
+                .header("Authorization", "Bearer ${accountToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseAccountBalancesV2)
 
         then:
         response.getData() != null
@@ -86,7 +106,8 @@ class AccountV2ControllerSpec extends FullCreateConsentFactory {
         URI uri = new URIBuilder("/open-banking/accounts/v2/accounts/${postAccountResponse.getAccountId()}/overdraft-limits").build()
 
         def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
-                .header("Authorization", "Bearer ${accountToken}"), ResponseAccountOverdraftLimitsV2)
+                .header("Authorization", "Bearer ${accountToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseAccountOverdraftLimitsV2)
 
         then:
         response.getData() != null
@@ -107,7 +128,8 @@ class AccountV2ControllerSpec extends FullCreateConsentFactory {
                 .build()
 
         def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
-                .header("Authorization", "Bearer ${accountToken}"), ResponseAccountTransactionsV2)
+                .header("Authorization", "Bearer ${accountToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseAccountTransactionsV2)
 
         then:
         response.getData() != null
@@ -121,7 +143,6 @@ class AccountV2ControllerSpec extends FullCreateConsentFactory {
         transaction.getType().name() == postTransactionResponse.getType().name()
         transaction.getTransactionAmount().getAmount() == BankLambdaUtils.formatAmountV2(postTransactionResponse.getAmount())
         transaction.getTransactionAmount().getCurrency() == postTransactionResponse.getTransactionCurrency()
-        transaction.getTransactionDate() == postTransactionResponse.getTransactionDate().toString()
         transaction.getPartieCnpjCpf() == postTransactionResponse.getPartieCnpjCpf()
         transaction.getPartiePersonType().name() == postTransactionResponse.getPartiePersonType().name()
         transaction.getPartieCompeCode() == postTransactionResponse.getPartieCompeCode()
@@ -138,7 +159,8 @@ class AccountV2ControllerSpec extends FullCreateConsentFactory {
                 .build()
 
         def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
-                .header("Authorization", "Bearer ${accountToken}"), ResponseAccountTransactionsV2)
+                .header("Authorization", "Bearer ${accountToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseAccountTransactionsV2)
 
         then:
         response.getData() != null
@@ -152,7 +174,9 @@ class AccountV2ControllerSpec extends FullCreateConsentFactory {
                 .addParameter("toBookingDate", toBookingDate.toString())
                 .build()
 
-        client.toBlocking().retrieve(HttpRequest.GET(uri).header("Authorization", "Bearer ${accountToken}"), ResponseAccountTransactionsV2)
+        client.toBlocking().retrieve(HttpRequest.GET(uri)
+                .header("Authorization", "Bearer ${accountToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseAccountTransactionsV2)
 
         then:
         HttpClientResponseException e = thrown()

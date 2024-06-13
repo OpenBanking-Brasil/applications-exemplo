@@ -42,7 +42,7 @@ public class ConsentExchangeOperationEntity extends BaseEntity  {
     private ExchangesOperationEntity exchangesOperationEntity;
 
     public ConsentExchangeOperationEntity(ConsentEntity consent, ExchangesOperationEntity exchangesOperationEntity) {
-        this.consent = consent;
-        this.exchangesOperationEntity = exchangesOperationEntity;
+        this.consentId = consent.getConsentId();
+        this.operationId = exchangesOperationEntity.getOperationId();
     }
 }

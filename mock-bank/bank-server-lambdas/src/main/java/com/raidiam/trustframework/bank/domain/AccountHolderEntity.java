@@ -1,7 +1,6 @@
 package com.raidiam.trustframework.bank.domain;
 
-import com.raidiam.trustframework.mockbank.models.generated.LoggedUser;
-import com.raidiam.trustframework.mockbank.models.generated.LoggedUserDocument;
+import com.raidiam.trustframework.mockbank.models.generated.*;
 import lombok.*;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
@@ -10,20 +9,17 @@ import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "account_holders")
 public class AccountHolderEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
 
@@ -45,17 +41,7 @@ public class AccountHolderEntity extends BaseEntity {
     @Column(name = "user_id")
     private String userId;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "accountHolder")
-    private Set<AccountEntity> accounts;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "accountHolder")
-    private Set<CreditCardAccountsEntity> creditCardAccounts;
-
-    public static AccountHolderEntity fromLoggedUser (LoggedUser userRequest) {
+    public static AccountHolderEntity fromLoggedUser(LoggedUser userRequest) {
         return Optional.ofNullable(userRequest)
                 .map(LoggedUser::getDocument)
                 .map(l -> {
@@ -68,12 +54,35 @@ public class AccountHolderEntity extends BaseEntity {
 
     public LoggedUser getLoggedUser() {
         return new LoggedUser().document(
-                new LoggedUserDocument()
+                new Document()
                         .identification(this.getDocumentIdentification())
                         .rel(this.getDocumentRel()));
     }
 
-    public Optional<AccountEntity> getAccountByNumber(String number) {
-        return this.accounts.stream().filter(a -> a.getNumber().equals(number)).findFirst();
+    public static AccountHolderEntity from(CreateAccountHolderData accountHolder) {
+        var holder = new AccountHolderEntity();
+        holder.setDocumentIdentification(accountHolder.getDocumentIdentification());
+        holder.setDocumentRel(accountHolder.getDocumentRel());
+        holder.setAccountHolderName(accountHolder.getAccountHolderName());
+        return holder;
+    }
+
+    public ResponseAccountHolder getAccountHolderResponse() {
+        return new ResponseAccountHolder().data(getAdminAccountHolderDto());
+    }
+
+    public ResponseAccountHolderData getAdminAccountHolderDto() {
+        return new ResponseAccountHolderData()
+                .accountHolderId(this.accountHolderId)
+                .documentIdentification(this.documentIdentification)
+                .documentRel(this.documentRel)
+                .accountHolderName(this.accountHolderName);
+    }
+
+    public AccountHolderEntity update(CreateAccountHolderData accountHolder) {
+        this.documentIdentification = accountHolder.getDocumentIdentification();
+        this.documentRel = accountHolder.getDocumentRel();
+        this.accountHolderName = accountHolder.getAccountHolderName();
+        return this;
     }
 }

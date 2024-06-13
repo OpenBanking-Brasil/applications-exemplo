@@ -58,6 +58,8 @@
         </encoder>
     </appender>
 
+    <!--<logger name="org.hibernate" level="DEBUG" />-->
+
     <!--
     <logger name="io.micronaut.context.condition" level="trace"/>
     -->

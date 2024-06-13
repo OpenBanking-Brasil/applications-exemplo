@@ -1,27 +1,25 @@
 package com.raidiam.trustframework.bank.domain;
 
-import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.EnumPersonalOtherDocumentType;
+import com.raidiam.trustframework.mockbank.models.generated.EnumPersonalOtherDocumentTypeV2;
 import com.raidiam.trustframework.mockbank.models.generated.PersonalOtherDocument;
+import com.raidiam.trustframework.mockbank.models.generated.PersonalOtherDocumentV2;
 import lombok.*;
-import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.UUID;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "personal_other_documents")
 public class PersonalOtherDocumentEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
 
@@ -41,16 +39,13 @@ public class PersonalOtherDocumentEntity extends BaseEntity {
     private String additionalInfo;
 
     @Column(name = "expiration_date")
-    private Date expirationDate;
+    private LocalDate expirationDate;
 
-    @Column(name = "personal_identifications_id")
-    @Type(type = "pg-uuid")
-    private UUID personalIdentificationsId;
-
+    @NotNull
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "personal_identifications_id", referencedColumnName = "personal_identifications_id", insertable = false, nullable = false, updatable = false)
+    @JoinColumn(name = "personal_identifications_id", referencedColumnName = "personal_identifications_id", nullable = false, updatable = false)
     private PersonalIdentificationsEntity identification;
 
     public PersonalOtherDocument getDTO() {
@@ -60,6 +55,28 @@ public class PersonalOtherDocumentEntity extends BaseEntity {
                 .number(this.getNumber())
                 .checkDigit(this.getCheckDigit())
                 .additionalInfo(this.getAdditionalInfo())
-                .expirationDate(BankLambdaUtils.dateToLocalDate(this.getExpirationDate()));
+                .expirationDate(this.getExpirationDate());
+    }
+
+    public PersonalOtherDocumentV2 getDTOV2() {
+        return new PersonalOtherDocumentV2()
+                .type(EnumPersonalOtherDocumentTypeV2.fromValue(this.getType()))
+                .typeAdditionalInfo(this.getTypeAdditionalInfo())
+                .number(this.getNumber())
+                .checkDigit(this.getCheckDigit())
+                .additionalInfo(this.getAdditionalInfo())
+                .expirationDate(this.getExpirationDate());
+    }
+
+    public static PersonalOtherDocumentEntity from(PersonalIdentificationsEntity identification, PersonalOtherDocument personalOtherDocuments) {
+        var otherDocumentsEntity = new PersonalOtherDocumentEntity();
+        otherDocumentsEntity.setIdentification(identification);
+        otherDocumentsEntity.setType(personalOtherDocuments.getType().name());
+        otherDocumentsEntity.setTypeAdditionalInfo(personalOtherDocuments.getTypeAdditionalInfo());
+        otherDocumentsEntity.setNumber(personalOtherDocuments.getNumber());
+        otherDocumentsEntity.setCheckDigit(personalOtherDocuments.getCheckDigit());
+        otherDocumentsEntity.setAdditionalInfo(personalOtherDocuments.getAdditionalInfo());
+        otherDocumentsEntity.setExpirationDate(personalOtherDocuments.getExpirationDate());
+        return otherDocumentsEntity;
     }
 }

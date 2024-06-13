@@ -20,7 +20,7 @@ import javax.persistence.*;
 public class PaymentConsentDetailsEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_consent_details_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer id;
 

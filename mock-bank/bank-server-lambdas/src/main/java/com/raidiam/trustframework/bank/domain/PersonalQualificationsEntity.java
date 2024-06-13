@@ -10,20 +10,18 @@ import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "personal_qualifications")
 public class PersonalQualificationsEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
 
@@ -61,7 +59,7 @@ public class PersonalQualificationsEntity extends BaseEntity {
     private String informedIncomeCurrency;
 
     @Column(name = "informed_income_date")
-    private Date informedIncomeDate;
+    private LocalDate informedIncomeDate;
 
     @Column(name = "informed_patrimony_amount")
     private Double informedPatrimonyAmount;
@@ -78,14 +76,78 @@ public class PersonalQualificationsEntity extends BaseEntity {
                 .companyCnpj(this.getCompanyCnpj())
                 .occupationCode(EnumOccupationMainCodeType.fromValue(this.getOccupationCode()))
                 .occupationDescription(this.getOccupationDescription())
-                .informedIncome(new PersonalQualificationDataInformedIncome()
+                .informedIncome(new PersonalInformedIncome()
                         .frequency(EnumInformedIncomeFrequency.fromValue(this.getInformedIncomeFrequency()))
                         .amount(this.getInformedIncomeAmount())
                         .currency(this.getInformedIncomeCurrency())
-                        .date(BankLambdaUtils.dateToLocalDate(this.getInformedIncomeDate())))
+                        .date(this.getInformedIncomeDate()))
                 .informedPatrimony(new PersonalInformedPatrimony()
                         .amount(this.getInformedPatrimonyAmount())
-                        .currency(this.getInformedIncomeCurrency())
+                        .currency(this.getInformedPatrimonyCurrency())
                         .year(BigDecimal.valueOf(this.getInformedPatrimonyYear())));
+    }
+
+    public PersonalQualificationDataV2 getDtoV2() {
+        return new PersonalQualificationDataV2()
+                .updateDateTime(BankLambdaUtils.dateToOffsetDate(this.getUpdatedAt()))
+                .companyCnpj(this.getCompanyCnpj())
+                .occupationCode(EnumOccupationMainCodeTypeV2.fromValue(this.getOccupationCode()))
+                .occupationDescription(this.getOccupationDescription())
+                .informedIncome(new InformedIncomeV2()
+                        .frequency(EnumInformedIncomeFrequencyV2.fromValue(this.getInformedIncomeFrequency()))
+                        .amount(new InformedIncomeAmountV2()
+                                .amount(BankLambdaUtils.formatAmountV2(this.getInformedIncomeAmount()))
+                                .currency(this.getInformedIncomeCurrency()))
+                        .date(this.getInformedIncomeDate()))
+                .informedPatrimony(new PersonalInformedPatrimonyV2()
+                        .amount(new InformedPatrimonyAmountV2()
+                                .amount(BankLambdaUtils.formatAmountV2(this.getInformedPatrimonyAmount()))
+                                .currency(this.getInformedPatrimonyCurrency()))
+                        .year(BigDecimal.valueOf(this.getInformedPatrimonyYear())));
+    }
+
+    public static PersonalQualificationsEntity from(PersonalQualificationsData qualificationsDto, UUID accountHolderId) {
+        var qualificationsEntity = new PersonalQualificationsEntity();
+        qualificationsEntity.setAccountHolderId(accountHolderId);
+        qualificationsEntity.setCompanyCnpj(qualificationsDto.getCompanyCnpj());
+        qualificationsEntity.setOccupationCode(qualificationsDto.getOccupationCode().toString());
+        qualificationsEntity.setOccupationDescription(qualificationsDto.getOccupationDescription());
+        qualificationsEntity.setInformedIncomeFrequency(qualificationsDto.getInformedIncomeFrequency().toString());
+        qualificationsEntity.setInformedIncomeAmount(qualificationsDto.getInformedIncomeAmount());
+        qualificationsEntity.setInformedIncomeCurrency(qualificationsDto.getInformedIncomeCurrency());
+        qualificationsEntity.setInformedIncomeDate(LocalDate.parse(qualificationsDto.getInformedIncomeDate()));
+        qualificationsEntity.setInformedPatrimonyAmount(qualificationsDto.getInformedPatrimonyAmount());
+        qualificationsEntity.setInformedPatrimonyCurrency(qualificationsDto.getInformedPatrimonyCurrency());
+        qualificationsEntity.setInformedPatrimonyYear(qualificationsDto.getInformedPatrimonyYear().intValue());
+        return qualificationsEntity;
+    }
+
+    public PersonalQualifications getAdminPersonalQualifications() {
+        return new PersonalQualifications().data(new PersonalQualificationsData()
+                .accountHolderId(this.accountHolderId)
+                .companyCnpj(this.companyCnpj)
+                .occupationCode(EnumOccupationMainCodeType.fromValue(this.occupationCode))
+                .occupationDescription(this.occupationDescription)
+                .informedIncomeFrequency(EnumInformedIncomeFrequency.fromValue(this.informedIncomeFrequency))
+                .informedIncomeAmount(this.informedIncomeAmount)
+                .informedIncomeCurrency(this.informedIncomeCurrency)
+                .informedIncomeDate(this.informedIncomeDate.toString())
+                .informedPatrimonyAmount(this.informedPatrimonyAmount)
+                .informedPatrimonyCurrency(this.informedPatrimonyCurrency)
+                .informedPatrimonyYear(BigDecimal.valueOf(this.informedPatrimonyYear)));
+    }
+
+    public PersonalQualificationsEntity update(PersonalQualificationsData qualificationsDto) {
+        this.companyCnpj = qualificationsDto.getCompanyCnpj();
+        this.occupationCode = qualificationsDto.getOccupationCode().toString();
+        this.occupationDescription = qualificationsDto.getOccupationDescription();
+        this.informedIncomeFrequency = qualificationsDto.getInformedIncomeFrequency().toString();
+        this.informedIncomeAmount = qualificationsDto.getInformedIncomeAmount();
+        this.informedIncomeCurrency = qualificationsDto.getInformedIncomeCurrency();
+        this.informedIncomeDate = LocalDate.parse(qualificationsDto.getInformedIncomeDate());
+        this.informedPatrimonyAmount = qualificationsDto.getInformedPatrimonyAmount();
+        this.informedPatrimonyCurrency = qualificationsDto.getInformedPatrimonyCurrency();
+        this.informedPatrimonyYear = qualificationsDto.getInformedPatrimonyYear().intValue();
+        return this;
     }
 }

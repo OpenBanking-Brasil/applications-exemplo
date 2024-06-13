@@ -12,8 +12,6 @@ class CleanupLocalStackSpecification extends AbstractLocalStackSpec {
     @Inject
     AccountTransactionsRepository accountTransactionsRepository
     @Inject
-    BusinessEntityDocumentRepository businessEntityDocumentRepository
-    @Inject
     ConsentAccountRepository consentAccountRepository
     @Inject
     ConsentContractRepository consentContractRepository
@@ -152,7 +150,6 @@ class CleanupLocalStackSpecification extends AbstractLocalStackSpec {
             consentCreditCardAccountsRepository.deleteAll()
             consentPermissionsRepository.deleteAll()
             consentRepository.deleteAll()
-            businessEntityDocumentRepository.deleteAll()
             contractBalloonPaymentsRepository.deleteAll()
             contractsRepository.deleteAll()
             businessOtherDocumentRepository.deleteAll()

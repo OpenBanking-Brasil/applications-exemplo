@@ -10,7 +10,8 @@ import com.raidiam.trustframework.bank.TestEntityDataFactory
 import com.raidiam.trustframework.bank.domain.AccountEntity
 import com.raidiam.trustframework.bank.domain.ContractEntity
 import com.raidiam.trustframework.bank.domain.CreditCardAccountsEntity
-import com.raidiam.trustframework.bank.enums.AccountOrContractType
+import com.raidiam.trustframework.bank.domain.ExchangesOperationEntity
+import com.raidiam.trustframework.bank.enums.ResourceType
 import com.raidiam.trustframework.bank.services.UserService
 import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountList
 import com.raidiam.trustframework.mockbank.models.generated.ResponseCreditCardAccountsList
@@ -42,6 +43,8 @@ class UserControllerSpec extends Specification {
     ResponseAccountList responseInvoiceFinancingList
     @Shared
     ResponseAccountList responseUnarrangedOverDraftList
+    @Shared
+    ResponseAccountList responseExchangesOperationList
 
     @Shared
     AccountEntity testAccount
@@ -55,6 +58,8 @@ class UserControllerSpec extends Specification {
     ContractEntity testInvoiceFinancing
     @Shared
     ContractEntity testUnarrangedOverDraft
+    @Shared
+    ExchangesOperationEntity testExchangesOperation
 
     MicronautLambdaContainerHandler handler
     def mapper = new ObjectMapper()
@@ -68,18 +73,22 @@ class UserControllerSpec extends Specification {
         testAccount.setAccountId(UUID.randomUUID())
         responseAccountList = new ResponseAccountList().data(List.of(testAccount.getAccountData()))
 
-        testLoan = TestEntityDataFactory.aContractEntity(UUID.randomUUID(), AccountOrContractType.LOAN, "Test Loan", "Test Loan Subtype")
+        testLoan = TestEntityDataFactory.aContractEntity(UUID.randomUUID(), ResourceType.LOAN, "Test Loan", "Test Loan Subtype", "AVAILABLE")
         testLoan.setContractId(UUID.randomUUID())
         responseLoanList = new ResponseAccountList().data(List.of(testLoan.createSparseAccountData()))
-        testFinancing = TestEntityDataFactory.aContractEntity(UUID.randomUUID(), AccountOrContractType.FINANCING, "Test Financing", "Test Financing Subtype")
+        testFinancing = TestEntityDataFactory.aContractEntity(UUID.randomUUID(), ResourceType.FINANCING, "Test Financing", "Test Financing Subtype", "AVAILABLE")
         testFinancing.setContractId(UUID.randomUUID())
         responseFinancingList = new ResponseAccountList().data(List.of(testFinancing.createSparseAccountData()))
-        testInvoiceFinancing = TestEntityDataFactory.aContractEntity(UUID.randomUUID(), AccountOrContractType.INVOICE_FINANCING, "Test Invoice Financing", "Test Invoice Financing Subtype")
+        testInvoiceFinancing = TestEntityDataFactory.aContractEntity(UUID.randomUUID(), ResourceType.INVOICE_FINANCING, "Test Invoice Financing", "Test Invoice Financing Subtype", "AVAILABLE")
         testInvoiceFinancing.setContractId(UUID.randomUUID())
         responseInvoiceFinancingList = new ResponseAccountList().data(List.of(testInvoiceFinancing.createSparseAccountData()))
-        testUnarrangedOverDraft = TestEntityDataFactory.aContractEntity(UUID.randomUUID(), AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT, "Test Overdraft", "Test Overdraft Subtype")
+        testUnarrangedOverDraft = TestEntityDataFactory.aContractEntity(UUID.randomUUID(), ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT, "Test Overdraft", "Test Overdraft Subtype",  "AVAILABLE")
         testUnarrangedOverDraft.setContractId(UUID.randomUUID())
         responseUnarrangedOverDraftList = new ResponseAccountList().data(List.of(testUnarrangedOverDraft.createSparseAccountData()))
+
+        testExchangesOperation = TestEntityDataFactory.aExchangesOperationEntity()
+        testExchangesOperation.setOperationId(UUID.randomUUID())
+        responseExchangesOperationList = new ResponseAccountList().data(List.of(testExchangesOperation.createSparseAccountData()))
     }
 
     def setup () {
@@ -166,7 +175,7 @@ class UserControllerSpec extends Specification {
 
     def "we can get loans" () {
         given:
-        userService.getContractList(_ as String, AccountOrContractType.LOAN) >> responseLoanList
+        userService.getContractList(_ as String, ResourceType.LOAN) >> responseLoanList
 
         AwsProxyRequest request = new AwsProxyRequestBuilder("/user/${testLoan.getAccountHolderId()}/loans", HttpMethod.GET.toString()).build()
 
@@ -190,7 +199,7 @@ class UserControllerSpec extends Specification {
 
     def "we can get financings" () {
         given:
-        userService.getContractList(_ as String, AccountOrContractType.FINANCING) >> responseFinancingList
+        userService.getContractList(_ as String, ResourceType.FINANCING) >> responseFinancingList
 
         AwsProxyRequest request = new AwsProxyRequestBuilder("/user/${testFinancing.getAccountHolderId()}/financings", HttpMethod.GET.toString()).build()
 
@@ -214,7 +223,7 @@ class UserControllerSpec extends Specification {
 
     def "we can get invoice financings" () {
         given:
-        userService.getContractList(_ as String, AccountOrContractType.INVOICE_FINANCING) >> responseInvoiceFinancingList
+        userService.getContractList(_ as String, ResourceType.INVOICE_FINANCING) >> responseInvoiceFinancingList
 
         AwsProxyRequest request = new AwsProxyRequestBuilder("/user/${testInvoiceFinancing.getAccountHolderId()}/invoice-financings", HttpMethod.GET.toString()).build()
 
@@ -238,7 +247,7 @@ class UserControllerSpec extends Specification {
 
     def "we can get unarrangedAccountsOverdrafts" () {
         given:
-        userService.getContractList(_ as String, AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT) >> responseUnarrangedOverDraftList
+        userService.getContractList(_ as String, ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT) >> responseUnarrangedOverDraftList
 
         AwsProxyRequest request = new AwsProxyRequestBuilder("/user/${testUnarrangedOverDraft.getAccountHolderId()}/unarranged-accounts-overdraft", HttpMethod.GET.toString()).build()
 
@@ -258,5 +267,29 @@ class UserControllerSpec extends Specification {
         list != null
         list.getData().size() == 1
         list.getData().first().getAccountId() == testUnarrangedOverDraft.getContractId().toString()
+    }
+
+    def "we can get exchanges operations" () {
+        given:
+        userService.getExchangesList(_ as String) >> responseExchangesOperationList
+
+        AwsProxyRequest request = new AwsProxyRequestBuilder("/user/${testExchangesOperation.getAccountHolderId()}/exchanges", HttpMethod.GET.toString()).build()
+
+        when:
+        def response = handler.proxy(request, lambdaContext)
+
+        then:
+        noExceptionThrown()
+        response != null
+        response.getBody() != null
+
+        when:
+        def list = mapper.readValue(response.getBody(), ResponseAccountList)
+
+        then:
+        noExceptionThrown()
+        list != null
+        list.getData().size() == 1
+        list.getData().first().getAccountId() == testExchangesOperation.getOperationId().toString()
     }
 }

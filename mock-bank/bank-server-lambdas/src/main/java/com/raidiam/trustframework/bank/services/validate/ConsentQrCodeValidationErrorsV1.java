@@ -19,6 +19,11 @@ public class ConsentQrCodeValidationErrorsV1 implements ConsentQrCodeValidationE
     }
 
     @Override
+    public HttpStatusException getQrCodeIsMissingError() {
+        return new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getParameterNotInformed("QrCode is not present"));
+    }
+
+    @Override
     public HttpStatusException getCreditorNameDiffError(String qrCodeCreditorName, String creditorName) {
         String message = errorMessage.getMessagePaymentDetailInvalid(String.format("Creditor name defined in QrCode - %s differs from the Creditor name specified in the Consent - %s",
                 qrCodeCreditorName, creditorName));

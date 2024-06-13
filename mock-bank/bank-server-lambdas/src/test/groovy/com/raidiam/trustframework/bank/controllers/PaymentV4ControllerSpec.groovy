@@ -67,9 +67,12 @@ class PaymentV4ControllerSpec extends Specification {
     @Shared
     ResponsePixPaymentReadV4 responsePixPaymentReadV4
 
+
     @Shared
     ResponsePatchPixConsentV4 responsePatchPixConsent
 
+    @Shared
+    UpdatePaymentConsent updatePaymentConsent
 
     def setup () {
         mapper.findAndRegisterModules()
@@ -99,7 +102,7 @@ class PaymentV4ControllerSpec extends Specification {
 
         consentFull = new ResponsePaymentConsentFull()
                 .data(new ResponsePaymentConsentFullData()
-                        .status(ResponsePaymentConsentFullData.StatusEnum.AWAITING_AUTHORISATION)
+                        .status(EnumAuthorisationStatusType.AWAITING_AUTHORISATION)
                         .clientId("client1")
                         .expirationDateTime(OffsetDateTime.now())
                         .consentId("somepaymentconsent")
@@ -584,6 +587,35 @@ class PaymentV4ControllerSpec extends Specification {
         jwt.getJWTClaimsSet().getAudience().contains('issuer')
     }
 
+    def "We can PUT a V4 consent"(){
+        given:
+        def updatePaymentConsent = TestRequestDataFactory.createPaymentConsentUpdateRequest(status, false)
+
+        mockConsentService.updateConsentV4(_ as String, _ as String, _ as UpdatePaymentConsent) >> responseConsentV4
+
+        String entity = mapper.writeValueAsString(updatePaymentConsent)
+
+        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder(String.format('/open-banking/payments/v4/consents/%s', responseConsentV4.getData().getConsentId()), HttpMethod.PUT.toString()).body(entity)
+        AuthHelper.authorize(scopes: "op:payments", org_id: "issuer", builder)
+        builder.header("x-idempotency-key", "idempotencyToken1")
+        builder.header("x-fapi-interaction-id", UUID.randomUUID().toString())
+
+        when:
+        def response = handler.proxy(builder.build(), lambdaContext)
+
+        then:
+        response.statusCode == HttpStatus.OK.code
+        response.body != null
+
+        where:
+        status << [
+                UpdatePaymentConsentData.StatusEnum.AWAITING_AUTHORISATION,
+                UpdatePaymentConsentData.StatusEnum.AUTHORISED,
+                UpdatePaymentConsentData.StatusEnum.REJECTED,
+                UpdatePaymentConsentData.StatusEnum.PARTIALLY_ACCEPTED
+        ]
+    }
+
     def "we can cancel a payment by consentId as JWT with client credentials"() {
         given:
         def patchRequest = TestRequestDataFactory.createPatchPixConsentV4Request()
@@ -605,18 +637,23 @@ class PaymentV4ControllerSpec extends Specification {
 
         when:
         def jwt = SignedJWT.parse(response.body)
+        def claims = jwt.getJWTClaimsSet()
+        def claimsLinks = claims.getClaim("links")
+        def claimsMeta = claims.getClaim("meta")
 
         then:
         noExceptionThrown()
 
         and:
         jwt.getJWTClaimsSet().getAudience().contains('issuer')
+        claimsLinks != null
+        claimsMeta != null
     }
 
     def "we cannot cancel a payment by consentId as JWT with authorisation code"() {
         given:
         def patchRequest = TestRequestDataFactory.createPatchPixConsentV4Request()
-        0 * mockService.patchPaymentByConsentIdV4("consentId", patchRequest) >> responsePatchPixConsent
+        0 * mockService.patchPaymentByConsentIdV4("consentId", patchRequest) >> responsePixPaymentV4
         def json = AwsProxyHelper.signPayload(patchRequest)
 
         AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/payments/v4/pix/payments/consents/consentId', HttpMethod.PATCH.toString()).body(json)
@@ -654,18 +691,23 @@ class PaymentV4ControllerSpec extends Specification {
 
         when:
         def jwt = SignedJWT.parse(response.body)
+        def claims = jwt.getJWTClaimsSet()
+        def claimsLinks = claims.getClaim("links")
+        def claimsMeta = claims.getClaim("meta")
 
         then:
         noExceptionThrown()
 
         and:
         jwt.getJWTClaimsSet().getAudience().contains('issuer')
+        claimsLinks != null
+        claimsMeta != null
     }
 
     def "we cannot cancel a payment as JWT with authorisation code"() {
         given:
         def patchRequest = TestRequestDataFactory.createPatchPixConsentV4Request()
-        0 * mockService.patchPaymentV4("paymentId", patchRequest) >> responsePixPaymentReadV4
+        0 * mockService.patchPaymentV4("paymentId", patchRequest) >> responsePixPaymentV4
         def json = AwsProxyHelper.signPayload(patchRequest)
 
         AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/payments/v4/pix/payments/paymentId', HttpMethod.PATCH.toString()).body(json)

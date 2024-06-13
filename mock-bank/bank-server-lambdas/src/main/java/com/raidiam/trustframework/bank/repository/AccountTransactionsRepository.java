@@ -7,7 +7,7 @@ import io.micronaut.data.model.Pageable;
 import io.micronaut.data.repository.PageableRepository;
 
 import javax.validation.constraints.NotNull;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Repository
@@ -15,14 +15,14 @@ public interface AccountTransactionsRepository extends PageableRepository<Accoun
 
     Page<AccountTransactionsEntity> findByAccountIdOrderByCreatedAtAsc(@NotNull UUID accountId, Pageable pageable);
 
-    Page<AccountTransactionsEntity> findByAccountIdAndTransactionDateBetweenIsOrderByCreatedAtAsc(@NotNull UUID accountId,
-                                                                                                  @NotNull LocalDate startDate,
-                                                                                                  @NotNull LocalDate endDate,
+    Page<AccountTransactionsEntity> findByAccountIdAndTransactionDateTimeBetweenOrderByCreatedAtAsc(@NotNull UUID accountId,
+                                                                                                  @NotNull OffsetDateTime startDate,
+                                                                                                  @NotNull OffsetDateTime endDate,
                                                                                                   Pageable pageable);
 
-    Page<AccountTransactionsEntity> findByAccountIdAndTransactionDateBetweenIsAndCreditDebitTypeOrderByCreatedAtAsc(@NotNull UUID accountId,
-                                                                                                                    @NotNull LocalDate startDate,
-                                                                                                                    @NotNull LocalDate endDate,
+    Page<AccountTransactionsEntity> findByAccountIdAndTransactionDateTimeBetweenAndCreditDebitTypeOrderByCreatedAtAsc(@NotNull UUID accountId,
+                                                                                                                    @NotNull OffsetDateTime startDate,
+                                                                                                                    @NotNull OffsetDateTime endDate,
                                                                                                                     @NotNull String creditDebitType,
                                                                                                                     Pageable pageable);
 }

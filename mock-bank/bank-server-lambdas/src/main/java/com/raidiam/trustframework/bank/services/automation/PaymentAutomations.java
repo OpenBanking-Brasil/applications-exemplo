@@ -99,6 +99,7 @@ public class PaymentAutomations {
                 throw new HttpStatusException(action.getHttpStatus(), action.getHttpErrorMessage());
             }
         }
+        LOG.info("Finished checking for client restriction actions on client {}", clientId);
     }
 
     /**
@@ -110,34 +111,40 @@ public class PaymentAutomations {
      */
     @Transactional(value = Transactional.TxType.REQUIRES_NEW, dontRollbackOn = {HttpStatusException.class})
     public void executePostConsentCreationActions(String consentId) {
+        LOG.info("Checking for post consent createion actions for consent {}", consentId);
         var consentOpt = paymentConsentRepository.findByPaymentConsentId(consentId);
         if (consentOpt.isPresent()) {
             PaymentConsentEntity paymentConsentEntity = consentOpt.get();
             String consentAmount = getPaymentConsentAmount(paymentConsentEntity);
 
             LOG.info("Payment amount on payment consent request was {}, checking for post-creation actions", consentAmount);
-            switch (consentAmount) {
-                case "1334.00":
-                case "1335.00":
-                    setConsentStatusToAuthorised(paymentConsentEntity);
-                    break;
-                default:
-                    // do nothing
-            }
+            if (consentAmount != null) {
+                switch (consentAmount) {
+                    case "1334.00":
+                    case "1335.00":
+                        setConsentStatusToAuthorised(paymentConsentEntity);
+                        break;
+                    default:
+                        // do nothing
+                }
 
-            float consentAmountFloat = Float.parseFloat(consentAmount);
-            if (consentAmountFloat >= 1333.00f && consentAmountFloat <= 1333.99f) {
-                setConsentStatusToAuthorised(paymentConsentEntity);
+                float consentAmountFloat = Float.parseFloat(consentAmount);
+                if (consentAmountFloat >= 1333.00f && consentAmountFloat <= 1333.99f) {
+                    setConsentStatusToAuthorised(paymentConsentEntity);
+                }
             }
         }
+        LOG.info("Finishing checking for post consent createion actions for consent {}", consentId);
     }
 
     private String getPaymentConsentAmount(PaymentConsentEntity paymentConsentEntity) {
         if(paymentConsentEntity.getPaymentConsentPaymentEntity() != null) {
             return paymentConsentEntity.getPaymentConsentPaymentEntity().getAmount();
-        } else {
+        } else if (paymentConsentEntity.getPostSweepingRecurringConfiguration() != null &&
+            paymentConsentEntity.getPostSweepingRecurringConfiguration().getAmount() != null) {
             return paymentConsentEntity.getPostSweepingRecurringConfiguration().getAmount();
         }
+        return null;
     }
 
     @Transactional(value = Transactional.TxType.REQUIRES_NEW, dontRollbackOn = {HttpStatusException.class})
@@ -148,60 +155,62 @@ public class PaymentAutomations {
             String consentAmount = getPaymentConsentAmount(paymentConsentEntity);
 
             LOG.info("Payment amount on payment consent request was {}, checking for post-creation actions", consentAmount);
-            switch (consentAmount) {
-                case "300.01":
-                    paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                    paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.VALOR_INVALIDO.name());
-                    paymentConsentEntity.setRejectReasonDetail("O valor enviado não é válido para o QR Code informado;");
-                    break;
-                case "300.02":
-                    paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                    paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.NAO_INFORMADO.name());
-                    paymentConsentEntity.setRejectReasonDetail("Não informada pela detentora de conta;");
-                    break;
-                case "300.03":
-                    paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                    paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.FALHA_INFRAESTRUTURA.name());
-                    paymentConsentEntity.setRejectReasonDetail("O valor enviado não é válido para o QR Code informado;");
-                    break;
-                case "300.04":
-                    paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                    paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.TEMPO_EXPIRADO_CONSUMO.name());
-                    paymentConsentEntity.setRejectReasonDetail("Consentimento expirou antes que o usuário pudesse confirmá-lo.");
-                    break;
-                case "300.05":
-                    paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                    paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.CONTA_NAO_PERMITE_PAGAMENTO.name());
-                    paymentConsentEntity.setRejectReasonDetail("A conta selecionada é do tipo [salario/investimento/liquidação/outros] e não permite realizar esse pagamento.");
-                    break;
-                case "300.06":
-                    paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                    paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.SALDO_INSUFICIENTE.name());
-                    paymentConsentEntity.setRejectReasonDetail("A conta selecionada não possui saldo suficiente para realizar o pagamento.");
-                    break;
-                case "300.07":
-                    paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                    paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.VALOR_ACIMA_LIMITE.name());
-                    paymentConsentEntity.setRejectReasonDetail("O valor ultrapassa o limite estabelecido [na instituição/no arranjo/outro] para permitir a realização de transações pelo cliente.");
-                    break;
-                case "300.08":
-                    paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                    paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.QRCODE_INVALIDO.name());
-                    paymentConsentEntity.setRejectReasonDetail("O QRCode utilizado para a iniciação de pagamento não é válido.");
-                    break;
-                default:
-                    if (EnumConsentRejectionReasonType.REJEITADO_USUARIO.name().equals(paymentConsentEntity.getRejectReasonCode())) {
-                        LOG.info("Consent rejection reason code is REJEITADO_USUARIO, the status wont be updated");
-                        // If consent was rejected by the user we dont update the status anymore
-                        break;
-                    }
-
-                    if (paymentConsentEntity.isTimeAuthorizationExpired()) {
+            if (consentAmount != null) {
+                switch (consentAmount) {
+                    case "300.01":
                         paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
-                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.TEMPO_EXPIRADO_AUTORIZACAO.name());
+                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.VALOR_INVALIDO.name());
+                        paymentConsentEntity.setRejectReasonDetail("O valor enviado não é válido para o QR Code informado;");
+                        break;
+                    case "300.02":
+                        paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
+                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.NAO_INFORMADO.name());
+                        paymentConsentEntity.setRejectReasonDetail("Não informada pela detentora de conta;");
+                        break;
+                    case "300.03":
+                        paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
+                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.FALHA_INFRAESTRUTURA.name());
+                        paymentConsentEntity.setRejectReasonDetail("O valor enviado não é válido para o QR Code informado;");
+                        break;
+                    case "300.04":
+                        paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
+                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.TEMPO_EXPIRADO_CONSUMO.name());
                         paymentConsentEntity.setRejectReasonDetail("Consentimento expirou antes que o usuário pudesse confirmá-lo.");
                         break;
-                    }
+                    case "300.05":
+                        paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
+                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.CONTA_NAO_PERMITE_PAGAMENTO.name());
+                        paymentConsentEntity.setRejectReasonDetail("A conta selecionada é do tipo [salario/investimento/liquidação/outros] e não permite realizar esse pagamento.");
+                        break;
+                    case "300.06":
+                        paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
+                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.SALDO_INSUFICIENTE.name());
+                        paymentConsentEntity.setRejectReasonDetail("A conta selecionada não possui saldo suficiente para realizar o pagamento.");
+                        break;
+                    case "300.07":
+                        paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
+                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.VALOR_ACIMA_LIMITE.name());
+                        paymentConsentEntity.setRejectReasonDetail("O valor ultrapassa o limite estabelecido [na instituição/no arranjo/outro] para permitir a realização de transações pelo cliente.");
+                        break;
+                    case "300.08":
+                        paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
+                        paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.QRCODE_INVALIDO.name());
+                        paymentConsentEntity.setRejectReasonDetail("O QRCode utilizado para a iniciação de pagamento não é válido.");
+                        break;
+                    default:
+                        if (EnumConsentRejectionReasonType.REJEITADO_USUARIO.name().equals(paymentConsentEntity.getRejectReasonCode())) {
+                            LOG.info("Consent rejection reason code is REJEITADO_USUARIO, the status wont be updated");
+                            // If consent was rejected by the user we dont update the status anymore
+                            break;
+                        }
+
+                        if (paymentConsentEntity.isTimeAuthorizationExpired()) {
+                            paymentConsentEntity.setStatus(ResponsePaymentConsentDataV3.StatusEnum.REJECTED.name());
+                            paymentConsentEntity.setRejectReasonCode(EnumConsentRejectionReasonType.TEMPO_EXPIRADO_AUTORIZACAO.name());
+                            paymentConsentEntity.setRejectReasonDetail("Consentimento expirou antes que o usuário pudesse confirmá-lo.");
+                            break;
+                        }
+                }
             }
             paymentConsentRepository.update(paymentConsentEntity);
         }

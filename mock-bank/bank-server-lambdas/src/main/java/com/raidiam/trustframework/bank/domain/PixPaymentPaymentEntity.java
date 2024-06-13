@@ -20,7 +20,7 @@ import java.util.Optional;
 public class PixPaymentPaymentEntity extends BaseEntity{
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "pix_payment_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer pixPaymentId;
 

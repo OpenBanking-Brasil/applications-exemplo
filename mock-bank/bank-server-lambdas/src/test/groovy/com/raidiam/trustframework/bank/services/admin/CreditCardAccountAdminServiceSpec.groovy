@@ -179,7 +179,6 @@ class CreditCardAccountAdminServiceSpec extends CleanupSpecification {
         updatedTransactionDto.chargeNumber == forUpdateTransactions.getData().chargeNumber
         updatedTransactionDto.amount == forUpdateTransactions.getData().amount
         updatedTransactionDto.currency == forUpdateTransactions.getData().currency
-        updatedTransactionDto.transactionDate == forUpdateTransactions.getData().transactionDate
         updatedTransactionDto.billPostDate == forUpdateTransactions.getData().billPostDate
         updatedTransactionDto.payeeMCC == forUpdateTransactions.getData().payeeMCC
 

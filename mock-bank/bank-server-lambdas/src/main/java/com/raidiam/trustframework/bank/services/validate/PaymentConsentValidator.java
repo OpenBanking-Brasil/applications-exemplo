@@ -6,4 +6,5 @@ public interface PaymentConsentValidator {
 
     void validate(CreatePaymentConsent request);
 
+
 }

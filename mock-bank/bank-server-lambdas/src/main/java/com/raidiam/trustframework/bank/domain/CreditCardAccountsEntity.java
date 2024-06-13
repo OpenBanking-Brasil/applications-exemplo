@@ -1,10 +1,7 @@
 package com.raidiam.trustframework.bank.domain;
 
 import com.raidiam.trustframework.mockbank.models.generated.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.Type;
@@ -12,6 +9,7 @@ import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -19,11 +17,10 @@ import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
 @Entity
 @Audited
 @Table(name = "credit_card_accounts")
-public class CreditCardAccountsEntity extends BaseEntity implements HasStatusInterface{
+public class CreditCardAccountsEntity extends BaseEntity implements HasStatusInterface {
     @Id
     @GeneratedValue
     @Generated(GenerationTime.INSERT)
@@ -76,48 +73,52 @@ public class CreditCardAccountsEntity extends BaseEntity implements HasStatusInt
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
-    private Set<CreditCardsAccountPaymentMethodEntity> paymentMethods;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
+    private Set<CreditCardsAccountPaymentMethodEntity> paymentMethods = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
-    private Set<CreditCardAccountsLimitsEntity> limits;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
+    private Set<CreditCardAccountsLimitsEntity> limits = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
-    private Set<CreditCardAccountsBillsEntity> bills;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
+    private Set<CreditCardAccountsBillsEntity> bills = new HashSet<>();
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
-    private Set<CreditCardAccountsTransactionEntity> transactions;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
+    private Set<CreditCardAccountsTransactionEntity> transactions = new HashSet<>();
 
     public CreditCardAccountsData getCreditCardAccountsData() {
         return new CreditCardAccountsData()
-                .creditCardAccountId(this.getCreditCardAccountId().toString())
-                .brandName(this.getBrandName())
-                .companyCnpj(this.getCompanyCnpj())
-                .name(this.getName())
-                .productType(EnumCreditCardAccountsProductType.valueOf(this.getProductType()))
-                .productAdditionalInfo(this.getProductAdditionalInfo())
-                .creditCardNetwork(EnumCreditCardAccountNetwork.valueOf(this.getCreditCardNetwork()))
-                .networkAdditionalInfo(this.getNetworkAdditionalInfo());
+                .creditCardAccountId(this.creditCardAccountId.toString())
+                .brandName(this.brandName)
+                .companyCnpj(this.companyCnpj)
+                .name(this.name)
+                .productType(EnumCreditCardAccountsProductType.valueOf(this.productType))
+                .productAdditionalInfo(this.productAdditionalInfo)
+                .creditCardNetwork(EnumCreditCardAccountNetwork.valueOf(this.creditCardNetwork))
+                .networkAdditionalInfo(this.networkAdditionalInfo);
     }
 
     public CreditCardsAccountsIdentificationData getCreditCardsAccountsIdentificationData() {
         return new CreditCardsAccountsIdentificationData()
-                .name(this.getName())
-                .productType(EnumCreditCardAccountsProductType.valueOf(this.getProductType()))
-                .productAdditionalInfo(this.getProductAdditionalInfo())
-                .creditCardNetwork(EnumCreditCardAccountNetwork.valueOf(this.getCreditCardNetwork()))
-                .networkAdditionalInfo(this.getNetworkAdditionalInfo())
+                .name(this.name)
+                .productType(EnumCreditCardAccountsProductType.valueOf(this.productType))
+                .productAdditionalInfo(this.productAdditionalInfo)
+                .creditCardNetwork(EnumCreditCardAccountNetwork.valueOf(this.creditCardNetwork))
+                .networkAdditionalInfo(this.networkAdditionalInfo)
                 .paymentMethod(this.paymentMethods.stream().map(CreditCardsAccountPaymentMethodEntity::getDTO).collect(Collectors.toList()));
     }
 
     public List<CreditCardAccountsLimitsData> getCreditCardAccountsLimitsData() {
         return limits.stream().map(CreditCardAccountsLimitsEntity::getDTO).collect(Collectors.toList());
+    }
+
+    public List<CreditCardAccountsLimitsDataV2> getCreditCardAccountsLimitsDataV2() {
+        return limits.stream().map(CreditCardAccountsLimitsEntity::getDtoV2).collect(Collectors.toList());
     }
 
     public List<CreditCardAccountsBillsData> getCreditCardAccountsBillsData() {
@@ -126,5 +127,59 @@ public class CreditCardAccountsEntity extends BaseEntity implements HasStatusInt
 
     public List<CreditCardAccountsTransaction> getCreditCardAccountsTransaction() {
         return this.transactions.stream().map(CreditCardAccountsTransactionEntity::getDTO).collect(Collectors.toList());
+    }
+
+    public static CreditCardAccountsEntity from(CreateCreditCardAccountData creditCard, UUID accountHolderId) {
+        var account =  new CreditCardAccountsEntity();
+        account.setAccountHolderId(accountHolderId);
+        account.setBrandName(creditCard.getBrandName());
+        account.setCompanyCnpj(creditCard.getCompanyCnpj());
+        account.setName(creditCard.getName());
+        account.setProductType(creditCard.getProductType().name());
+        account.setProductAdditionalInfo(creditCard.getProductAdditionalInfo());
+        account.setCreditCardNetwork(creditCard.getCreditCardNetwork().name());
+        account.setNetworkAdditionalInfo(creditCard.getNetworkAdditionalInfo());
+        account.setStatus(creditCard.getStatus());
+
+        var newPaymentMethods = creditCard.getPaymentMethod().stream()
+                .map(p -> CreditCardsAccountPaymentMethodEntity.from(account, p))
+                .collect(Collectors.toSet());
+        account.setPaymentMethods(newPaymentMethods);
+
+        return account;
+    }
+
+    public CreditCardAccountsEntity update(EditedCreditCardAccountData creditCard) {
+        this.brandName = creditCard.getBrandName();
+        this.companyCnpj = creditCard.getCompanyCnpj();
+        this.name = creditCard.getName();
+        this.productType = creditCard.getProductType().name();
+        this.productAdditionalInfo = creditCard.getProductAdditionalInfo();
+        this.creditCardNetwork = creditCard.getCreditCardNetwork().name();
+        this.networkAdditionalInfo = creditCard.getNetworkAdditionalInfo();
+        this.status = creditCard.getStatus();
+        this.paymentMethods.clear();
+
+        var updatePaymentMethods = creditCard.getPaymentMethod().stream()
+                .map(p -> CreditCardsAccountPaymentMethodEntity.from(this, p))
+                .collect(Collectors.toSet());
+        this.paymentMethods.addAll(updatePaymentMethods);
+
+        return this;
+    }
+
+    public ResponseCreditCardAccount getAdminCreditCardAccountDto() {
+        ResponseCreditCardAccountData data = new ResponseCreditCardAccountData()
+                .creditCardAccountId(this.creditCardAccountId)
+                .brandName(this.brandName)
+                .companyCnpj(this.companyCnpj)
+                .name(this.name)
+                .productType(EnumCreditCardAccountsProductType.fromValue(this.productType))
+                .productAdditionalInfo(this.productAdditionalInfo)
+                .creditCardNetwork(EnumCreditCardAccountNetwork.fromValue(this.creditCardNetwork))
+                .networkAdditionalInfo(this.networkAdditionalInfo)
+                .status(this.status)
+                .paymentMethod(this.paymentMethods.stream().map(CreditCardsAccountPaymentMethodEntity::getDTO).collect(Collectors.toList()));
+    return new ResponseCreditCardAccount().data(data);
     }
 }

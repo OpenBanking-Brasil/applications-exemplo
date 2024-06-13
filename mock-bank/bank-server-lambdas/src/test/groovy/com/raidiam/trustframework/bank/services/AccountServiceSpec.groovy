@@ -1,10 +1,9 @@
 package com.raidiam.trustframework.bank.services
 
 import com.raidiam.trustframework.bank.CleanupSpecification
-import com.raidiam.trustframework.bank.domain.*
-import com.raidiam.trustframework.mockbank.models.generated.CreateConsentData
+import com.raidiam.trustframework.mockbank.models.generated.EnumConsentPermissions
+import com.raidiam.trustframework.mockbank.models.generated.EnumConsentStatus
 import com.raidiam.trustframework.mockbank.models.generated.EnumPartiePersonType
-import com.raidiam.trustframework.mockbank.models.generated.UpdateConsentData
 import io.micronaut.data.model.Pageable
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.exceptions.HttpStatusException
@@ -18,37 +17,51 @@ import java.time.LocalDate
 import static com.raidiam.trustframework.bank.TestEntityDataFactory.*
 
 @Stepwise
-@MicronautTest(transactional = false, environments = ["db"])
+@MicronautTest(transactional = true, environments = ["db"])
 class AccountServiceSpec extends CleanupSpecification {
 
     @Inject
     AccountsService accountsService
     @Shared
-    ConsentEntity testConsent
+    int consentReferenceId
     @Shared
-    AccountEntity testAccount
+    int testAccountReferenceId
     @Shared
-    AccountTransactionsEntity testAccountTransactions
+    int testAccountTransactionId
     @Shared
-    AccountHolderEntity testAccountHolder
+    int testAccountHolderReferenceId
 
     def setup() {
         if (runSetup) {
-            testAccountHolder = accountHolderRepository.save(anAccountHolder("10117409073", "CPF"))
-            testAccount = accountRepository.save(anAccount(testAccountHolder.getAccountHolderId()))
-            testConsent = consentRepository.save(aConsent(testAccountHolder.getAccountHolderId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.ACCOUNTS_READ, testConsent.getConsentId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.ACCOUNTS_BALANCES_READ, testConsent.getConsentId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.ACCOUNTS_TRANSACTIONS_READ, testConsent.getConsentId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.ACCOUNTS_OVERDRAFT_LIMITS_READ, testConsent.getConsentId()))
-            consentAccountRepository.save(new ConsentAccountEntity(testConsent, testAccount))
-            testAccountTransactions = accountTransactionsRepository.save(aTransaction(testAccount.getAccountId()))
+            accountHolderRepository.save(anAccountHolder("10117409073", "CPF"))
+            def testAccountHolder = accountHolderRepository.findByDocumentIdentificationAndDocumentRel("10117409073", "CPF").get(0)
+            accountRepository.save(anAccount(testAccountHolder))
+            def testAccount = accountRepository.findByAccountHolderId(testAccountHolder.getAccountHolderId()).get(0)
+            def testConsent = consentRepository.save(aConsent(testAccountHolder.getAccountHolderId()))
+            testConsent.getConsentPermissions().add(aConsentPermission(EnumConsentPermissions.ACCOUNTS_READ, testConsent.getConsentId()))
+            testConsent.getConsentPermissions().add(aConsentPermission(EnumConsentPermissions.ACCOUNTS_BALANCES_READ, testConsent.getConsentId()))
+            testConsent.getConsentPermissions().add(aConsentPermission(EnumConsentPermissions.ACCOUNTS_TRANSACTIONS_READ, testConsent.getConsentId()))
+            testConsent.getConsentPermissions().add(aConsentPermission(EnumConsentPermissions.ACCOUNTS_OVERDRAFT_LIMITS_READ, testConsent.getConsentId()))
+            testConsent.getAccounts().add(testAccount)
+            consentRepository.update(testConsent)
+
+            testAccount.getTransactions().add(aTransaction(testAccount.getAccountId()))
+            testAccount = accountRepository.update(testAccount)
+
+            consentReferenceId = testConsent.getReferenceId()
+            testAccountReferenceId = testAccount.getReferenceId()
+            testAccountHolderReferenceId = testAccountHolder.getReferenceId()
+            testAccountTransactionId = testAccount.getTransactions().first().getAccountTransactionId()
 
             runSetup = false
         }
     }
 
     def "We can get all accounts provided in Consent"() {
+        given:
+        def testConsent = consentRepository.findById(consentReferenceId).get()
+        def testAccount = accountRepository.findById(testAccountReferenceId).get()
+
         when:
         def accountIdentifications = accountsService.getAccounts(Pageable.from(0), testConsent.getConsentId(), null)
 
@@ -60,6 +73,10 @@ class AccountServiceSpec extends CleanupSpecification {
     }
 
     def "We can get an account"() {
+        given:
+        def testConsent = consentRepository.findById(consentReferenceId).get()
+        def testAccount = accountRepository.findById(testAccountReferenceId).get()
+
         when:
         def accountIdentification = accountsService.getAccount(testConsent.getConsentId(), testAccount.getAccountId().toString())
 
@@ -75,6 +92,10 @@ class AccountServiceSpec extends CleanupSpecification {
     }
 
     def "We can get Account Balances"() {
+        given:
+        def testConsent = consentRepository.findById(consentReferenceId).get()
+        def testAccount = accountRepository.findById(testAccountReferenceId).get()
+
         when:
         def response = accountsService.getAccountBalances(testConsent.getConsentId(), testAccount.getAccountId().toString())
 
@@ -89,6 +110,10 @@ class AccountServiceSpec extends CleanupSpecification {
     }
 
     def "We can get OverdraftLimits"() {
+        given:
+        def testConsent = consentRepository.findById(consentReferenceId).get()
+        def testAccount = accountRepository.findById(testAccountReferenceId).get()
+
         when:
         def response = accountsService.getAccountOverdraftLimits(testConsent.getConsentId(), testAccount.getAccountId().toString())
 
@@ -101,8 +126,13 @@ class AccountServiceSpec extends CleanupSpecification {
     }
 
     def "We can get Account Transactions"() {
+        given:
+        def testConsent = consentRepository.findById(consentReferenceId).get()
+        def testAccount = accountRepository.findById(testAccountReferenceId).get()
+        def testAccountTransaction = accountTransactionsRepository.findById(testAccountTransactionId).get()
+
         when:
-        def response = accountsService.getAccountTransactions(Pageable.from(0), testConsent.getConsentId(),
+        def response = accountsService.getAccountTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, testAccount.getAccountId().toString())
 
         then:
@@ -110,51 +140,53 @@ class AccountServiceSpec extends CleanupSpecification {
 
         when:
         def accountTransactionData = response.getData().stream()
-                .filter(t -> t.getTransactionId() == testAccountTransactions.getTransactionId())
+                .filter(t -> t.getTransactionId() == testAccountTransaction.getTransactionId().toString())
                 .findFirst().get()
 
         then:
-        accountTransactionData.getTransactionId() == testAccountTransactions.getTransactionId()
-        accountTransactionData.getCompletedAuthorisedPaymentType().toString() == testAccountTransactions.getCompletedAuthorisedPaymentType()
-        accountTransactionData.getCreditDebitType().toString() == testAccountTransactions.getCreditDebitType()
-        accountTransactionData.getTransactionName() == testAccountTransactions.getTransactionName()
-        accountTransactionData.getType().toString() == testAccountTransactions.getType()
-        accountTransactionData.getAmount() == testAccountTransactions.getAmount()
-        accountTransactionData.getTransactionCurrency() == testAccountTransactions.getTransactionCurrency()
-        accountTransactionData.getTransactionDate() == testAccountTransactions.getTransactionDate().toString()
-        accountTransactionData.getPartieCnpjCpf() == testAccountTransactions.getPartieCnpjCpf()
-        accountTransactionData.getPartiePersonType().toString() == EnumPartiePersonType.valueOf(testAccountTransactions.getPartiePersonType()).toString()
-        accountTransactionData.getPartieCompeCode() == testAccountTransactions.getPartieCompeCode()
-        accountTransactionData.getPartieBranchCode() == testAccountTransactions.getPartieBranchCode()
-        accountTransactionData.getPartieNumber() == testAccountTransactions.getPartieNumber()
-        accountTransactionData.getPartieCheckDigit() == testAccountTransactions.getPartieCheckDigit()
+        accountTransactionData.getTransactionId() == testAccountTransaction.getTransactionId().toString()
+        accountTransactionData.getCompletedAuthorisedPaymentType().toString() == testAccountTransaction.getCompletedAuthorisedPaymentType()
+        accountTransactionData.getCreditDebitType().toString() == testAccountTransaction.getCreditDebitType()
+        accountTransactionData.getTransactionName() == testAccountTransaction.getTransactionName()
+        accountTransactionData.getType().toString() == testAccountTransaction.getType()
+        accountTransactionData.getPartieCnpjCpf() == testAccountTransaction.getPartieCnpjCpf()
+        accountTransactionData.getPartiePersonType().toString() == EnumPartiePersonType.valueOf(testAccountTransaction.getPartiePersonType()).toString()
+        accountTransactionData.getPartieCompeCode() == testAccountTransaction.getPartieCompeCode()
+        accountTransactionData.getPartieBranchCode() == testAccountTransaction.getPartieBranchCode()
+        accountTransactionData.getPartieNumber() == testAccountTransaction.getPartieNumber()
+        accountTransactionData.getPartieCheckDigit() == testAccountTransaction.getPartieCheckDigit()
     }
 
     def "we can get pages"() {
         given:
         var pageSize = 2
-        consentAccountRepository.save(new ConsentAccountEntity(testConsent, accountRepository.save(anAccount(testAccountHolder.getAccountHolderId()))))
-        consentAccountRepository.save(new ConsentAccountEntity(testConsent, accountRepository.save(anAccount(testAccountHolder.getAccountHolderId()))))
+        def testAccountHolder = accountHolderRepository.findById(testAccountHolderReferenceId).get()
+        def testConsent = consentRepository.findById(consentReferenceId).get()
+        testConsent.getAccounts().add(accountRepository.save(anAccount(testAccountHolder)))
+        testConsent.getAccounts().add(accountRepository.save(anAccount(testAccountHolder)))
+        testConsent = consentRepository.update(testConsent)
+
 
         when:
         //get first page
         def page1 = accountsService.getAccounts(Pageable.from(0, pageSize), testConsent.getConsentId(), null)
-
+        def page1Size = page1.getData().size()
         then:
         !page1.getData().empty
-        page1.getData().size() == page1.getMeta().getTotalRecords()
         page1.getMeta().getTotalPages() == pageSize
 
         when:
         //get second page
         def page2 = accountsService.getAccounts(Pageable.from(1, pageSize), testConsent.getConsentId(), null)
+        def page2Size = page2.getData().size()
 
         then:
         !page2.getData().empty
-        page2.getData().size() == page2.getMeta().getTotalRecords()
         page2.getMeta().getTotalPages() == pageSize
 
         and:
+        page1.getMeta().getTotalRecords() == page1Size + page2Size
+        page2.getMeta().getTotalRecords() == page1Size + page2Size
         //account from page2 is not contain in page1
         def accFromPage2 = page2.getData().first()
         !page1.getData().contains(accFromPage2)
@@ -164,9 +196,16 @@ class AccountServiceSpec extends CleanupSpecification {
         setup:
         def errorMessage = "You do not have the correct permission"
         def testAccountHolder2 = accountHolderRepository.save(anAccountHolder())
-        def testAccount2 = accountRepository.save(anAccount(testAccountHolder2.getAccountHolderId()))
-        def testConsent2 = consentRepository.save(aConsent(testAccountHolder2.getAccountHolderId()))
-        consentAccountRepository.save(new ConsentAccountEntity(testConsent2, testAccount2))
+        def placeholderAcct = anAccount(testAccountHolder2)
+        placeholderAcct.accountHolder = testAccountHolder2
+        def testAccount2 = accountRepository.save(placeholderAcct)
+        def placeholderConsent = aConsent(testAccountHolder2.getAccountHolderId())
+        placeholderConsent.setAccountHolder(testAccountHolder2)
+        def testConsent2 = consentRepository.save(placeholderConsent)
+        testAccount2 = accountRepository.findById(testAccount2.getReferenceId()).get()
+        testConsent2.getAccounts().add(testAccount2)
+        testConsent2 = consentRepository.update(testConsent2)
+
 
         when:
         accountsService.getAccounts(Pageable.unpaged(), testConsent2.getConsentId(), null)
@@ -201,7 +240,7 @@ class AccountServiceSpec extends CleanupSpecification {
         e4.getMessage() == errorMessage
 
         when:
-        accountsService.getAccountTransactions(Pageable.unpaged(), testConsent2.getConsentId(),
+        accountsService.getAccountTransactionsV2(Pageable.unpaged(), testConsent2.getConsentId(),
                 LocalDate.now(), LocalDate.now(),null, testAccount2.getAccountId().toString())
 
         then:
@@ -212,10 +251,15 @@ class AccountServiceSpec extends CleanupSpecification {
 
     def "we cannot get a response when the consent owner is not the account owner"() {
         setup:
+        def testConsent = consentRepository.findById(consentReferenceId).get()
         def errorMessage = "Forbidden, consent owner does not match account owner!"
         def testAccountHolder2 = accountHolderRepository.save(anAccountHolder())
-        def testAccount2 = accountRepository.save(anAccount(testAccountHolder2.getAccountHolderId()))
-        consentAccountRepository.save(new ConsentAccountEntity(testConsent, testAccount2))
+        testAccountHolder2 = accountHolderRepository.findById(testAccountHolder2.getReferenceId()).get()
+        def placeholder = anAccount(testAccountHolder2)
+        placeholder.setAccountHolder(testAccountHolder2)
+        def testAccount2 = accountRepository.save(placeholder)
+        testConsent.getAccounts().add(testAccount2)
+        testConsent = consentRepository.save(testConsent)
 
         when:
         accountsService.getAccounts(Pageable.unpaged(), testConsent.getConsentId().toString(), null)
@@ -250,7 +294,7 @@ class AccountServiceSpec extends CleanupSpecification {
         e3.getMessage() == errorMessage
 
         when:
-        accountsService.getAccountTransactions(Pageable.unpaged(), testConsent.getConsentId(),
+        accountsService.getAccountTransactionsV2(Pageable.unpaged(), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, testAccount2.getAccountId().toString())
 
         then:
@@ -261,9 +305,13 @@ class AccountServiceSpec extends CleanupSpecification {
 
     def "we cannot get response when consent does not cover account"() {
         setup:
+        def testConsent = consentRepository.findById(consentReferenceId).get()
         def errorMessage = "Bad request, consent does not cover this account!"
         def testAccountHolder2 = accountHolderRepository.save(anAccountHolder())
-        def testAccount2 = accountRepository.save(anAccount(testAccountHolder2.getAccountHolderId()))
+        testAccountHolder2 = accountHolderRepository.findById(testAccountHolder2.getReferenceId()).get()
+        def placeholder = anAccount(testAccountHolder2)
+        def testAccount2 = accountRepository.save(placeholder)
+        testAccount2 = accountRepository.findById(testAccount2.getReferenceId()).get()
 
         when:
         accountsService.getAccount(testConsent.getConsentId(), testAccount2.getAccountId().toString())
@@ -290,7 +338,7 @@ class AccountServiceSpec extends CleanupSpecification {
         e3.getMessage() == errorMessage
 
         when:
-        accountsService.getAccountTransactions(Pageable.unpaged(), testConsent.getConsentId(),
+        accountsService.getAccountTransactionsV2(Pageable.unpaged(), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, testAccount2.getAccountId().toString())
 
         then:
@@ -301,16 +349,18 @@ class AccountServiceSpec extends CleanupSpecification {
 
     def "we cannot get response without authorised status"() {
         setup:
+        def testConsent = consentRepository.findById(consentReferenceId).get()
         def errorMessage = "Bad request, consent not Authorised!"
-        testConsent.setStatus(UpdateConsentData.StatusEnum.AWAITING_AUTHORISATION.name())
+        testConsent.setStatus(EnumConsentStatus.AWAITING_AUTHORISATION.name())
         consentRepository.update(testConsent)
+        def testAccount = accountRepository.findById(testAccountReferenceId).get()
 
         when:
         accountsService.getAccounts(Pageable.unpaged(), testConsent.getConsentId(), null)
 
         then:
         HttpStatusException e = thrown()
-        e.status == HttpStatus.BAD_REQUEST
+        e.status == HttpStatus.UNAUTHORIZED
         e.getMessage() == errorMessage
 
         when:
@@ -318,7 +368,7 @@ class AccountServiceSpec extends CleanupSpecification {
 
         then:
         HttpStatusException e1 = thrown()
-        e1.status == HttpStatus.BAD_REQUEST
+        e1.status == HttpStatus.UNAUTHORIZED
         e1.getMessage() == errorMessage
 
         when:
@@ -326,7 +376,7 @@ class AccountServiceSpec extends CleanupSpecification {
 
         then:
         HttpStatusException e2 = thrown()
-        e2.status == HttpStatus.BAD_REQUEST
+        e2.status == HttpStatus.UNAUTHORIZED
         e2.getMessage() == errorMessage
 
         when:
@@ -334,16 +384,16 @@ class AccountServiceSpec extends CleanupSpecification {
 
         then:
         HttpStatusException e3 = thrown()
-        e3.status == HttpStatus.BAD_REQUEST
+        e3.status == HttpStatus.UNAUTHORIZED
         e3.getMessage() == errorMessage
 
         when:
-        accountsService.getAccountTransactions(Pageable.unpaged(), testConsent.getConsentId(),
+        accountsService.getAccountTransactionsV2(Pageable.unpaged(), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, testAccount.getAccountId().toString())
 
         then:
         HttpStatusException e4 = thrown()
-        e4.status == HttpStatus.BAD_REQUEST
+        e4.status == HttpStatus.UNAUTHORIZED
         e4.getMessage() == errorMessage
     }
 

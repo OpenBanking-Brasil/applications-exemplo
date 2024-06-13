@@ -1,9 +1,7 @@
 package com.raidiam.trustframework.bank.domain;
 
-import com.raidiam.trustframework.mockbank.models.generated.FinancingsFeeOverParcel;
-import com.raidiam.trustframework.mockbank.models.generated.InvoiceFinancingsFeeOverParcel;
-import com.raidiam.trustframework.mockbank.models.generated.LoansFeeOverParcel;
-import com.raidiam.trustframework.mockbank.models.generated.UnarrangedAccountOverdraftFeeOverParcel;
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
+import com.raidiam.trustframework.mockbank.models.generated.*;
 import lombok.*;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
@@ -14,8 +12,6 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "over_parcel_fees")
@@ -26,15 +22,13 @@ public class ContractFeeOverParcelEntity extends BaseEntity {
     @Column(name = "over_parcel_fees_id", unique = true, nullable = false, updatable = false, insertable = false, columnDefinition = "uuid NOT NULL DEFAULT uuid_generate_v4()")
     private UUID overParcelFeesId;
 
+    @NotNull
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "releases_id", referencedColumnName = "releases_id", insertable = false, nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "releases_id")
     @NotAudited
     private ContractReleasesEntity releases;
-
-    @Column(name = "releases_id", nullable = false)
-    private UUID releasesId;
 
     @NotNull
     @Column(name = "fee_name", nullable = false)
@@ -59,6 +53,13 @@ public class ContractFeeOverParcelEntity extends BaseEntity {
         return loansFeeOverParcel;
     }
 
+    public LoansFeeOverParcelV2 getLoansDTOv2() {
+        return new LoansFeeOverParcelV2()
+                .feeName(this.feeName)
+                .feeCode(this.feeCode)
+                .feeAmount(BankLambdaUtils.formatAmountV2(this.feeAmount));
+    }
+
     public FinancingsFeeOverParcel getFinancingsDTO() {
         FinancingsFeeOverParcel financingsFeeOverParcel = new FinancingsFeeOverParcel();
 
@@ -68,6 +69,13 @@ public class ContractFeeOverParcelEntity extends BaseEntity {
 
 
         return financingsFeeOverParcel;
+    }
+
+    public FinancingsFeeOverParcelV2 getFinancingsDTOv2() {
+        return new FinancingsFeeOverParcelV2()
+                .feeName(this.feeName)
+                .feeCode(this.feeCode)
+                .feeAmount(BankLambdaUtils.formatAmountV2(this.feeAmount));
     }
 
     public UnarrangedAccountOverdraftFeeOverParcel getUnarrangedAccountsOverdraftDTO() {
@@ -81,6 +89,13 @@ public class ContractFeeOverParcelEntity extends BaseEntity {
         return unarrangedAccountOverdraftFeeOverParcel;
     }
 
+    public UnarrangedAccountOverdraftFeeOverParcelV2 getUnarrangedAccountsOverdraftDTOv2() {
+        return new UnarrangedAccountOverdraftFeeOverParcelV2()
+                .feeName(this.feeName)
+                .feeCode(this.feeCode)
+                .feeAmount(BankLambdaUtils.formatAmountV2(this.feeAmount));
+    }
+
     public InvoiceFinancingsFeeOverParcel getInvoiceFinancingsDTO() {
         InvoiceFinancingsFeeOverParcel invoiceFinancingsFeeOverParcel = new InvoiceFinancingsFeeOverParcel();
 
@@ -90,5 +105,29 @@ public class ContractFeeOverParcelEntity extends BaseEntity {
 
 
         return invoiceFinancingsFeeOverParcel;
+    }
+
+    public InvoiceFinancingsFeeOverParcelV2 getInvoiceFinancingsDTOv2() {
+        return new InvoiceFinancingsFeeOverParcelV2()
+                .feeName(this.feeName)
+                .feeCode(this.feeCode)
+                .feeAmount(BankLambdaUtils.formatAmountV2(this.feeAmount));
+    }
+
+    public static ContractFeeOverParcelEntity from(ContractReleasesEntity releases, ContractOverParcelFees overParcelFees) {
+        var feeOverParcel = new ContractFeeOverParcelEntity();
+        feeOverParcel.setFeeName(overParcelFees.getFeeName());
+        feeOverParcel.setFeeCode(overParcelFees.getFeeCode());
+        feeOverParcel.setFeeAmount(overParcelFees.getFeeAmount());
+        feeOverParcel.setReleases(releases);
+
+        return feeOverParcel;
+    }
+
+    public ContractOverParcelFees getContractOverParcelFees() {
+        return new ContractOverParcelFees()
+                .feeName(this.feeName)
+                .feeCode(this.feeCode)
+                .feeAmount(this.feeAmount);
     }
 }

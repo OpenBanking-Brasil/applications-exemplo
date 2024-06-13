@@ -3,7 +3,7 @@ package com.raidiam.trustframework.bank.repository
 import com.raidiam.trustframework.bank.CleanupSpecification
 import com.raidiam.trustframework.bank.TestEntityDataFactory
 import com.raidiam.trustframework.bank.domain.ConsentContractEntity
-import com.raidiam.trustframework.bank.enums.AccountOrContractType
+import com.raidiam.trustframework.bank.enums.ResourceType
 import com.raidiam.trustframework.mockbank.models.generated.EnumProductSubType
 import com.raidiam.trustframework.mockbank.models.generated.EnumProductType
 import io.micronaut.data.model.Pageable
@@ -23,15 +23,15 @@ class ContractRepositorySpec extends CleanupSpecification {
 
     def "We can get pageable contracts"() {
         given:
-        def CONTRACT_TYPE = AccountOrContractType.FINANCING
+        def CONTRACT_TYPE = ResourceType.FINANCING
         def accountHolder = accountHolderRepository.save(anAccountHolder())
         def consent = consentRepository.save(aConsent(accountHolder.getAccountHolderId()))
         def contract1 = contractsRepository.save(aContractEntity(accountHolder.getAccountHolderId(), CONTRACT_TYPE,
-                EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.CUSTEIO.toString()))
+                EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.CUSTEIO.toString(), "AVAILABLE"))
         def contract2 = contractsRepository.save(aContractEntity(accountHolder.getAccountHolderId(), CONTRACT_TYPE,
-                EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.CUSTEIO.toString()))
+                EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.CUSTEIO.toString(), "AVAILABLE"))
         def contract3 = contractsRepository.save(aContractEntity(accountHolder.getAccountHolderId(), CONTRACT_TYPE,
-                EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.CUSTEIO.toString()))
+                EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.CUSTEIO.toString(), "AVAILABLE"))
 
         consentContractRepository.save(new ConsentContractEntity(consent, contract1))
         consentContractRepository.save(new ConsentContractEntity(consent, contract2))
@@ -76,22 +76,22 @@ class ContractRepositorySpec extends CleanupSpecification {
 
     def "We can get pageable warranties"() {
         given:
-        def CONTRACT_TYPE = AccountOrContractType.FINANCING
+        def CONTRACT_TYPE = ResourceType.FINANCING
         def accountHolder = accountHolderRepository.save(anAccountHolder())
         def consent = consentRepository.save(aConsent(accountHolder.getAccountHolderId()))
         def contract = contractsRepository.save(aContractEntity(accountHolder.getAccountHolderId(), CONTRACT_TYPE,
-                EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.CUSTEIO.toString()))
+                EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.CUSTEIO.toString(), "AVAILABLE"))
         consentContractRepository.save(new ConsentContractEntity(consent, contract))
-        def warranty1 = aWarranty(contract.getContractId())
+        def warranty1 = aWarranty(contract)
         contractWarrantiesRepository.save(warranty1)
-        def warranty2 = aWarranty(contract.getContractId())
+        def warranty2 = aWarranty(contract)
         contractWarrantiesRepository.save(warranty2)
-        def warranty3 = aWarranty(contract.getContractId())
+        def warranty3 = aWarranty(contract)
         contractWarrantiesRepository.save(warranty3)
 
         when:
-        def page1 = contractWarrantiesRepository.findByContractIdOrderByCreatedAtAsc(contract.contractId, Pageable.from(0, 2))
-        def page2 = contractWarrantiesRepository.findByContractIdOrderByCreatedAtAsc(contract.contractId, Pageable.from(1, 2))
+        def page1 = contractWarrantiesRepository.findByContractOrderByCreatedAtAsc(contract, Pageable.from(0, 2))
+        def page2 = contractWarrantiesRepository.findByContractOrderByCreatedAtAsc(contract, Pageable.from(1, 2))
 
         then:
         // total number of warranties 3
@@ -111,7 +111,7 @@ class ContractRepositorySpec extends CleanupSpecification {
         !page1.collect().contains(page2.first())
 
         when:
-        def pageAll = contractWarrantiesRepository.findByContractIdOrderByCreatedAtAsc(contract.contractId, Pageable.from(0))
+        def pageAll = contractWarrantiesRepository.findByContractOrderByCreatedAtAsc(contract, Pageable.from(0))
 
         then:
         // page have all warranties

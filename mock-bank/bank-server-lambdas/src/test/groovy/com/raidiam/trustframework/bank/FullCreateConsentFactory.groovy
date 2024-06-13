@@ -10,9 +10,9 @@ import com.raidiam.trustframework.mockbank.models.generated.BusinessEntity
 import com.raidiam.trustframework.mockbank.models.generated.BusinessEntityDocument
 import com.raidiam.trustframework.mockbank.models.generated.CreateConsentV2
 import com.raidiam.trustframework.mockbank.models.generated.CreateConsentV2Data
+import com.raidiam.trustframework.mockbank.models.generated.Document
 import com.raidiam.trustframework.mockbank.models.generated.EnumConsentPermissions
 import com.raidiam.trustframework.mockbank.models.generated.LoggedUser
-import com.raidiam.trustframework.mockbank.models.generated.LoggedUserDocument
 import com.raidiam.trustframework.mockbank.models.generated.ResponseConsentFullV2
 import com.raidiam.trustframework.mockbank.models.generated.ResponseConsentV2
 import com.raidiam.trustframework.mockbank.models.generated.UpdateConsent
@@ -24,6 +24,7 @@ import org.apache.commons.lang3.RandomStringUtils
 import spock.lang.Shared
 
 import javax.inject.Inject
+import java.lang.annotation.Documented
 import java.time.OffsetDateTime
 import java.util.stream.Collectors
 
@@ -214,7 +215,7 @@ class FullCreateConsentFactory extends CleanupLocalStackSpecification {
                         .identification(RandomStringUtils.random(14, false, true))
                         .rel("ASDF")))
         consentRequest.data.loggedUser(new LoggedUser()
-                .document(new LoggedUserDocument()
+                .document(new Document()
                         .identification(accountHolder.getDocumentIdentification())
                         .rel(accountHolder.getDocumentRel())))
         consentRequest
@@ -227,7 +228,7 @@ class FullCreateConsentFactory extends CleanupLocalStackSpecification {
 
         CreateConsentV2 consentRequest = new CreateConsentV2().data(consentData)
         consentRequest.data.loggedUser(new LoggedUser()
-                .document(new LoggedUserDocument()
+                .document(new Document()
                         .identification(accountHolder.getDocumentIdentification())
                         .rel(accountHolder.getDocumentRel())))
         consentRequest

@@ -1,9 +1,7 @@
 package com.raidiam.trustframework.bank.services.validate;
 
 import com.raidiam.trustframework.bank.exceptions.TrustframeworkException;
-import com.raidiam.trustframework.mockbank.models.generated.CreatePaymentConsent;
-import com.raidiam.trustframework.mockbank.models.generated.CreatePaymentConsentData;
-import com.raidiam.trustframework.mockbank.models.generated.LoggedUser;
+import com.raidiam.trustframework.mockbank.models.generated.*;
 
 import java.util.Optional;
 

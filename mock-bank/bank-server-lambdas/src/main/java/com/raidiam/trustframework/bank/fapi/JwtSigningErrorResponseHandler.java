@@ -3,6 +3,8 @@ package com.raidiam.trustframework.bank.fapi;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.raidiam.trustframework.bank.enums.ErrorCodesEnumV1;
+import com.raidiam.trustframework.bank.enums.ErrorCodesEnumV2;
 import com.raidiam.trustframework.bank.jwt.JwtMediaType;
 import com.raidiam.trustframework.bank.utils.JwtSigner;
 import com.raidiam.trustframework.mockbank.models.generated.Meta;
@@ -10,17 +12,20 @@ import com.raidiam.trustframework.mockbank.models.generated.ResponseError;
 import com.raidiam.trustframework.mockbank.models.generated.ResponseErrorErrors;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.context.annotation.Value;
+import io.micronaut.core.annotation.NonNull;
 import io.micronaut.http.*;
 import io.micronaut.http.annotation.Produces;
-import io.micronaut.http.hateoas.JsonError;
 import io.micronaut.http.server.exceptions.response.ErrorContext;
 import io.micronaut.http.server.exceptions.response.ErrorResponseProcessor;
-import io.micronaut.http.server.exceptions.response.HateoasErrorResponseProcessor;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 @Produces
@@ -28,58 +33,69 @@ import java.util.UUID;
 @Requires(classes = {ErrorResponseProcessor.class})
 public class JwtSigningErrorResponseHandler implements ErrorResponseProcessor<Object> {
 
+    private static final Logger LOG = LoggerFactory.getLogger(JwtSigningErrorResponseHandler.class);
+
     private final ObjectMapper objectMapper;
     private final JwtSigner jwtSigner;
     private final String mockBankIssuer;
-    private final HateoasErrorResponseProcessor delegate;
 
-    public JwtSigningErrorResponseHandler(HateoasErrorResponseProcessor delegate, JwtSigner jwtSigner,
+    public JwtSigningErrorResponseHandler(JwtSigner jwtSigner,
                                           ObjectMapper objectMapper,
                                           @Value("${trustframework.issuer}")  String mockBankIssuer) {
-        this.delegate = delegate;
         this.jwtSigner = jwtSigner;
         this.objectMapper = objectMapper;
         this.mockBankIssuer = mockBankIssuer;
     }
+    private static final List<HttpStatus> JSON_RESPONSE_LIST = List.of(
+            HttpStatus.BAD_REQUEST,
+            HttpStatus.FORBIDDEN,
+            HttpStatus.TOO_MANY_REQUESTS,
+            HttpStatus.NOT_FOUND,
+            HttpStatus.UNAUTHORIZED,
+            HttpStatus.METHOD_NOT_ALLOWED
+    );
 
     @SneakyThrows
     @Override
-    public MutableHttpResponse<Object> processResponse(ErrorContext errorContext, MutableHttpResponse<?> response) {
-
+    @NonNull
+    public MutableHttpResponse<Object> processResponse(@NonNull ErrorContext errorContext, @NonNull MutableHttpResponse<?> response) {
+        LOG.info("Processing error response");
         HttpRequest<?> request = errorContext.getRequest();
-        if(request.getPath().startsWith("/open-banking/payments")) {
-            if (response.status() == HttpStatus.BAD_REQUEST || response.status() == HttpStatus.FORBIDDEN){
-                final ResponseError error = new ResponseError();
-                errorContext.getErrors().forEach(e -> error.addErrorsItem(generateResponseError(e.getMessage())));
-
-                error.meta(new Meta()
-                        .totalPages(1)
-                        .totalRecords(1)
-                        .requestDateTime(OffsetDateTime.now())
-                );
-                String json = objectMapper.writeValueAsString(error);
-                response.getHeaders().remove(HttpHeaders.CONTENT_TYPE);
-                response.contentType(MediaType.APPLICATION_JSON_TYPE);
-                return response.body(json);
+        if(request.getPath().startsWith("/open-banking/payments") || request.getPath().startsWith("/open-banking/enrollments") || request.getPath().startsWith("/open-banking/automatic-payments") ) {
+            if (JSON_RESPONSE_LIST.contains(response.status())){
+                LOG.info("Processing payments response as JSON due to response code");
+                return buildJsonError(errorContext, response);
             }
+            LOG.info("Processing payments response as JWT");
             return signedError(errorContext, response);
         }
 
-        MutableHttpResponse<JsonError> jsonErrorMutableHttpResponse = delegate.processResponse(errorContext, response);
+        LOG.info("Processing non-payments response as Json");
+        return buildJsonError(errorContext, response);
+    }
 
+    @SneakyThrows
+    private MutableHttpResponse<Object> buildJsonError(ErrorContext errorContext, MutableHttpResponse<?> response) {
+        final ResponseError error = new ResponseError();
+        errorContext.getErrors().forEach(e -> error.addErrorsItem(generateResponseError(e.getMessage())));
+
+        error.meta(new Meta()
+                .requestDateTime(OffsetDateTime.now())
+        );
+        String json = objectMapper.writeValueAsString(error);
+        response.getHeaders().remove(HttpHeaders.CONTENT_TYPE);
         response.contentType(MediaType.APPLICATION_JSON_TYPE);
-        return response.body(jsonErrorMutableHttpResponse.body());
-
+        return response.body(json);
     }
 
     private MutableHttpResponse<Object> signedError(ErrorContext errorContext, MutableHttpResponse<?> response) {
         final ResponseError error = new ResponseError();
         errorContext.getErrors().stream()
-                .forEach( e -> {
+                .forEach( e ->
                     error.addErrorsItem(
                         generateResponseError(e.getMessage())
-                    );
-                });
+                    )
+                );
 
         error.meta(new Meta()
                 .totalPages(1)
@@ -107,20 +123,9 @@ public class JwtSigningErrorResponseHandler implements ErrorResponseProcessor<Ob
     }
 
     public String generateTitle(String code){
-        switch (code){
-            case "PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO":
-                return "Pagamento divergente do consentimento";
-            case "FORMA_PGTO_INVALIDA":
-                return "Forma de pagamento inválida.";
-            case "DATA_PGTO_INVALIDA":
-                return "Data de pagamento inválida.";
-            case "DETALHE_PGTO_INVALIDO":
-                return "Detalhe do pagamento inválido.";
-            case "NAO_INFORMADO":
-                return "Não informado.";
-            default:
-                return code;
-        }
+        var v1Opt = Arrays.stream(ErrorCodesEnumV1.values()).filter(error -> error.name().equals(code)).findAny().map(ErrorCodesEnumV1::getTitle);
+        var v2Opt = Arrays.stream(ErrorCodesEnumV2.values()).filter(error -> error.name().equals(code)).findAny().map(ErrorCodesEnumV2::getTitle);
+        return v1Opt.orElse(v2Opt.orElse(code));
     }
 
     public String generateDetail(String message){

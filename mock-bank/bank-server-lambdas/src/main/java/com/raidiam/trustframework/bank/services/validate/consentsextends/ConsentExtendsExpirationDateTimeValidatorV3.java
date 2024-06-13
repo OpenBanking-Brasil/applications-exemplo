@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 
 public class ConsentExtendsExpirationDateTimeValidatorV3 implements ConsentsExtendsValidatorV3 {
 
@@ -22,22 +21,33 @@ public class ConsentExtendsExpirationDateTimeValidatorV3 implements ConsentsExte
 
     @Override
     public void validate(CreateConsentExtendsV3 req, ConsentEntity consentEntity) {
-        Optional.ofNullable(req.getData().getExpirationDateTime()).ifPresentOrElse(
-                this::validateExpirationDateTime,
-                () -> LOG.info("Expiration date time is missing, skipping validation")
-        );
+        if (req.getData().getExpirationDateTime() != null) {
+            validateExpirationDateTime(consentEntity, req.getData().getExpirationDateTime());
+        } else {
+            LOG.info("Expiration date time is missing, skipping validation");
+        }
     }
 
-    private void validateExpirationDateTime(OffsetDateTime expirationDateTime) {
+    private void validateExpirationDateTime(ConsentEntity consentEntity, OffsetDateTime expirationDateTime) {
         LocalDateTime currentDate = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
         LocalDateTime expirationTimeStamp = LocalDateTime.ofInstant(expirationDateTime.toInstant(), ZoneOffset.UTC);
         LOG.info("Validating expirationDateTime - {}, currentDate - {}",
                 expirationTimeStamp.format(FORMATTER),
                 currentDate.format(FORMATTER));
 
-        if (expirationTimeStamp.isAfter(currentDate.plusYears(1)) || currentDate.isAfter(expirationTimeStamp) ) {
+
+        if (expirationTimeStamp.isAfter(currentDate.plusYears(1)) || currentDate.isAfter(expirationTimeStamp)) {
             throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    String.format("%s: new expirationDateTime cannot be in the past or more than one year", EnumConsentExtendsErrorCode.DATA_EXPIRACAO_INVALIDA));
+                    String.format("%s: new expirationDateTime cannot be in the past or more than one year ahead", EnumConsentExtendsErrorCode.DATA_EXPIRACAO_INVALIDA));
+        }
+
+        if (consentEntity.getExpirationDateTime() != null) {
+            LocalDateTime consentExpirationTimeStamp = LocalDateTime.ofInstant(consentEntity.getExpirationDateTime().toInstant(), ZoneOffset.UTC);
+            if (expirationTimeStamp.isBefore(consentExpirationTimeStamp)) {
+
+                throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        String.format("%s: new expirationDateTime cannot be before the current expiration date", EnumConsentExtendsErrorCode.DATA_EXPIRACAO_INVALIDA));
+            }
         }
     }
 }

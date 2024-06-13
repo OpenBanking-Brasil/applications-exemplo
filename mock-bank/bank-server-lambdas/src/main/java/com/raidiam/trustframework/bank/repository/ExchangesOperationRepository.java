@@ -12,7 +12,6 @@ import java.util.UUID;
 
 @Repository
 public interface ExchangesOperationRepository extends PageableRepository<ExchangesOperationEntity, UUID> {
-
     Optional<ExchangesOperationEntity> findByOperationId(@NotNull UUID operationId);
     @Join(value="accountHolder", type = Join.Type.FETCH)
     List<ExchangesOperationEntity> findByAccountHolderUserId(@NotNull String accountHolderId);

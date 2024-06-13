@@ -3,7 +3,7 @@ package com.raidiam.trustframework.bank.services.validate.consentsextends;
 import com.raidiam.trustframework.bank.domain.ConsentEntity;
 import com.raidiam.trustframework.mockbank.models.generated.CreateConsentExtends;
 import com.raidiam.trustframework.mockbank.models.generated.CreateConsentExtendsV3;
-import com.raidiam.trustframework.mockbank.models.generated.LoggedUserDocument;
+import com.raidiam.trustframework.mockbank.models.generated.Document;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import org.slf4j.Logger;
@@ -15,19 +15,19 @@ public class ConsentExtendsLoggedUserValidator implements ConsentsExtendsValidat
 
     @Override
     public void validate(CreateConsentExtends req, ConsentEntity consentEntity) {
-        LoggedUserDocument document = req.getData().getLoggedUser().getDocument();
+        Document document = req.getData().getLoggedUser().getDocument();
         validateLoggedDocument(consentEntity, document);
     }
 
     @Override
     public void validate(CreateConsentExtendsV3 req, ConsentEntity consentEntity) {
-        LoggedUserDocument document = req.getData().getLoggedUser().getDocument();
+        Document document = req.getData().getLoggedUser().getDocument();
         validateLoggedDocument(consentEntity, document);
     }
 
-    private void validateLoggedDocument(ConsentEntity consentEntity, LoggedUserDocument loggedUserDocument) {
-        String requestRel = loggedUserDocument.getRel();
-        String requestIdentification = loggedUserDocument.getIdentification();
+    private void validateLoggedDocument(ConsentEntity consentEntity, Document document) {
+        String requestRel = document.getRel();
+        String requestIdentification = document.getIdentification();
         String consentIdentification = consentEntity.getAccountHolder().getDocumentIdentification();
         String consentRel = consentEntity.getAccountHolder().getDocumentRel();
 

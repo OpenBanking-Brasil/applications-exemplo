@@ -1,25 +1,24 @@
 package com.raidiam.trustframework.bank.domain;
 
 import com.raidiam.trustframework.mockbank.models.generated.EnumFiliationType;
+import com.raidiam.trustframework.mockbank.models.generated.EnumFiliationTypeV2;
 import com.raidiam.trustframework.mockbank.models.generated.PersonalIdentificationDataFiliation;
+import com.raidiam.trustframework.mockbank.models.generated.PersonalIdentificationDataV2Filiation;
 import lombok.*;
-import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
-import java.util.UUID;
+import javax.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "personal_filiation")
-public class PersonalFiliationEntity extends BaseEntity{
+public class PersonalFiliationEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
 
@@ -32,14 +31,11 @@ public class PersonalFiliationEntity extends BaseEntity{
     @Column(name = "social_name")
     private String socialName;
 
-    @Column(name = "personal_identifications_id")
-    @Type(type = "pg-uuid")
-    private UUID personalIdentificationsId;
-
+    @NotNull
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "personal_identifications_id", referencedColumnName = "personal_identifications_id", insertable = false, nullable = false, updatable = false)
+    @JoinColumn(name = "personal_identifications_id", referencedColumnName = "personal_identifications_id", nullable = false, updatable = false)
     private PersonalIdentificationsEntity identification;
 
     public PersonalIdentificationDataFiliation getDTO() {
@@ -47,5 +43,21 @@ public class PersonalFiliationEntity extends BaseEntity{
                 .type(EnumFiliationType.fromValue(this.getType()))
                 .civilName(this.getCivilName())
                 .socialName(this.getSocialName());
+    }
+
+    public PersonalIdentificationDataV2Filiation getDTOV2() {
+        return new PersonalIdentificationDataV2Filiation()
+                .type(EnumFiliationTypeV2.fromValue(this.getType()))
+                .civilName(this.getCivilName())
+                .socialName(this.getSocialName());
+    }
+
+    public static PersonalFiliationEntity from(PersonalIdentificationsEntity identification, PersonalIdentificationDataFiliation personalFiliation) {
+        var personalFiliationEntity = new PersonalFiliationEntity();
+        personalFiliationEntity.setIdentification(identification);
+        personalFiliationEntity.setType(personalFiliation.getType().name());
+        personalFiliationEntity.setCivilName(personalFiliation.getCivilName());
+        personalFiliationEntity.setSocialName(personalFiliation.getSocialName());
+        return personalFiliationEntity;
     }
 }

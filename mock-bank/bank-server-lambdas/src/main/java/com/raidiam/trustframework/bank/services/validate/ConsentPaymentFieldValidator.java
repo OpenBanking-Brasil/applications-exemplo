@@ -1,11 +1,11 @@
 package com.raidiam.trustframework.bank.services.validate;
 
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.*;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 
 public class ConsentPaymentFieldValidator implements PaymentConsentValidator{
@@ -26,7 +26,7 @@ public class ConsentPaymentFieldValidator implements PaymentConsentValidator{
         PaymentConsent payment = data.getPayment();
 
         // Message: Invalid payment type
-        if(!typeEnumContains(payment.getType().toString())){
+        if(!typeEnumContains(payment.getType())){
             throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "FORMA_PGTO_INVALIDA: Meio de pagamento inválido."
             );
@@ -72,7 +72,7 @@ public class ConsentPaymentFieldValidator implements PaymentConsentValidator{
                 );
         }
 
-        if(!accountTypeEnumContains(data.getCreditor().getPersonType())){
+        if (!accountTypeEnumContains(data.getCreditor().getPersonType())) {
             // Message: The field creditorAccount - accountType does not fulfill the filling in requirements.
             throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "DETALHE_PGTO_INVALIDO: O campo " +
                     "creditorAccount - accountType não atende os requisitos de preenchimento."
@@ -184,7 +184,7 @@ public class ConsentPaymentFieldValidator implements PaymentConsentValidator{
 
     public void validatePaymentDate(LocalDate consentDate){
         Date dateOfToday = new Date();
-        LocalDate currentDate = dateOfToday.toInstant().atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate();
+        LocalDate currentDate = dateOfToday.toInstant().atZone(BankLambdaUtils.getBrasilZoneId()).toLocalDate();
         if(consentDate.isBefore(currentDate)){
             throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "DATA_PGTO_INVALIDA: Data de pagamento " +
                     "inválida no contexto, data no passado. Para pagamentos únicos deve ser informada a data atual, " +
@@ -196,7 +196,7 @@ public class ConsentPaymentFieldValidator implements PaymentConsentValidator{
     private void validatePaymentSchedule(Schedule consentSchedule) {
         LocalDate scheduleDate = consentSchedule.getSingle().getDate();
         Date dateOfToday = new Date();
-        LocalDate currentDate = dateOfToday.toInstant().atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate();
+        LocalDate currentDate = dateOfToday.toInstant().atZone(BankLambdaUtils.getBrasilZoneId()).toLocalDate();
         LocalDate futureDate = currentDate.plusDays(DAYS_ALLOWED_IN_FUTURE);
         if (scheduleDate.isBefore(currentDate)
                 || scheduleDate.equals(currentDate)

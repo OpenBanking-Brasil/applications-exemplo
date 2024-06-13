@@ -5,7 +5,7 @@ import com.raidiam.trustframework.bank.TestEntityDataFactory
 import com.raidiam.trustframework.bank.controllers.ConsentFactory
 import com.raidiam.trustframework.bank.domain.AccountEntity
 import com.raidiam.trustframework.bank.domain.AccountHolderEntity
-import com.raidiam.trustframework.bank.enums.AccountOrContractType
+import com.raidiam.trustframework.bank.enums.ResourceType
 import com.raidiam.trustframework.mockbank.models.generated.*
 import io.micronaut.data.model.Page
 import io.micronaut.data.model.Pageable
@@ -52,14 +52,14 @@ class ConsentServiceSpec extends CleanupSpecification {
         ResponseConsent response = service.createConsent('client1', consent)
 
         then:
-        response.getData().getStatus() == ResponseConsentData.StatusEnum.AWAITING_AUTHORISATION
+        response.getData().getStatus() == EnumConsentStatus.AWAITING_AUTHORISATION
     }
 
     def "We have to request an entire set of permissions"() {
 
         given:
         CreateConsent consent = ConsentFactory.createConsent(testAccountHolder.documentIdentification, testAccountHolder.documentRel, null)
-        consent.data.setPermissions([CreateConsentData.PermissionsEnum.ACCOUNTS_READ, CreateConsentData.PermissionsEnum.ACCOUNTS_BALANCES_READ])
+        consent.data.setPermissions([EnumConsentPermissions.ACCOUNTS_READ, EnumConsentPermissions.ACCOUNTS_BALANCES_READ])
 
         when:
         service.createConsent('client1', consent)
@@ -75,18 +75,18 @@ class ConsentServiceSpec extends CleanupSpecification {
         given:
         CreateConsent consent = ConsentFactory.createConsent(testAccountHolder.documentIdentification, testAccountHolder.documentRel, null)
 
-        def account = accountRepository.save(anAccount(testAccountHolder.getAccountHolderId()))
-        def account2 = accountRepository.save(anAccount(testAccountHolder.getAccountHolderId()))
+        def account = accountRepository.save(anAccount(testAccountHolder))
+        def account2 = accountRepository.save(anAccount(testAccountHolder))
         def creditCard = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
         def creditCard2 = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
-        def loan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.LOAN, "a", "b")
-        def loan2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.LOAN, "a", "b")
-        def financing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.FINANCING, "a", "b")
-        def financing2  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.FINANCING, "a", "b")
-        def invoiceFinancing  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.INVOICE_FINANCING, "a", "b")
-        def invoiceFinancing2  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.INVOICE_FINANCING, "a", "b")
-        def overdraft  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT, "a", "b")
-        def overdraft2  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT, "a", "b")
+        def loan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.LOAN, "a", "b")
+        def loan2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.LOAN, "a", "b")
+        def financing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.FINANCING, "a", "b")
+        def financing2  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.FINANCING, "a", "b")
+        def invoiceFinancing  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.INVOICE_FINANCING, "a", "b")
+        def invoiceFinancing2  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.INVOICE_FINANCING, "a", "b")
+        def overdraft  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT, "a", "b")
+        def overdraft2  = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT, "a", "b")
 
         List<String> linkedAccountIds = [account.getAccountId().toString(), account2.getAccountId().toString()]
         List<String> linkedCreditCardAccountIds = [creditCard.getCreditCardAccountId().toString(), creditCard2.getCreditCardAccountId().toString()]
@@ -111,13 +111,13 @@ class ConsentServiceSpec extends CleanupSpecification {
         ResponseConsent response = service.createConsent('client1', consent)
 
         then:
-        response.getData().getStatus() == ResponseConsentData.StatusEnum.AWAITING_AUTHORISATION
+        response.getData().getStatus() == EnumConsentStatus.AWAITING_AUTHORISATION
 
         when:
         ResponseConsentFull updateResponse = service.updateConsent(response.getData().getConsentId(), updateRequest)
 
         then:
-        updateResponse.getData().getStatus() == ResponseConsentFullData.StatusEnum.AUTHORISED
+        updateResponse.getData().getStatus() == EnumConsentStatus.AUTHORISED
         updateResponse.getData().getLinkedAccountIds().containsAll(linkedAccountIds)
         updateResponse.getData().getLinkedCreditCardAccountIds().containsAll(linkedCreditCardAccountIds)
         updateResponse.getData().getLinkedLoanAccountIds().containsAll(linkedLoanAccountIds)
@@ -130,7 +130,7 @@ class ConsentServiceSpec extends CleanupSpecification {
         ResponseConsentFull fetched = service.getConsentFull(response.getData().consentId)
 
         then:
-        fetched.getData().getStatus() == ResponseConsentFullData.StatusEnum.AUTHORISED
+        fetched.getData().getStatus() == EnumConsentStatus.AUTHORISED
         fetched.getData().getLinkedAccountIds().containsAll(linkedAccountIds)
         fetched.getData().getLinkedCreditCardAccountIds().containsAll(linkedCreditCardAccountIds)
         fetched.getData().getLinkedLoanAccountIds().containsAll(linkedLoanAccountIds)
@@ -150,7 +150,7 @@ class ConsentServiceSpec extends CleanupSpecification {
         def foundResponse = service.getConsent(response.data.consentId, 'client1')
 
         then:
-        foundResponse.getData().getStatus() == ResponseConsentData.StatusEnum.AWAITING_AUTHORISATION
+        foundResponse.getData().getStatus() == EnumConsentStatus.AWAITING_AUTHORISATION
 
     }
 
@@ -164,7 +164,7 @@ class ConsentServiceSpec extends CleanupSpecification {
         def foundResponse = service.getConsentFull(response.data.consentId)
 
         then:
-        foundResponse.getData().getStatus() == ResponseConsentFullData.StatusEnum.AWAITING_AUTHORISATION
+        foundResponse.getData().getStatus() == EnumConsentStatus.AWAITING_AUTHORISATION
         foundResponse.getData().getSub() != null
         foundResponse.getData().getSub() == testAccountHolder.getUserId()
     }
@@ -191,7 +191,7 @@ class ConsentServiceSpec extends CleanupSpecification {
         ResponseConsent response = service.createConsent('client1', consent)
 
         when:
-        service.deleteConsent(response.data.consentId, 'client2')
+        service.deleteConsentV2(response.data.consentId, 'client2')
 
         then:
         def ex = thrown(HttpStatusException)
@@ -232,7 +232,7 @@ class ConsentServiceSpec extends CleanupSpecification {
                 .data(new UpdateConsentData())
 
         then:
-        response.getData().getStatus() == ResponseConsentData.StatusEnum.AWAITING_AUTHORISATION
+        response.getData().getStatus() == EnumConsentStatus.AWAITING_AUTHORISATION
 
         when:
         service.updateConsent(response.getData().getConsentId(), internal)
@@ -281,19 +281,20 @@ class ConsentServiceSpec extends CleanupSpecification {
 
     def "We can delete a consent"() {
 
-        given:
+        when:
         def consent = ConsentFactory.createConsent(testAccountHolder.documentIdentification, testAccountHolder.documentRel, null)
         ResponseConsent response = service.createConsent('client1', consent)
         def id = response.data.consentId
 
+        then:
+        response.getData().getStatus() == EnumConsentStatus.AWAITING_AUTHORISATION
+
         when:
-        service.deleteConsent(id, 'client1')
-        service.getConsent(id, 'client1')
+        service.deleteConsentV2(id, 'client1')
+        def responseConsent = service.getConsent(id, 'client1')
 
         then:
-        def ex = thrown(HttpStatusException)
-        ex.status == HttpStatus.NOT_FOUND
-
+        responseConsent.getData().getStatus() == EnumConsentStatus.REJECTED
     }
 
     def "Cannot update a non-existent consent"() {
@@ -303,7 +304,7 @@ class ConsentServiceSpec extends CleanupSpecification {
 
         then:
         HttpStatusException e = thrown()
-        e.getStatus() == HttpStatus.FORBIDDEN
+        e.getStatus() == HttpStatus.NOT_FOUND
 
     }
 
@@ -401,11 +402,99 @@ class ConsentServiceSpec extends CleanupSpecification {
         consent.data.transactionToDateTime(OffsetDateTime.now())
 
         when:
-        ResponseConsent response = service.createConsent('client1', consent)
+        service.createConsent('client1', consent)
 
         then:
         HttpStatusException e = thrown()
         e.status == HttpStatus.BAD_REQUEST
+    }
+
+    def "We can add and remove contracts to/from consents without anything weird happening" () {
+        given:
+        def consent = ConsentFactory.createConsent(testAccountHolder.documentIdentification, testAccountHolder.documentRel, null)
+        def loan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.LOAN, "a", "b")
+
+        List<String> linkedLoanAccountIds = [loan.getContractId().toString()]
+
+        def updateData = new UpdateConsentData()
+        updateData.setStatus(UpdateConsentData.StatusEnum.AUTHORISED)
+        updateData.setLinkedLoanAccountIds(linkedLoanAccountIds)
+
+        def updateRequest = new UpdateConsent()
+        updateRequest.setData(updateData)
+
+        when:
+        def loanRetrieved = contractsRepository.findById(loan.getContractId())
+
+        then:
+        loanRetrieved != null
+        loanRetrieved.isPresent()
+        loanRetrieved.get() == loan
+
+        when:
+        ResponseConsent response = service.createConsent('client1', consent)
+
+        then:
+        response != null
+        response.getData() != null
+        response.getData().getStatus() == EnumConsentStatus.AWAITING_AUTHORISATION
+        def consentId = response.getData().getConsentId()
+
+        when:
+        ResponseConsentFull updateResponse = service.updateConsent(consentId, updateRequest)
+
+        then:
+        updateResponse.getData().getStatus() == EnumConsentStatus.AUTHORISED
+        updateResponse.getData().getLinkedLoanAccountIds().containsAll(linkedLoanAccountIds)
+        updateResponse.getData().getSub() == testAccountHolder.getUserId()
+
+        when:
+        ResponseConsentFull fetched = service.getConsentFull(consentId)
+
+        then:
+        fetched.getData().getStatus() == EnumConsentStatus.AUTHORISED
+        fetched.getData().getLinkedLoanAccountIds().containsAll(linkedLoanAccountIds)
+        fetched.getData().getSub() == testAccountHolder.getUserId()
+
+        when:
+        service.deleteConsentV2(consentId, 'client1')
+
+        then:
+        noExceptionThrown()
+
+        // check that when the consent is gone, the join-table entry goes, but the contract does not
+        when:
+        def consentContractPage = consentContractRepository.findByConsentIdAndContractContractTypeOrderByCreatedAtAsc(consentId, ResourceType.LOAN.toString(), Pageable.unpaged())
+
+        then:
+        consentContractPage != null
+        consentContractPage.getContent() != null
+
+        when:
+        def loanRetrieved2 = contractsRepository.findById(loan.getContractId())
+
+        then:
+        loanRetrieved2 != null
+        loanRetrieved2.isPresent()
+        loanRetrieved2.get() == loan
+    }
+
+    def "We cannot get consent for business information without business identifications"() {
+
+        given:
+        def consent = ConsentFactory.createConsent(testAccountHolder.documentIdentification, testAccountHolder.documentRel, List.of(
+                EnumConsentPermissions.RESOURCES_READ,
+                EnumConsentPermissions.CUSTOMERS_BUSINESS_IDENTIFICATIONS_READ,
+                EnumConsentPermissions.CUSTOMERS_BUSINESS_ADITTIONALINFO_READ))
+        consent.getData().setBusinessEntity(null);
+
+        when:
+        service.createConsent('client1', consent)
+
+        then:
+        def ex = thrown(HttpStatusException)
+        ex.status == HttpStatus.BAD_REQUEST
+
     }
 
     def "enable cleanup"() {

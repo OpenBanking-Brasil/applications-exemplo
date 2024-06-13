@@ -69,7 +69,13 @@ class ExchangesServiceSpec extends CleanupSpecification {
         then:
         exchangesOperation.getData() != null
         exchangesOperation.getData().size() == 2
-        exchangesOperation.getData().get(0)  != null
+        var exchangesOperationEvent = exchangesOperation.getData().get(0)
+        exchangesOperationEvent != null
+
+        and:
+        exchangesOperationEvent.foreignPartie.foreignPartieCountryCode == "ZA"
+        exchangesOperationEvent.foreignPartie.foreignPartieName == "José da Silva"
+        exchangesOperationEvent.foreignPartie.relationshipCode == "50"
     }
 
 

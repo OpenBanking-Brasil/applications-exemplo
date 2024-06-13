@@ -171,13 +171,15 @@ public class EnrollmentEntity extends BaseEntity {
                 .statusUpdateDateTime(BankLambdaUtils.dateToOffsetDate(statusUpdateDateTime))
                 .status(EnumEnrollmentStatus.fromValue(status))
                 .transactionLimit(transactionLimit)
-                .dailyLimit(dailyLimit);
+                .dailyLimit(dailyLimit)
+                .addPermissionsItem(EnumEnrollmentPermission.PAYMENTS_INITIATE);
 
         if(rejectReason != null) {
             enrollmentData.cancellation(new EnrollmentCancellation()
                     .reason(new EnrollmentCancellationReason()
                             .rejectionReason(EnrollmentRejectionReason.fromValue(rejectReason))
                     )
+                            .cancelledFrom(EnrollmentCancellation.CancelledFromEnum.DETENTORA)
                     .rejectedAt(BankLambdaUtils.dateToOffsetDate(rejectedAt)))
                     .setStatus(EnumEnrollmentStatus.REJECTED);
         } else if (revocationReason != null) {

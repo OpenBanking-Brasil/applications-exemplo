@@ -194,7 +194,7 @@ class EnrollmentFactory {
                         .identification(RandomStringUtils.random(14, false, true))
                         .rel("ASDF")))
         enrollmentReq.data.loggedUser(new LoggedUser()
-                .document(new LoggedUserDocument()
+                .document(new Document()
                         .identification(loggedUserIdentification)
                         .rel(loggedUserRel)
                 ))

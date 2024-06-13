@@ -1,12 +1,8 @@
-
 package com.raidiam.trustframework.bank.domain;
 
-import com.raidiam.trustframework.mockbank.models.generated.FinancingsBalloonPayment;
-import com.raidiam.trustframework.mockbank.models.generated.InvoiceFinancingsBalloonPayment;
-import com.raidiam.trustframework.mockbank.models.generated.LoansBalloonPayment;
-import com.raidiam.trustframework.mockbank.models.generated.UnarrangedAccountOverdraftBalloonPayment;
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
+import com.raidiam.trustframework.mockbank.models.generated.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
@@ -16,8 +12,6 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "balloon_payments")
@@ -28,16 +22,12 @@ public class ContractBalloonPaymentsEntity extends BaseEntity {
     @Column(name = "balloon_payments_id", unique = true, nullable = false, updatable = false, insertable = false, columnDefinition = "uuid NOT NULL DEFAULT uuid_generate_v4()")
     private UUID balloonPaymentsId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @NotNull
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @JoinColumn(name = "contract_id", referencedColumnName = "contract_id", insertable = false, nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "contract_id")
     private ContractEntity contract;
-
-    @Type(type = "pg-uuid")
-    @NotNull
-    @Column(name = "contract_id", nullable = false, updatable = false)
-    private UUID contractId;
 
     @NotNull
     @Column(name = "due_date", nullable = false)
@@ -74,6 +64,54 @@ public class ContractBalloonPaymentsEntity extends BaseEntity {
 
     public InvoiceFinancingsBalloonPayment getInvoiceFinancingsDTO() {
         return new InvoiceFinancingsBalloonPayment()
+                .dueDate(this.dueDate)
+                .currency(this.currency)
+                .amount(this.amount);
+    }
+
+    public UnarrangedAccountOverdraftBalloonPaymentV2 getOverdraftBalloonPaymentV2() {
+        return new UnarrangedAccountOverdraftBalloonPaymentV2()
+                .dueDate(this.dueDate)
+                .amount(new UnarrangedAccountOverdraftBalloonPaymentAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.amount))
+                        .currency(this.currency));
+    }
+
+    public FinancingsBalloonPaymentV2 getFinancingsBalloonPaymentV2() {
+        return new FinancingsBalloonPaymentV2()
+                .dueDate(this.dueDate)
+                .amount(new FinancingsBalloonPaymentAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.amount))
+                        .currency(this.currency));
+    }
+
+    public InvoiceFinancingsBalloonPaymentV2 getInvoiceFinancingsBalloonPaymentV2() {
+        return new InvoiceFinancingsBalloonPaymentV2()
+                .dueDate(this.dueDate)
+                .amount(new InvoiceFinancingsBallonPaymentAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.amount))
+                        .currency(this.currency));
+    }
+
+    public LoansBalloonPaymentV2 getLoansBalloonPaymentV2() {
+        return new LoansBalloonPaymentV2()
+                .dueDate(this.dueDate)
+                .amount(new LoansBalloonPaymentAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.amount))
+                        .currency(this.currency));
+    }
+
+    public static ContractBalloonPaymentsEntity from(ContractEntity contract, ContractBalloonPayment balloonPayment) {
+        var balloonPaymentEntity = new ContractBalloonPaymentsEntity();
+        balloonPaymentEntity.setContract(contract);
+        balloonPaymentEntity.setDueDate(balloonPayment.getDueDate());
+        balloonPaymentEntity.setCurrency(balloonPayment.getCurrency());
+        balloonPaymentEntity.setAmount(balloonPayment.getAmount());
+        return balloonPaymentEntity;
+    }
+
+    public ContractBalloonPayment getContractBalloonPayment() {
+        return new ContractBalloonPayment()
                 .dueDate(this.dueDate)
                 .currency(this.currency)
                 .amount(this.amount);

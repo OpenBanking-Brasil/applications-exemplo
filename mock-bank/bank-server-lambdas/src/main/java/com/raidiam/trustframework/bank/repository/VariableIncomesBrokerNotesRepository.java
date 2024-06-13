@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface VariableIncomesBrokerNotesRepository extends PageableRepository<VariableIncomesBrokerNotesEntity, UUID> {
 
-    Optional<VariableIncomesBrokerNotesEntity> findByInvestmentIdAndBrokerNoteId(UUID investmentId, UUID brokerNoteId);
+    Optional<VariableIncomesBrokerNotesEntity> findByBrokerNoteId(UUID brokerNoteId);
 
 }

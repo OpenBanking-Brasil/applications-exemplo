@@ -1,32 +1,28 @@
 package com.raidiam.trustframework.bank.domain;
 
 import com.raidiam.trustframework.mockbank.models.generated.CustomerPhone;
+import com.raidiam.trustframework.mockbank.models.generated.CustomerPhoneV2;
 import com.raidiam.trustframework.mockbank.models.generated.EnumAreaCode;
+import com.raidiam.trustframework.mockbank.models.generated.EnumAreaCodeV2;
 import com.raidiam.trustframework.mockbank.models.generated.EnumCustomerPhoneType;
+import com.raidiam.trustframework.mockbank.models.generated.EnumCustomerPhoneTypeV2;
 import lombok.*;
-import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
-import java.util.UUID;
+import javax.validation.constraints.NotNull;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "personal_phones")
-public class PersonalPhoneEntity extends BaseEntity{
+public class PersonalPhoneEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
-
-    @Column(name = "personal_identifications_id")
-    @Type(type = "pg-uuid")
-    private UUID personalIdentificationsId;
 
     @Column(name = "is_main")
     private boolean isMain;
@@ -49,10 +45,11 @@ public class PersonalPhoneEntity extends BaseEntity{
     @Column(name = "phone_extension")
     private String phoneExtension;
 
+    @NotNull
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "personal_identifications_id", referencedColumnName = "personal_identifications_id", insertable = false, nullable = false, updatable = false)
+    @JoinColumn(name = "personal_identifications_id", referencedColumnName = "personal_identifications_id", nullable = false, updatable = false)
     private PersonalIdentificationsEntity identification;
 
     public CustomerPhone getDTO() {
@@ -64,6 +61,29 @@ public class PersonalPhoneEntity extends BaseEntity{
                 .areaCode(EnumAreaCode.fromValue(this.getAreaCode()))
                 .number(this.getNumber())
                 .phoneExtension(this.getPhoneExtension());
+    }
 
+    public CustomerPhoneV2 getDTOV2() {
+        return new CustomerPhoneV2()
+                .isMain(this.isMain())
+                .type(EnumCustomerPhoneTypeV2.fromValue(this.getType()))
+                .additionalInfo(this.getAdditionalInfo())
+                .countryCallingCode(this.getCountryCallingCode())
+                .areaCode(EnumAreaCodeV2.fromValue(this.getAreaCode()))
+                .number(this.getNumber())
+                .phoneExtension(this.getPhoneExtension());
+    }
+
+    public static PersonalPhoneEntity from(PersonalIdentificationsEntity identification, CustomerPhone personalPhones) {
+        var personalPhonesEntity = new PersonalPhoneEntity();
+        personalPhonesEntity.setIdentification(identification);
+        personalPhonesEntity.setMain(personalPhones.isIsMain());
+        personalPhonesEntity.setType(personalPhones.getType().name());
+        personalPhonesEntity.setAdditionalInfo(personalPhones.getAdditionalInfo());
+        personalPhonesEntity.setCountryCallingCode(personalPhones.getCountryCallingCode());
+        personalPhonesEntity.setAreaCode(personalPhones.getAreaCode().toString());
+        personalPhonesEntity.setNumber(personalPhones.getNumber());
+        personalPhonesEntity.setPhoneExtension(personalPhones.getPhoneExtension());
+        return personalPhonesEntity;
     }
 }

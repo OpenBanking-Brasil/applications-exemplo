@@ -13,7 +13,7 @@ import java.util.Set;
 
 
 public class CurrencyValidatorV4 implements PaymentConsentValidatorV4 {
-    Logger log = LoggerFactory.getLogger(CurrencyValidatorV4.class);
+    Logger LOG = LoggerFactory.getLogger(CurrencyValidatorV4.class);
 
     private PaymentErrorMessage errorMessage;
     public CurrencyValidatorV4(PaymentErrorMessage errorMessage) {
@@ -196,6 +196,7 @@ public class CurrencyValidatorV4 implements PaymentConsentValidatorV4 {
 
     @Override
     public void validate(CreatePaymentConsentV4 request) {
+        LOG.info("Started Currency Consent Validation");
         String currency = request.getData().getPayment().getCurrency();
         if(!checkCurrency(currency)){
             throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidCurrency());

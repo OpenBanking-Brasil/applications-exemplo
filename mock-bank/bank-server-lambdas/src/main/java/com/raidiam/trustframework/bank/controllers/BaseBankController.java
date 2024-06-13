@@ -18,13 +18,13 @@ public class BaseBankController {
     private static final Logger LOG = LoggerFactory.getLogger(BaseBankController.class);
 
     @Value("${mockbank.mockbankUrl}")
-    String appBaseUrl;
+    protected String appBaseUrl;
 
     @Inject
-    ObjectMapper mapper;
+    protected ObjectMapper mapper;
 
     @Inject
-    BankLambdaUtils bankLambdaUtils;
+    protected BankLambdaUtils bankLambdaUtils;
 
     @Inject
     private HttpStatusHandler statusHandler;

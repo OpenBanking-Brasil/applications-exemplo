@@ -12,6 +12,7 @@ import spock.lang.Stepwise
 
 import javax.inject.Inject
 import java.time.LocalDate
+import java.time.OffsetDateTime
 
 import static com.raidiam.trustframework.bank.TestEntityDataFactory.*
 
@@ -53,18 +54,18 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         if (runSetup) {
             testAccountHolder = accountHolderRepository.save(anAccountHolder("96644087000", "CPF"))
             testConsent = consentRepository.save(aConsent(testAccountHolder.getAccountHolderId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.CREDIT_CARDS_ACCOUNTS_READ, testConsent.getConsentId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.CREDIT_CARDS_ACCOUNTS_BILLS_READ, testConsent.getConsentId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ, testConsent.getConsentId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.CREDIT_CARDS_ACCOUNTS_LIMITS_READ, testConsent.getConsentId()))
-            consentPermissionsRepository.save(aConsentPermission(CreateConsentData.PermissionsEnum.CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ, testConsent.getConsentId()))
+            consentPermissionsRepository.save(aConsentPermission(EnumConsentPermissions.CREDIT_CARDS_ACCOUNTS_READ, testConsent.getConsentId()))
+            consentPermissionsRepository.save(aConsentPermission(EnumConsentPermissions.CREDIT_CARDS_ACCOUNTS_BILLS_READ, testConsent.getConsentId()))
+            consentPermissionsRepository.save(aConsentPermission(EnumConsentPermissions.CREDIT_CARDS_ACCOUNTS_BILLS_TRANSACTIONS_READ, testConsent.getConsentId()))
+            consentPermissionsRepository.save(aConsentPermission(EnumConsentPermissions.CREDIT_CARDS_ACCOUNTS_LIMITS_READ, testConsent.getConsentId()))
+            consentPermissionsRepository.save(aConsentPermission(EnumConsentPermissions.CREDIT_CARDS_ACCOUNTS_TRANSACTIONS_READ, testConsent.getConsentId()))
             testAccount = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
             consentCreditCardAccountsRepository.save(new ConsentCreditCardAccountsEntity(testConsent, testAccount))
-            testAccountPayment = creditCardsAccountPaymentMethodRepository.save(anCreditCardsAccountPaymentMethod(testAccount.creditCardAccountId))
+            testAccountPayment = creditCardsAccountPaymentMethodRepository.save(anCreditCardsAccountPaymentMethod(testAccount))
             testAccountLimits = creditCardAccountsLimitsRepository.save(anCreditCardAccountsLimits(testAccount.creditCardAccountId))
-            testAccountBill = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(testAccount.creditCardAccountId))
-            testBillsFinanceCharge = creditCardAccountsBillsFinanceChargeRepository.save(anCreditCardAccountsBillsFinanceCharge(testAccountBill.billId))
-            testBillPayments = creditCardAccountsBillsPaymentRepository.save(anCreditCardAccountsBillsPayment(testAccountBill.billId))
+            testAccountBill = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(testAccount))
+            testBillsFinanceCharge = creditCardAccountsBillsFinanceChargeRepository.save(anCreditCardAccountsBillsFinanceCharge(testAccountBill))
+            testBillPayments = creditCardAccountsBillsPaymentRepository.save(anCreditCardAccountsBillsPayment(testAccountBill))
 
             testAccountTransaction = creditCardAccountsTransactionRepository.save(anCreditCardAccountsTransaction(testAccountBill.billId,
                     testAccount.getCreditCardAccountId(), new BigDecimal(5912), EnumCreditCardTransactionType.PAGAMENTO.name()))
@@ -77,7 +78,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
             testAccountHolder2 = accountHolderRepository.save(anAccountHolder("10117409073", "CPF"))
             testConsentWrong = consentRepository.save(aConsent(testAccountHolder2.getAccountHolderId()))
             wrongTestAccount = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder2.getAccountHolderId()))
-            wrongAccountBill = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(wrongTestAccount.creditCardAccountId))
+            wrongAccountBill = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(wrongTestAccount))
             consentCreditCardAccountsRepository.save(new ConsentCreditCardAccountsEntity(testConsentWrong, testAccount))
             runSetup = false
         }
@@ -142,7 +143,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
     def "We can get credit card account bills transactions"() {
         when://with payeeMCC and transactionType
         def response = creditCardAccountsService
-                .getCreditCardAccountBillsTransactions(Pageable.from(0), testConsent.getConsentId(),
+                .getBillsTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                         LocalDate.now(), LocalDate.now(), new BigDecimal(5912), "PAGAMENTO",
                         testAccount.getCreditCardAccountId().toString(),
                         testAccountBill.getBillId().toString())
@@ -151,29 +152,24 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         def billTransaction = response.getData().first()
         billTransaction.getTransactionId() == testAccountTransaction.getTransactionId().toString()
         billTransaction.getIdentificationNumber() == testAccountTransaction.getIdentificationNumber()
-        billTransaction.getLineName() == EnumCreditCardAccountsLineName.valueOf(testAccountTransaction.getLineName())
         billTransaction.getTransactionName() == testAccountTransaction.getTransactionName()
         billTransaction.getBillId() == testAccountBill.getBillId().toString()
-        billTransaction.getCreditDebitType() == EnumCreditDebitIndicator1.valueOf(testAccountTransaction.getCreditDebitType())
-        billTransaction.getTransactionType() == EnumCreditCardTransactionType.valueOf(testAccountTransaction.getTransactionType())
+        billTransaction.getCreditDebitType() == EnumCreditDebitIndicatorV2.valueOf(testAccountTransaction.getCreditDebitType())
+        billTransaction.getTransactionType() == EnumCreditCardTransactionTypeV2.valueOf(testAccountTransaction.getTransactionType())
         billTransaction.getTransactionalAdditionalInfo() == testAccountTransaction.getTransactionalAdditionalInfo()
-        billTransaction.getPaymentType() == EnumCreditCardAccountsPaymentType.valueOf(testAccountTransaction.getPaymentType())
-        billTransaction.getFeeType() == EnumCreditCardAccountFee.valueOf(testAccountTransaction.getFeeType())
+        billTransaction.getPaymentType() == EnumCreditCardAccountsPaymentTypeV2.valueOf(testAccountTransaction.getPaymentType())
+        billTransaction.getFeeType() == EnumCreditCardAccountFeeV2.valueOf(testAccountTransaction.getFeeType())
         billTransaction.getFeeTypeAdditionalInfo() == testAccountTransaction.getFeeTypeAdditionalInfo()
-        billTransaction.getOtherCreditsType() == EnumCreditCardAccountsOtherCreditType.valueOf(testAccountTransaction.getOtherCreditsType())
+        billTransaction.getOtherCreditsType() == EnumCreditCardAccountsOtherCreditTypeV2.valueOf(testAccountTransaction.getOtherCreditsType())
         billTransaction.getOtherCreditsAdditionalInfo() == testAccountTransaction.getOtherCreditsAdditionalInfo()
-        billTransaction.getChargeIdentificator() == testAccountTransaction.getChargeIdentificator()
+        billTransaction.getChargeIdentificator().toString() == testAccountTransaction.getChargeIdentificator()
         billTransaction.getChargeNumber() == testAccountTransaction.getChargeNumber()
-        billTransaction.getBrazilianAmount() == testAccountTransaction.getBrazilianAmount()
-        billTransaction.getAmount() == testAccountTransaction.getAmount()
-        billTransaction.getCurrency() == testAccountTransaction.getCurrency()
-        billTransaction.getTransactionDate() == testAccountTransaction.getTransactionDate()
         billTransaction.getBillPostDate() == testAccountTransaction.getBillPostDate()
         billTransaction.getPayeeMCC() == testAccountTransaction.getPayeeMCC()
 
         when: //with out payeeMCC and transactionType
         def response2 = creditCardAccountsService
-                .getCreditCardAccountBillsTransactions(Pageable.from(0), testConsent.getConsentId(),
+                .getBillsTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                         LocalDate.now(), LocalDate.now(), null, null,
                         testAccount.getCreditCardAccountId().toString(), testAccountBill.billId.toString())
 
@@ -181,7 +177,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         response2.getData().size() == 3
 
         when://with payeeMCC = 5912
-        def response3 = creditCardAccountsService.getCreditCardAccountBillsTransactions(Pageable.from(0), testConsent.getConsentId(),
+        def response3 = creditCardAccountsService.getBillsTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), new BigDecimal(5912), null,
                 testAccount.getCreditCardAccountId().toString(), testAccountBill.billId.toString())
 
@@ -190,7 +186,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         response3.getData().get(0).payeeMCC == 5912
 
         when: //with transactionType = OUTROS
-        def response4 = creditCardAccountsService.getCreditCardAccountBillsTransactions(Pageable.from(0), testConsent.getConsentId(),
+        def response4 = creditCardAccountsService.getBillsTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, "OUTROS",
                 testAccount.getCreditCardAccountId().toString(), testAccountBill.billId.toString())
         then:
@@ -201,7 +197,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
     def "We can not get credit card account bills transactions with billsId from another account"() {
         when:
         creditCardAccountsService
-                .getCreditCardAccountBillsTransactions(Pageable.from(0), testConsent.getConsentId(),
+                .getBillsTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                         LocalDate.now(), LocalDate.now(), null, null,
                         testAccount.getCreditCardAccountId().toString(),  wrongAccountBill.getBillId().toString())
 
@@ -235,7 +231,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
     def "We can get credit card account transactions"() {
         when: //with out payeeMCC and transactionType
         def response = creditCardAccountsService
-                .getCreditCardAccountTransactions(Pageable.from(0), testConsent.getConsentId(),
+                .getTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                         LocalDate.now(), LocalDate.now(), null, null, testAccount.getCreditCardAccountId().toString())
 
         then:
@@ -243,7 +239,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
 
         when://with payeeMCC = 5912
         def response2 = creditCardAccountsService
-                .getCreditCardAccountTransactions(Pageable.from(0), testConsent.getConsentId(),
+                .getTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                         LocalDate.now(), LocalDate.now(), BigDecimal.valueOf(5912), null, testAccount.getCreditCardAccountId().toString())
 
         then:
@@ -252,7 +248,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
 
         when: //with transactionType = OUTROS
         def response3 = creditCardAccountsService
-                .getCreditCardAccountTransactions(Pageable.from(0), testConsent.getConsentId(),
+                .getTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                         LocalDate.now(), LocalDate.now(), null, "OUTROS", testAccount.getCreditCardAccountId().toString())
 
         then:
@@ -261,7 +257,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
 
         when: //with payeeMCC and transactionType
         def response4 = creditCardAccountsService
-                .getCreditCardAccountTransactions(Pageable.from(0), testConsent.getConsentId(),
+                .getTransactionsV2(Pageable.from(0), testConsent.getConsentId(),
                         LocalDate.now(), LocalDate.now(), BigDecimal.valueOf(6000), "OUTROS", testAccount.getCreditCardAccountId().toString())
 
         then:
@@ -270,31 +266,38 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         response4.getData().get(0).transactionType.name() == "OUTROS"
     }
 
+    //TODO:
+    void "Correct transactions self link is returned"() {
+
+    }
+
     def "we can get pages"() {
         given:
         var pageSize = 2
         consentCreditCardAccountsRepository.save(new ConsentCreditCardAccountsEntity(testConsent, creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))))
         consentCreditCardAccountsRepository.save(new ConsentCreditCardAccountsEntity(testConsent, creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))))
+        println consentCreditCardAccountsRepository.findAll().size()
 
         when:
         //get first page
         def page1 = creditCardAccountsService.getCreditCardAccounts(Pageable.from(0, pageSize), testConsent.getConsentId())
+        def page1Size = page1.getData().size()
 
         then:
         !page1.getData().empty
-        page1.getData().size() == page1.getMeta().getTotalRecords()
         page1.getMeta().getTotalPages() == pageSize
 
         when:
         //get second page
         def page2 = creditCardAccountsService.getCreditCardAccounts(Pageable.from(1, pageSize), testConsent.getConsentId())
-
+        def page2Size = page2.getData().size()
         then:
         !page2.getData().empty
-        page1.getData().size() == page1.getMeta().getTotalRecords()
         page2.getMeta().getTotalPages() == pageSize
 
         and:
+        page1.getMeta().getTotalRecords() == page1Size + page2Size
+        page2.getMeta().getTotalRecords() == page1Size + page2Size
         //account from page2 is not contain in page1
         def accFromPage2 = page2.getData().first()
         !page1.getData().contains(accFromPage2)
@@ -307,7 +310,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         def testAccount2 = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder2.getAccountHolderId()))
         def testConsent2 = consentRepository.save(aConsent(testAccountHolder2.getAccountHolderId()))
         consentCreditCardAccountsRepository.save(new ConsentCreditCardAccountsEntity(testConsent2, testAccount2))
-        def testAccountBill2 = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(testAccount2.creditCardAccountId))
+        def testAccountBill2 = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(testAccount2))
 
         when:
         creditCardAccountsService.getCreditCardAccounts(Pageable.unpaged(), testConsent2.getConsentId())
@@ -326,7 +329,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         e2.getMessage() == errorMessage
 
         when:
-        creditCardAccountsService.getCreditCardAccountTransactions(Pageable.unpaged(), testConsent2.getConsentId(),
+        creditCardAccountsService.getTransactionsV2(Pageable.unpaged(), testConsent2.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, null, testAccount2.getCreditCardAccountId().toString())
 
         then:
@@ -352,7 +355,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         e5.getMessage() == errorMessage
 
         when:
-        creditCardAccountsService.getCreditCardAccountBillsTransactions(Pageable.unpaged(), testConsent2.getConsentId(),
+        creditCardAccountsService.getBillsTransactionsV2(Pageable.unpaged(), testConsent2.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, null, testAccount2.getCreditCardAccountId().toString(),
                 testAccountBill2.getBillId().toString())
 
@@ -368,7 +371,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         def testAccountHolder2 = accountHolderRepository.save(anAccountHolder())
         def testAccount2 = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder2.getAccountHolderId()))
         consentCreditCardAccountsRepository.save(new ConsentCreditCardAccountsEntity(testConsent, testAccount2))
-        def testAccountBill2 = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(testAccount2.creditCardAccountId))
+        def testAccountBill2 = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(testAccount2))
 
         when:
         creditCardAccountsService.getCreditCardAccounts(Pageable.unpaged(), testConsent.getConsentId().toString())
@@ -387,7 +390,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         e1.getMessage() == errorMessage
 
         when:
-        creditCardAccountsService.getCreditCardAccountTransactions(Pageable.unpaged(), testConsent.getConsentId(),
+        creditCardAccountsService.getTransactionsV2(Pageable.unpaged(), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, null, testAccount2.getCreditCardAccountId().toString())
 
         then:
@@ -413,7 +416,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         e4.getMessage() == errorMessage
 
         when:
-        creditCardAccountsService.getCreditCardAccountBillsTransactions(Pageable.unpaged(), testConsent.getConsentId(),
+        creditCardAccountsService.getBillsTransactionsV2(Pageable.unpaged(), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, null,
                 testAccount2.getCreditCardAccountId().toString(),
                 testAccountBill2.getBillId().toString())
@@ -429,7 +432,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         def errorMessage = "Bad request, consent does not cover this credit card account!"
         def testAccountHolder2 = accountHolderRepository.save(anAccountHolder())
         def testAccount2 = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder2.getAccountHolderId()))
-        def testAccountBill2 = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(testAccount2.creditCardAccountId))
+        def testAccountBill2 = creditCardAccountsBillsRepository.save(anCreditCardAccountsBill(testAccount2))
 
         when:
         creditCardAccountsService.getCreditCardAccount(testConsent.getConsentId(), testAccount2.getCreditCardAccountId().toString())
@@ -440,7 +443,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         e1.getMessage() == errorMessage
 
         when:
-        creditCardAccountsService.getCreditCardAccountTransactions(Pageable.unpaged(), testConsent.getConsentId(),
+        creditCardAccountsService.getTransactionsV2(Pageable.unpaged(), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, null, testAccount2.getCreditCardAccountId().toString())
 
         then:
@@ -466,10 +469,9 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
         e4.getMessage() == errorMessage
 
         when:
-        creditCardAccountsService.getCreditCardAccountBillsTransactions(Pageable.unpaged(), testConsent.getConsentId(),
+        creditCardAccountsService.getTransactionsV2(Pageable.unpaged(), testConsent.getConsentId(),
                LocalDate.now(), LocalDate.now(), null, null,
-                testAccount2.getCreditCardAccountId().toString(),
-                testAccountBill2.getBillId().toString())
+                testAccount2.getCreditCardAccountId().toString())
 
         then:
         HttpStatusException e5 = thrown()
@@ -480,7 +482,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
     def "we cannot get response without authorised status"() {
         setup:
         def errorMessage = "Bad request, consent not Authorised!"
-        testConsent.setStatus(UpdateConsentData.StatusEnum.AWAITING_AUTHORISATION.name())
+        testConsent.setStatus(EnumConsentStatus.AWAITING_AUTHORISATION.name())
         consentRepository.update(testConsent)
 
         when:
@@ -488,7 +490,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
 
         then:
         HttpStatusException e = thrown()
-        e.status == HttpStatus.BAD_REQUEST
+        e.status == HttpStatus.UNAUTHORIZED
         e.getMessage() == errorMessage
 
         when:
@@ -496,26 +498,26 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
 
         then:
         HttpStatusException e1 = thrown()
-        e1.status == HttpStatus.BAD_REQUEST
+        e1.status == HttpStatus.UNAUTHORIZED
         e1.getMessage() == errorMessage
 
         when:
-        creditCardAccountsService.getCreditCardAccountTransactions(Pageable.unpaged(),testConsent.getConsentId(),
+        creditCardAccountsService.getTransactionsV2(Pageable.unpaged(),testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, null, testAccount.getCreditCardAccountId().toString())
 
         then:
         HttpStatusException e2 = thrown()
-        e2.status == HttpStatus.BAD_REQUEST
+        e2.status == HttpStatus.UNAUTHORIZED
         e2.getMessage() == errorMessage
 
         when:
-        creditCardAccountsService.getCreditCardAccountBillsTransactions(Pageable.unpaged(), testConsent.getConsentId(),
+        creditCardAccountsService.getBillsTransactionsV2(Pageable.unpaged(), testConsent.getConsentId(),
                 LocalDate.now(), LocalDate.now(), null, null,
                 testAccount.getCreditCardAccountId().toString(),testAccountBill.getBillId().toString())
 
         then:
         HttpStatusException e3 = thrown()
-        e3.status == HttpStatus.BAD_REQUEST
+        e3.status == HttpStatus.UNAUTHORIZED
         e3.getMessage() == errorMessage
 
         when:
@@ -524,7 +526,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
 
         then:
         HttpStatusException e4 = thrown()
-        e4.status == HttpStatus.BAD_REQUEST
+        e4.status == HttpStatus.UNAUTHORIZED
         e4.getMessage() == errorMessage
 
         when:
@@ -533,7 +535,7 @@ class CreditCardAccountsServiceSpec extends CleanupSpecification {
 
         then:
         HttpStatusException e5 = thrown()
-        e5.status == HttpStatus.BAD_REQUEST
+        e5.status == HttpStatus.UNAUTHORIZED
         e5.getMessage() == errorMessage
     }
 

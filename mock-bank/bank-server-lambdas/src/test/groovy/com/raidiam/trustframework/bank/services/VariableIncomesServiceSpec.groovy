@@ -43,7 +43,7 @@ class VariableIncomesServiceSpec extends CleanupSpecification {
             consentPermissionsRepository.save(aConsentPermission(EnumConsentPermissions.RESOURCES_READ, testConsent.getConsentId()))
 
             testVariableIncomesBalance = variableIncomesBalancesRepository.save(aVariableIncomesBalanceEntity(testVariableIncomes))
-            testVariableIncomesBrokerNotes = variableIncomesBrokerNotesRepository.save(aVariableIncomesBrokerNotesEntity(testVariableIncomes))
+            testVariableIncomesBrokerNotes = variableIncomesBrokerNotesRepository.save(aVariableIncomesBrokerNotesEntity())
             variableIncomesTransactionsRepository.save(aVariableIncomesTransactionsEntity(testVariableIncomes, testVariableIncomesBrokerNotes.brokerNoteId))
             variableIncomesTransactionsRepository.save(aVariableIncomesTransactionsEntity(testVariableIncomes, testVariableIncomesBrokerNotes.brokerNoteId))
             variableIncomesTransactionsRepository.save(aVariableIncomesTransactionsEntity(testVariableIncomes, testVariableIncomesBrokerNotes.brokerNoteId))
@@ -97,7 +97,7 @@ class VariableIncomesServiceSpec extends CleanupSpecification {
     def "We can get variable incomes broker notes"() {
         when:
         def response = investmentService
-                .getVariableIncomesBroker(testConsent.getConsentId(), testVariableIncomes.getInvestmentId(), testVariableIncomesBrokerNotes.getBrokerNoteId())
+                .getVariableIncomesBroker(testConsent.getConsentId(), testVariableIncomesBrokerNotes.getBrokerNoteId())
 
         then:
         def variableIncomesBrokerNotes = response.getData()

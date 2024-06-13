@@ -1,5 +1,6 @@
 package com.raidiam.trustframework.bank.repository;
 
+import com.raidiam.trustframework.bank.domain.ContractEntity;
 import com.raidiam.trustframework.bank.domain.ContractedFeesEntity;
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.repository.PageableRepository;
@@ -11,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface ContractedFeesRepository extends PageableRepository<ContractedFeesEntity, UUID> {
 
-    List<ContractedFeesEntity> findByContractId(@NotNull UUID contractId);
+    List<ContractedFeesEntity> findByContract(@NotNull ContractEntity contract);
 
     List<ContractedFeesEntity> findAll();
 }

@@ -1,13 +1,17 @@
 package com.raidiam.trustframework.bank.domain;
 
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.CreditCardAccountsLimitsData;
+import com.raidiam.trustframework.mockbank.models.generated.CreditCardAccountsLimitsDataV2;
+import com.raidiam.trustframework.mockbank.models.generated.CreditCardsAvailableAmountV2;
+import com.raidiam.trustframework.mockbank.models.generated.CreditCardsLimitAmountV2;
+import com.raidiam.trustframework.mockbank.models.generated.CreditCardsUsedAmountV2;
 import com.raidiam.trustframework.mockbank.models.generated.EnumCreditCardAccountsConsolidationType;
+import com.raidiam.trustframework.mockbank.models.generated.EnumCreditCardAccountsConsolidationTypeV2;
 import com.raidiam.trustframework.mockbank.models.generated.EnumCreditCardAccountsLineLimitType;
+import com.raidiam.trustframework.mockbank.models.generated.EnumCreditCardAccountsLineLimitTypeV2;
 import com.raidiam.trustframework.mockbank.models.generated.EnumCreditCardAccountsLineName;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.Type;
@@ -19,7 +23,6 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
 @Entity
 @Audited
 @Table(name = "credit_card_accounts_limits")
@@ -105,5 +108,42 @@ public class CreditCardAccountsLimitsEntity extends BaseEntity {
                 .usedAmount(this.usedAmount)
                 .availableAmountCurrency(this.availableAmountCurrency)
                 .availableAmount(this.availableAmount);
+    }
+
+    public CreditCardAccountsLimitsDataV2 getDtoV2() {
+        return new CreditCardAccountsLimitsDataV2()
+                .creditLineLimitType(EnumCreditCardAccountsLineLimitTypeV2.valueOf(this.creditLineLimitType))
+                .consolidationType(EnumCreditCardAccountsConsolidationTypeV2.valueOf(this.consolidationType))
+                .identificationNumber(this.identificationNumber)
+                .lineName(CreditCardAccountsLimitsDataV2.LineNameEnum.valueOf(this.lineName))
+                .lineNameAdditionalInfo(this.lineNameAdditionalInfo)
+                .isLimitFlexible(this.isLimitFlexible)
+                .limitAmount(new CreditCardsLimitAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.limitAmount))
+                        .currency(this.limitAmountCurrency))
+                .usedAmount(new CreditCardsUsedAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.usedAmount))
+                        .currency(this.usedAmountCurrency))
+                .availableAmount(new CreditCardsAvailableAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.availableAmount))
+                        .currency(this.availableAmountCurrency));
+    }
+
+    public static CreditCardAccountsLimitsEntity from(UUID creditCardAccountId, CreditCardAccountsLimitsData accountLimit) {
+        var accountLimitEntity = new CreditCardAccountsLimitsEntity();
+        accountLimitEntity.setCreditCardAccountId(creditCardAccountId);
+        accountLimitEntity.setCreditLineLimitType(accountLimit.getCreditLineLimitType().name());
+        accountLimitEntity.setConsolidationType(accountLimit.getConsolidationType().name());
+        accountLimitEntity.setIdentificationNumber(accountLimit.getIdentificationNumber());
+        accountLimitEntity.setLineName(accountLimit.getLineName().name());
+        accountLimitEntity.setLineNameAdditionalInfo(accountLimit.getLineNameAdditionalInfo());
+        accountLimitEntity.setLimitFlexible(accountLimit.isIsLimitFlexible());
+        accountLimitEntity.setLimitAmountCurrency(accountLimit.getLimitAmountCurrency());
+        accountLimitEntity.setLimitAmount(accountLimit.getLimitAmount());
+        accountLimitEntity.setUsedAmountCurrency(accountLimit.getUsedAmountCurrency());
+        accountLimitEntity.setUsedAmount(accountLimit.getUsedAmount());
+        accountLimitEntity.setAvailableAmountCurrency(accountLimit.getAvailableAmountCurrency());
+        accountLimitEntity.setAvailableAmount(accountLimit.getAvailableAmount());
+        return accountLimitEntity;
     }
 }

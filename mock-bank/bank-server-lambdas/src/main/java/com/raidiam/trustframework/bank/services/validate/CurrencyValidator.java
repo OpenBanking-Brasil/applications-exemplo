@@ -1,5 +1,7 @@
 package com.raidiam.trustframework.bank.services.validate;
 
+import com.raidiam.trustframework.bank.domain.PaymentConsentEntity;
+import com.raidiam.trustframework.bank.services.message.PaymentErrorMessage;
 import com.raidiam.trustframework.mockbank.models.generated.CreatePaymentConsent;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
@@ -11,8 +13,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-public class CurrencyValidator implements PaymentConsentValidator {
+public class CurrencyValidator implements PaymentConsentValidator, PixPaymentValidator {
     Logger log = LoggerFactory.getLogger(CurrencyValidator.class);
+
+    private PaymentErrorMessage errorMessage;
+    public CurrencyValidator(PaymentErrorMessage errorMessage) {
+        this.errorMessage = errorMessage;
+    }
 
     public boolean checkCurrency(String currency){
         String[] currencyCodeArray = {
@@ -191,7 +198,14 @@ public class CurrencyValidator implements PaymentConsentValidator {
     public void validate(CreatePaymentConsent request) {
         String currency = request.getData().getPayment().getCurrency();
         if(!checkCurrency(currency)){
-            throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "DETALHE_PGTO_INVALIDO: O campo currency não atende os requisitos de preenchimento. O valor dado não é uma moeda válida.");
+            throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidCurrency());
+        }
+    }
+
+    public void validate(PaymentConsentEntity data) {
+        String currency = data.getPaymentConsentPaymentEntity().getCurrency();
+        if(!checkCurrency(currency)){
+            throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidCurrency());
         }
     }
 

@@ -1,28 +1,30 @@
 package com.raidiam.trustframework.bank.domain;
 
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.*;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "accounts")
 public class AccountEntity extends BaseEntity implements HasStatusInterface {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
 
@@ -117,8 +119,8 @@ public class AccountEntity extends BaseEntity implements HasStatusInterface {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
-    private Set<AccountTransactionsEntity> transactions;
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "account")
+    private Set<AccountTransactionsEntity> transactions = new HashSet<>();
 
     public AccountData getAccountData() {
         return new AccountData()
@@ -153,6 +155,20 @@ public class AccountEntity extends BaseEntity implements HasStatusInterface {
                 .automaticallyInvestedAmountCurrency(this.getAutomaticallyInvestedAmountCurrency());
     }
 
+    public AccountBalancesDataV2 getAccountBalancesV2() {
+        return new AccountBalancesDataV2()
+                .availableAmount(new AccountBalancesDataAvailableAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.availableAmount))
+                        .currency(this.availableAmountCurrency))
+                .blockedAmount(new AccountBalancesDataBlockedAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.blockedAmount))
+                        .currency(this.blockedAmountCurrency))
+                .automaticallyInvestedAmount(new AccountBalancesDataAutomaticallyInvestedAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.automaticallyInvestedAmount))
+                        .currency(this.automaticallyInvestedAmountCurrency))
+                .updateDateTime(this.getUpdatedAt().toString());
+    }
+
     public AccountOverdraftLimitsData getOverDraftLimits() {
         return new AccountOverdraftLimitsData()
                 .overdraftContractedLimit(this.overdraftContractedLimit)
@@ -163,12 +179,35 @@ public class AccountEntity extends BaseEntity implements HasStatusInterface {
                 .unarrangedOverdraftAmountCurrency(this.unarrangedOverdraftAmountCurrency);
     }
 
+    public AccountOverdraftLimitsDataV2 getOverDraftLimitsV2() {
+        return new AccountOverdraftLimitsDataV2()
+                .overdraftContractedLimit(new AccountOverdraftLimitsDataOverdraftContractedLimitV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.overdraftContractedLimit))
+                        .currency(this.overdraftContractedLimitCurrency))
+                .overdraftUsedLimit(new AccountOverdraftLimitsDataOverdraftUsedLimitV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.overdraftUsedLimit))
+                        .currency(this.overdraftUsedLimitCurrency))
+                .unarrangedOverdraftAmount(new AccountOverdraftLimitsDataUnarrangedOverdraftAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.unarrangedOverdraftAmount))
+                        .currency(this.unarrangedOverdraftAmountCurrency));
+    }
+
     public BusinessAccount getBusinessFinancialRelationsAccount() {
         return new BusinessAccount()
                 .compeCode(this.getCompeCode())
                 .branchCode(this.getBranchCode())
                 .number(this.getNumber())
-                .checkDigit(this.getCheckDigit());
+                .checkDigit(this.getCheckDigit())
+                .type(BusinessAccountType.valueOf(this.getAccountType()));
+    }
+
+    public BusinessAccountV2 getBusinessFinancialRelationsAccountV2() {
+        return new BusinessAccountV2()
+                .compeCode(this.getCompeCode())
+                .branchCode(this.getBranchCode())
+                .number(this.getNumber())
+                .checkDigit(this.getCheckDigit())
+                .type(EnumAccountTypeCustomersV2.fromValue(this.getAccountType()));
     }
 
     public PersonalAccount getPersonalFinancialRelationsAccount() {
@@ -177,8 +216,27 @@ public class AccountEntity extends BaseEntity implements HasStatusInterface {
                 .branchCode(this.getBranchCode())
                 .number(this.getNumber())
                 .checkDigit(this.getCheckDigit())
-                .type(BusinessAccountType.valueOf(this.getAccountType()))
-                .subtype(PersonalAccount.SubtypeEnum.valueOf(this.getAccountSubType()));
+                .type(BusinessAccountType.fromValue(this.getAccountType()))
+                .subtype(PersonalAccount.SubtypeEnum.fromValue(this.getAccountSubType()));
+    }
+
+    public PersonalAccountV2 getPersonalFinancialRelationsAccountV2() {
+        return new PersonalAccountV2()
+                .compeCode(this.getCompeCode())
+                .branchCode(this.getBranchCode())
+                .number(this.getNumber())
+                .checkDigit(this.getCheckDigit())
+                .type(EnumAccountTypeCustomersV2.fromValue(this.getAccountType()))
+                .subtype(PersonalAccountV2.SubtypeEnum.fromValue(this.getAccountSubType()));
+    }
+
+    public RecurringDebtorAccount getRecurringDebtorAccount() {
+        return new RecurringDebtorAccount()
+                .accountType(EnumAccountTypeConsents.fromValue(debtorType))
+                .issuer(debtorIssuer)
+                .ispb(debtorIspb)
+                .ibgeTownCode("5300108")
+                .number(number);
     }
 
     public DebtorAccount getDebtorAccount() {
@@ -186,7 +244,7 @@ public class AccountEntity extends BaseEntity implements HasStatusInterface {
         debtor.setIspb(this.debtorIspb);
         debtor.setIssuer(this.debtorIssuer);
         debtor.setNumber(this.number);
-        debtor.setAccountType(EnumAccountPaymentsType.valueOf(this.debtorType));
+        debtor.setAccountType(EnumAccountPaymentsType.fromValue(this.debtorType));
         return debtor;
     }
 
@@ -196,10 +254,92 @@ public class AccountEntity extends BaseEntity implements HasStatusInterface {
                     if (a.getAccountType() != null) {
                         this.debtorIspb = debtorAccount.getIspb();
                         this.debtorIssuer = debtorAccount.getIssuer();
-                        this.debtorType = debtorAccount.getAccountType().name();
+                        this.debtorType = debtorAccount.getAccountType().toString();
                         return this;
                     }
                     return null;
                 }).orElse(null);
+    }
+
+    public static AccountEntity from(CreateAccountData account, UUID accountHolderId) {
+        var accountEntity = new AccountEntity();
+        accountEntity.setAccountHolderId(accountHolderId);
+        accountEntity.setAccountType(account.getAccountType().toString());
+        accountEntity.setAccountSubType(account.getAccountSubType().toString());
+        accountEntity.setCurrency(account.getCurrency());
+        accountEntity.setStatus(account.getStatus());
+        accountEntity.setBrandName(account.getBrandName());
+        accountEntity.setBranchCode(account.getBranchCode());
+        accountEntity.setCompanyCnpj(account.getCompanyCnpj());
+        accountEntity.setCompeCode(account.getCompeCode());
+        accountEntity.setNumber(account.getNumber());
+        accountEntity.setCheckDigit(account.getCheckDigit());
+        accountEntity.setAvailableAmount(account.getAvailableAmount());
+        accountEntity.setAvailableAmountCurrency(account.getAvailableAmountCurrency());
+        accountEntity.setBlockedAmount(account.getBlockedAmount());
+        accountEntity.setBlockedAmountCurrency(account.getBlockedAmountCurrency());
+        accountEntity.setAutomaticallyInvestedAmount(account.getAutomaticallyInvestedAmount());
+        accountEntity.setAutomaticallyInvestedAmountCurrency(account.getAutomaticallyInvestedAmountCurrency());
+        accountEntity.setOverdraftContractedLimit(account.getOverdraftContractedLimit());
+        accountEntity.setOverdraftContractedLimitCurrency(account.getOverdraftContractedLimitCurrency());
+        accountEntity.setOverdraftUsedLimit(account.getOverdraftUsedLimit());
+        accountEntity.setOverdraftUsedLimitCurrency(account.getOverdraftUsedLimitCurrency());
+        accountEntity.setUnarrangedOverdraftAmount(account.getUnarrangedOverdraftAmount());
+        accountEntity.setUnarrangedOverdraftAmountCurrency(account.getUnarrangedOverdraftAmountCurrency());
+
+        return accountEntity;
+    }
+
+    public AccountEntity update(EditedAccountData account) {
+        this.accountType = account.getAccountType().toString();
+        this.accountSubType = account.getAccountSubType().toString();
+        this.currency = account.getCurrency();
+        this.status = account.getStatus();
+        this.brandName = account.getBrandName();
+        this.branchCode = account.getBranchCode();
+        this.companyCnpj = account.getCompanyCnpj();
+        this.compeCode = account.getCompeCode();
+        this.number = account.getNumber();
+        this.checkDigit = account.getCheckDigit();
+        this.availableAmount = account.getAvailableAmount();
+        this.availableAmountCurrency = account.getAvailableAmountCurrency();
+        this.blockedAmount = account.getBlockedAmount();
+        this.blockedAmountCurrency = account.getBlockedAmountCurrency();
+        this.automaticallyInvestedAmount = account.getAutomaticallyInvestedAmount();
+        this.automaticallyInvestedAmountCurrency = account.getAutomaticallyInvestedAmountCurrency();
+        this.overdraftContractedLimit = account.getOverdraftContractedLimit();
+        this.overdraftContractedLimitCurrency = account.getOverdraftContractedLimitCurrency();
+        this.overdraftUsedLimit = account.getOverdraftUsedLimit();
+        this.overdraftUsedLimitCurrency = account.getOverdraftUsedLimitCurrency();
+        this.unarrangedOverdraftAmount = account.getUnarrangedOverdraftAmount();
+        this.unarrangedOverdraftAmountCurrency = account.getUnarrangedOverdraftAmountCurrency();
+        return this;
+    }
+
+    public ResponseAccount getAdminAccountDto() {
+        return new ResponseAccount().data(new ResponseAccountData()
+                .accountId(this.accountId.toString())
+                .accountType(EnumAccountType.fromValue(this.accountType))
+                .accountSubType(EnumAccountSubType.fromValue(this.accountSubType))
+                .currency(this.currency)
+                .status(this.status)
+                .brandName(this.brandName)
+                .branchCode(this.branchCode)
+                .companyCnpj(this.companyCnpj)
+                .compeCode(this.compeCode)
+                .number(this.number)
+                .checkDigit(this.checkDigit)
+                .availableAmount(this.availableAmount)
+                .availableAmountCurrency(this.availableAmountCurrency)
+                .blockedAmount(this.blockedAmount)
+                .blockedAmountCurrency(this.blockedAmountCurrency)
+                .automaticallyInvestedAmount(this.automaticallyInvestedAmount)
+                .automaticallyInvestedAmountCurrency(this.automaticallyInvestedAmountCurrency)
+                .overdraftContractedLimit(this.overdraftContractedLimit)
+                .overdraftContractedLimitCurrency(this.overdraftContractedLimitCurrency)
+                .overdraftUsedLimit(this.overdraftUsedLimit)
+                .overdraftUsedLimitCurrency(this.overdraftUsedLimitCurrency)
+                .unarrangedOverdraftAmount(this.unarrangedOverdraftAmount)
+                .unarrangedOverdraftAmountCurrency(this.unarrangedOverdraftAmountCurrency));
     }
 }

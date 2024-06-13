@@ -57,6 +57,7 @@ public class PaymentAutomationsV2 {
      */
     @Transactional(value=Transactional.TxType.REQUIRES_NEW, dontRollbackOn={HttpStatusException.class})
     public void executePaymentInitiationActions(String consentId) {
+        LOG.info("Checking payment triggers actions for consent {}", consentId);
         var consentOpt = paymentConsentRepository.findByPaymentConsentId(consentId);
         if(consentOpt.isPresent()) {
             PaymentConsentEntity paymentConsentEntity = consentOpt.get();
@@ -84,11 +85,12 @@ public class PaymentAutomationsV2 {
                     // do nothing
             }
         }
+        LOG.info("Finishing Checking payment triggers actions for consent {}", consentId);
     }
 
     @Transactional(value=Transactional.TxType.REQUIRES_NEW, dontRollbackOn={HttpStatusException.class})
     public void executePostPaymentInitiationActions(String paymentId) {
-
+        LOG.info("Checking payment triggers actions for payment {}", paymentId);
         var paymentOpt = pixPaymentRepository.findByPaymentId(paymentId);
         if(paymentOpt.isPresent()) {
             String autoMoveMessage = "Auto-move payment status to {} after initiation";
@@ -147,14 +149,20 @@ public class PaymentAutomationsV2 {
                     payment.setStatus(EnumPaymentStatusTypeV2.ACSC.toString());
                     pixPaymentRepository.save(payment);
                     break;
+                case "12345.00":
+                    if (payment.getStatus().equals(EnumPaymentStatusTypeV2.RCVD.toString())) {
+                        LOG.info(autoMoveMessage, "PDNG");
+                        payment.setStatus(EnumPaymentStatusTypeV2.PDNG.toString());
+                        pixPaymentRepository.save(payment);
+                    }
+                    break;
                 case "12345.67":
                     if (payment.getStatus().equals(EnumPaymentStatusTypeV2.RCVD.toString())) {
                         LOG.info(autoMoveMessage, "PDNG");
                         payment.setStatus(EnumPaymentStatusTypeV2.PDNG.toString());
                     } else if (payment.getStatus().equals(EnumPaymentStatusTypeV2.PDNG.toString())) {
-                        LOG.info(autoMoveMessage, "RJCT");
-                        payment.setStatus(EnumPaymentStatusTypeV2.RJCT.toString());
-                        payment.setRejectionReason(RejectionReasonV2.CodeEnum.NAO_INFORMADO.name());
+                        LOG.info(autoMoveMessage, "ACSC");
+                        payment.setStatus(EnumPaymentStatusTypeV2.ACSC.toString());
                     }
                     pixPaymentRepository.save(payment);
                     break;
@@ -169,6 +177,7 @@ public class PaymentAutomationsV2 {
                 pixPaymentRepository.save(payment);
             }
         }
+        LOG.info("Finishing Checking payment triggers actions for payment {}", paymentId);
     }
 
     protected void setConsentStatusToConsumed(PaymentConsentEntity paymentConsentEntity) {

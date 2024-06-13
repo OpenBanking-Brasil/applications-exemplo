@@ -6,7 +6,7 @@ import com.raidiam.trustframework.bank.repository.AccountRepository;
 import com.raidiam.trustframework.bank.services.validate.payment.consent.rejection.PaymentConsentRejectionValidator;
 import com.raidiam.trustframework.mockbank.models.generated.CreatePaymentConsent;
 import com.raidiam.trustframework.mockbank.models.generated.DebtorAccount;
-import com.raidiam.trustframework.mockbank.models.generated.LoggedUserDocument;
+import com.raidiam.trustframework.mockbank.models.generated.Document;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import lombok.RequiredArgsConstructor;
@@ -26,20 +26,25 @@ public class PaymentConsentDebtorAmountRejectionValidator implements PaymentCons
     @Override
     public void validate(CreatePaymentConsent request) throws ConsentRejectionException {
         LOG.info("Started Debtor Amount Validation");
-        LoggedUserDocument loggedUserDocument = request.getData().getLoggedUser().getDocument();
+        Document document = request.getData().getLoggedUser().getDocument();
         DebtorAccount debtorAccount = request.getData().getDebtorAccount();
+        double paymentAmount = Double.parseDouble(request.getData().getPayment().getAmount());
 
+        validateDebtorAmount(document, debtorAccount, paymentAmount);
+    }
+
+    public void validateDebtorAmount(Document document, DebtorAccount debtorAccount,double paymentAmount) {
         if (debtorAccount == null) {
             LOG.info("Debtor Account is null, skipping validation");
             return;
         }
 
         var accountHolder = accountHolderRepository
-                .findByDocumentIdentificationAndDocumentRel(loggedUserDocument.getIdentification(), loggedUserDocument.getRel())
+                .findByDocumentIdentificationAndDocumentRel(document.getIdentification(), document.getRel())
                 .stream()
                 .findAny()
                 .orElseThrow(() -> new HttpStatusException(HttpStatus.BAD_REQUEST, String.format("User with documentation Id %s and rel %s not found",
-                        loggedUserDocument.getIdentification(), loggedUserDocument.getRel())));
+                        document.getIdentification(), document.getRel())));
 
         var account = accountRepository.findByNumberAndAccountHolderId(debtorAccount.getNumber(), accountHolder.getAccountHolderId())
                 .orElseThrow(() -> new HttpStatusException(HttpStatus.BAD_REQUEST,
@@ -47,7 +52,6 @@ public class PaymentConsentDebtorAmountRejectionValidator implements PaymentCons
 
 
         double availableAmount = account.getAvailableAmount();
-        double paymentAmount = Double.parseDouble(request.getData().getPayment().getAmount());
 
         LOG.info("Payment amount {} | available amount {}", paymentAmount, availableAmount);
 

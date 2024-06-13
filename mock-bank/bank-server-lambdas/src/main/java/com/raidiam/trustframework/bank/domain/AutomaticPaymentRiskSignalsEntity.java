@@ -113,37 +113,44 @@ public class AutomaticPaymentRiskSignalsEntity extends BaseEntity {
 
         var entity = new AutomaticPaymentRiskSignalsEntity();
         entity.setRecurringPaymentId(recurringPaymentId);
-        entity.setDeviceiId(manualData.getDeviceId());
-        entity.setRootedDevice(manualData.isIsRootedDevice());
-        entity.setScreenBrightness(manualData.getScreenBrightness());
-        entity.setElapsedTimeSinceBoot(manualData.getElapsedTimeSinceBoot());
-        entity.setOsVersion(manualData.getOsVersion());
-        entity.setUserTimeZoneOffset(manualData.getUserTimeZoneOffset());
-        entity.setLanguage(manualData.getLanguage());
-        entity.setCallInProgress(manualData.isIsCallInProgress());
-        entity.setEmulated(manualData.isIsEmulated());
-        entity.setCharging(manualData.isIsCharging());
-        entity.setMonkeyRunner(manualData.isIsMonkeyRunner());
-        entity.setDevModeEnabled(manualData.isIsDevModeEnabled());
-        entity.setUsbConnected(manualData.isIsUsbConnected());
-        entity.setMockGps(manualData.isIsMockGPS());
-        entity.setAntennaInformation(manualData.getAntennaInformation());
-        entity.setAccountTenure(manualData.getAccountTenure());
-        entity.setLastLoginDateTime(automaticData.getLastLoginDateTime());
-        entity.setPixKeyRegistrationDateTime(automaticData.getPixKeyRegistrationDateTime());
-        if(manualData.getScreenDimensions() != null) {
-            entity.setScreenDimensionsHeight(manualData.getScreenDimensions().getHeight());
-            entity.setScreenDimensionsHeight(manualData.getScreenDimensions().getWidth());
+        if (manualData != null) {
+            entity.setDeviceiId(manualData.getDeviceId());
+            entity.setRootedDevice(manualData.isIsRootedDevice());
+            entity.setScreenBrightness(manualData.getScreenBrightness());
+            entity.setElapsedTimeSinceBoot(manualData.getElapsedTimeSinceBoot());
+            entity.setOsVersion(manualData.getOsVersion());
+            entity.setUserTimeZoneOffset(manualData.getUserTimeZoneOffset());
+            entity.setLanguage(manualData.getLanguage());
+            entity.setCallInProgress(manualData.isIsCallInProgress());
+            entity.setEmulated(manualData.isIsEmulated());
+            entity.setCharging(manualData.isIsCharging());
+            entity.setMonkeyRunner(manualData.isIsMonkeyRunner());
+            entity.setDevModeEnabled(manualData.isIsDevModeEnabled());
+            entity.setUsbConnected(manualData.isIsUsbConnected());
+            entity.setMockGps(manualData.isIsMockGPS());
+            entity.setAntennaInformation(manualData.getAntennaInformation());
+            entity.setAccountTenure(manualData.getAccountTenure());
+            if (manualData.getScreenDimensions() != null) {
+                entity.setScreenDimensionsHeight(manualData.getScreenDimensions().getHeight());
+                entity.setScreenDimensionsHeight(manualData.getScreenDimensions().getWidth());
+            }
+            if(manualData.getGeolocation() != null) {
+                entity.setGeolocationLatitude(manualData.getGeolocation().getLatitude());
+                entity.setGeolocationLongitude(manualData.getGeolocation().getLongitude());
+                entity.setGeolocationType(manualData.getGeolocation().getType().name());
+            }
+            if(manualData.getIntegrity() != null) {
+                entity.setIntegrityAppRecognitionVerdict(manualData.getIntegrity().getAppRecognitionVerdict());
+                entity.setIntegrityDeviceRecognitionVerdict(manualData.getIntegrity().getDeviceRecognitionVerdict());
+            }
         }
-        if(manualData.getGeolocation() != null) {
-            entity.setGeolocationLatitude(manualData.getGeolocation().getLatitude());
-            entity.setGeolocationLongitude(manualData.getGeolocation().getLongitude());
-            entity.setGeolocationType(manualData.getGeolocation().getType().name());
+
+        if (automaticData != null) {
+            entity.setLastLoginDateTime(automaticData.getLastLoginDateTime());
+            entity.setPixKeyRegistrationDateTime(automaticData.getPixKeyRegistrationDateTime());
         }
-        if(manualData.getIntegrity() != null) {
-            entity.setIntegrityAppRecognitionVerdict(manualData.getIntegrity().getAppRecognitionVerdict());
-            entity.setIntegrityDeviceRecognitionVerdict(manualData.getIntegrity().getDeviceRecognitionVerdict());
-        }
+
+
         return entity;
     }
 }

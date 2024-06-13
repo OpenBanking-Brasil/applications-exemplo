@@ -23,6 +23,7 @@ import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.bank.utils.JwtSigner;
 import io.micronaut.context.annotation.Value;
 import io.micronaut.core.async.publisher.Publishers;
+import io.micronaut.function.aws.proxy.MicronautAwsProxyRequest;
 import io.micronaut.http.*;
 import io.micronaut.http.annotation.Filter;
 import io.micronaut.http.exceptions.HttpStatusException;
@@ -36,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.text.ParseException;
 import java.util.*;
 
-@Filter("/open-banking/payments/**")
+@Filter({"/open-banking/payments/**", "/open-banking/enrollments/**", "/open-banking/automatic-payments/**"})
 public class JwtRequestFilter implements HttpServerFilter {
 
     public static final String JTI_ATTRIBUTE = "TF_JTI";
@@ -108,23 +109,29 @@ public class JwtRequestFilter implements HttpServerFilter {
 
     private void validateRequest(HttpRequest<?> request) {
         Optional<String> contentType = request.getHeaders().getContentType();
-        if (HttpMethod.GET.equals(request.getMethod())){
-            LOG.info("Request is a get - Do not check body");
-        } else {
-            if (isJwt(contentType)) {
-                LOG.info("Request body is a JWT - let's verify it");
-                Optional<String> body = request.getBody(String.class);
-                String packedJwt = body.orElseThrow(() -> fail("No body present"));
+        //For simple request skips signing validation
+        if (request instanceof MicronautAwsProxyRequest) {
+            if (HttpMethod.GET.equals(request.getMethod())){
+                LOG.info("Request is a get - Do not check body");
+            } else {
+                if (isJwt(contentType)) {
+                    LOG.info("Request body is a JWT - let's verify it");
+                    Optional<String> body = request.getBody(String.class);
+                    String packedJwt = body.orElseThrow(() -> fail("No body present"));
 
-                try {
-                    SignedJWT signedJWT = SignedJWT.parse(packedJwt);
-                    verify(signedJWT, request);
-                    captureFrom(signedJWT, request);
-                } catch (ParseException e) {
-                    throw fail("Unable to parse JWT");
+                    try {
+                        SignedJWT signedJWT = SignedJWT.parse(packedJwt);
+                        verify(signedJWT, request);
+                        captureFrom(signedJWT, request);
+                    } catch (ParseException e) {
+                        throw fail("Unable to parse JWT");
+                    }
                 }
             }
+        } else {
+            LOG.info("Request is not from AWS (Local run), skipping signing validation");
         }
+
     }
 
     private void captureFrom(SignedJWT signedJWT, HttpRequest<?> request) {
@@ -147,7 +154,10 @@ public class JwtRequestFilter implements HttpServerFilter {
             Optional<Object> orgIdFromAccessToken = request.getAttribute(ORG_ID_ATTRIBUTE);
             Object orgId = orgIdFromAccessToken.orElseThrow(() -> fail("Access token does not have org Id"));
             if(!issuer.equals(orgId)) {
-                throw fail("Issuer claim and org ID do not match");
+                var message = "Issuer claim and org ID do not match";
+                LOG.info("Unable to process JWT request: {}", message);
+                throw new HttpStatusException(HttpStatus.FORBIDDEN, message);
+
             }
             String kid = Optional.ofNullable(header.getKeyID()).orElseThrow(() -> fail("No kid present"));
             JWKSet jwks = jwksFetcher.findForOrg(issuer);
@@ -210,7 +220,7 @@ public class JwtRequestFilter implements HttpServerFilter {
 
     private boolean isNotOp(HttpRequest<?> request) {
         var meta = BankLambdaUtils.getRequestMeta(request);
-        return !meta.getRoles().contains("PAYMENTS_FULL_MANAGE");
+        return !meta.getRoles().contains("PAYMENTS_FULL_MANAGE") && !meta.getRoles().contains("RECURRING_PAYMENTS_FULL_MANAGE");
     }
 
 

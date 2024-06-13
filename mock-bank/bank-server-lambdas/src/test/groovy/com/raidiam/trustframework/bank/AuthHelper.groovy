@@ -28,4 +28,20 @@ class AuthHelper {
          builder.authorizerContextValue("access_token", MAPPER.writeValueAsString(accessToken))
          LOG.info("AuthHelper token - {}", MAPPER.writeValueAsString(accessToken))
     }
+
+    static void authorizeAuthorizationCodeGrant(params, AwsProxyRequestBuilder builder) {
+        def scopes = String.valueOf(params['scopes'])
+        def accessToken = [
+                sub: "user@bank.com",
+                scope: scopes,
+                active: true,
+                token_type: "Bearer",
+                exp: 1571660599,
+                client_id: "client1",
+                org_id: params['org_id'],
+                software_id: params['software_id'],
+        ]
+        builder.authorizerContextValue("access_token", MAPPER.writeValueAsString(accessToken))
+        LOG.info("AuthHelper token - {}", MAPPER.writeValueAsString(accessToken))
+    }
 }

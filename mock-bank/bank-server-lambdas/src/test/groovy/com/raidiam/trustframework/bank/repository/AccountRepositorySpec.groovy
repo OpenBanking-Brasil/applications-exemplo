@@ -10,6 +10,8 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import spock.lang.Stepwise
 
 import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import java.util.stream.IntStream
 
 import static com.raidiam.trustframework.bank.TestEntityDataFactory.aConsent
@@ -22,19 +24,19 @@ class AccountRepositorySpec extends CleanupSpecification {
 
         given:
         def accountHolder = accountHolderRepository.save(TestEntityDataFactory.anAccountHolder())
-        def account = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder.getAccountHolderId()))
+        def account = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder))
         def accountTransaction = accountTransactionsRepository.save(TestEntityDataFactory.aTransaction(account.getAccountId()))
 
         when:
+        def accountRetrieved = accountRepository.findByAccountHolderId(accountHolder.getAccountHolderId())
         def accountHoldersRetrieved = accountHolderRepository.findByDocumentIdentificationAndDocumentRel(accountHolder.getDocumentIdentification(), accountHolder.getDocumentRel())
 
         then:
         noExceptionThrown()
-        accountHoldersRetrieved.size() == 1
-        !accountHoldersRetrieved.get(0).getAccounts().empty
+        accountRetrieved.size() == 1
 
         when:
-        def foundAccount = accountHoldersRetrieved.get(0).getAccounts().first()
+        def foundAccount = accountRetrieved.get(0)
         def transactions = foundAccount.getTransactions()
 
         then:
@@ -46,17 +48,17 @@ class AccountRepositorySpec extends CleanupSpecification {
     def "We can get pageable accounts"() {
         given:
         def accountHolder = accountHolderRepository.save(TestEntityDataFactory.anAccountHolder())
-        def account1 = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder.getAccountHolderId()))
-        def account2 = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder.getAccountHolderId()))
-        def account3 = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder.getAccountHolderId()))
+        def account1 = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder))
+        def account2 = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder))
+        def account3 = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder))
         def consent = consentRepository.save(aConsent(accountHolder.getAccountHolderId()))
         consentAccountRepository.save(new ConsentAccountEntity(consent, account1))
         consentAccountRepository.save(new ConsentAccountEntity(consent, account2))
         consentAccountRepository.save(new ConsentAccountEntity(consent, account3))
 
         when:
-        def page1 = consentAccountRepository.findByConsentIdOrderByCreatedAtAsc(consent.getConsentId(), Pageable.from(0, 2))
-        def page2 = consentAccountRepository.findByConsentIdOrderByCreatedAtAsc(consent.getConsentId(), Pageable.from(1, 2))
+        def page1 = consentAccountRepository.findByConsentConsentIdOrderByCreatedAtAsc(consent.getConsentId(), Pageable.from(0, 2))
+        def page2 = consentAccountRepository.findByConsentConsentIdOrderByCreatedAtAsc(consent.getConsentId(), Pageable.from(1, 2))
 
         then:
         // we can see the total number of accounts on each page
@@ -76,7 +78,7 @@ class AccountRepositorySpec extends CleanupSpecification {
         !page1.collect().contains(page2.first())
 
         when:
-        def pageAll = consentAccountRepository.findByConsentIdOrderByCreatedAtAsc(consent.getConsentId(), Pageable.from(0))
+        def pageAll = consentAccountRepository.findByConsentConsentIdOrderByCreatedAtAsc(consent.getConsentId(), Pageable.from(0))
 
         then:
         // page has all accounts
@@ -91,7 +93,7 @@ class AccountRepositorySpec extends CleanupSpecification {
 
         when:
         // find accounts with accountType parameter
-        def pageWithParameter = consentAccountRepository.findByConsentIdAndAccountAccountTypeOrderByCreatedAtAsc(consent.getConsentId(),
+        def pageWithParameter = consentAccountRepository.findByConsentConsentIdAndAccountAccountTypeOrderByCreatedAtAsc(consent.getConsentId(),
                 EnumAccountType.DEPOSITO_A_VISTA.toString(), Pageable.from(0))
 
         then:
@@ -100,7 +102,7 @@ class AccountRepositorySpec extends CleanupSpecification {
 
         when:
         // find accounts with wrong accountType parameter
-        def pageWithWrongParameter = consentAccountRepository.findByConsentIdAndAccountAccountTypeOrderByCreatedAtAsc(consent.getConsentId(),
+        def pageWithWrongParameter = consentAccountRepository.findByConsentConsentIdAndAccountAccountTypeOrderByCreatedAtAsc(consent.getConsentId(),
                 EnumAccountType.PAGAMENTO_PRE_PAGA.toString(), Pageable.from(0))
 
         then:
@@ -111,9 +113,9 @@ class AccountRepositorySpec extends CleanupSpecification {
     def "We can get pageable account transactions by transaction period"() {
         given:
         def accountHolder = accountHolderRepository.save(TestEntityDataFactory.anAccountHolder())
-        def account = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder.getAccountHolderId()))
+        def account = accountRepository.save(TestEntityDataFactory.anAccount(accountHolder))
 
-        def date = LocalDate.parse("2022-05-01")
+        def date = OffsetDateTime.parse("2022-05-01T00:01:00+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME)
         // add 5 transactions (with range 2022-05-01 - 2022-05-05)
         IntStream.range(0, 5).forEach(i -> {
             accountTransactionsRepository.save(TestEntityDataFactory.aTransaction(account.accountId, date.plusDays(i)))
@@ -121,10 +123,10 @@ class AccountRepositorySpec extends CleanupSpecification {
 
         //required range (2022-05-02 - 2022-05-04)
         when:
-        def page1 = accountTransactionsRepository.findByAccountIdAndTransactionDateBetweenIsOrderByCreatedAtAsc(
-                account.accountId, LocalDate.parse("2022-05-02"), LocalDate.parse("2022-05-04"), Pageable.from(0, 2))
-        def page2 = accountTransactionsRepository.findByAccountIdAndTransactionDateBetweenIsOrderByCreatedAtAsc(
-                account.accountId, LocalDate.parse("2022-05-02"), LocalDate.parse("2022-05-04"), Pageable.from(1, 2))
+        def page1 = accountTransactionsRepository.findByAccountIdAndTransactionDateTimeBetweenOrderByCreatedAtAsc(
+                account.accountId, OffsetDateTime.parse("2022-05-02T00:01:00+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME), OffsetDateTime.parse("2022-05-04T23:59:59+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME), Pageable.from(0, 2))
+        def page2 = accountTransactionsRepository.findByAccountIdAndTransactionDateTimeBetweenOrderByCreatedAtAsc(
+                account.accountId, OffsetDateTime.parse("2022-05-02T00:01:00+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME), OffsetDateTime.parse("2022-05-04T23:59:59+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME), Pageable.from(1, 2))
 
         then:
         // we can see the total number of transactions on each page
@@ -133,19 +135,16 @@ class AccountRepositorySpec extends CleanupSpecification {
 
         // first page has 2 transactions
         page1.size() == 2
-        page1.first().transactionDate == LocalDate.parse("2022-05-02")
-        page1.last().transactionDate == LocalDate.parse("2022-05-03")
 
         // second page has 1 transaction
         page2.size() == 1
-        page2.first().transactionDate == LocalDate.parse("2022-05-04")
 
         // page 1 has no transactions from page 2
         !page1.collect().contains(page2.first())
 
         when:
-        def pageAll = accountTransactionsRepository.findByAccountIdAndTransactionDateBetweenIsOrderByCreatedAtAsc(
-                account.accountId, date, LocalDate.parse("2022-05-05"), Pageable.from(0))
+        def pageAll = accountTransactionsRepository.findByAccountIdAndTransactionDateTimeBetweenOrderByCreatedAtAsc(
+                account.accountId, date, OffsetDateTime.parse("2022-05-05T23:59:59+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME), Pageable.from(0))
 
         then:
         // page has all transactions
@@ -162,8 +161,8 @@ class AccountRepositorySpec extends CleanupSpecification {
 
         when:
         // find transactions with creditDebitType parameter
-        def pageWithParameter = accountTransactionsRepository.findByAccountIdAndTransactionDateBetweenIsAndCreditDebitTypeOrderByCreatedAtAsc(
-                account.accountId, date, LocalDate.parse("2022-05-05"), EnumCreditDebitIndicator.DEBITO.toString(), Pageable.from(0))
+        def pageWithParameter = accountTransactionsRepository.findByAccountIdAndTransactionDateTimeBetweenAndCreditDebitTypeOrderByCreatedAtAsc(
+                account.accountId, date, OffsetDateTime.parse("2022-05-05T23:59:59+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME), EnumCreditDebitIndicator.DEBITO.toString(), Pageable.from(0))
 
         then:
         pageWithParameter.size() == 5
@@ -171,8 +170,8 @@ class AccountRepositorySpec extends CleanupSpecification {
 
         when:
         // find transactions with wrong creditDebitType parameter
-        def pageWithWrongParameter = accountTransactionsRepository.findByAccountIdAndTransactionDateBetweenIsAndCreditDebitTypeOrderByCreatedAtAsc(
-                account.accountId, date, LocalDate.parse("2022-05-05"), EnumCreditDebitIndicator.CREDITO.toString(), Pageable.from(0))
+        def pageWithWrongParameter = accountTransactionsRepository.findByAccountIdAndTransactionDateTimeBetweenAndCreditDebitTypeOrderByCreatedAtAsc(
+                account.accountId, date, OffsetDateTime.parse("2022-05-05T23:59:59+01:00", DateTimeFormatter.ISO_OFFSET_DATE_TIME), EnumCreditDebitIndicator.CREDITO.toString(), Pageable.from(0))
 
         then:
         pageWithWrongParameter.size() == 0

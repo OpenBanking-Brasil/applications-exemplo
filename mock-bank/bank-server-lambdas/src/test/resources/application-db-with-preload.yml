@@ -52,3 +52,6 @@ jackson:
   serialization:
     writeDatesAsTimestamps: true
   serialization-inclusion: NON_ABSENT
+
+mockbank:
+  max-page-size: 25

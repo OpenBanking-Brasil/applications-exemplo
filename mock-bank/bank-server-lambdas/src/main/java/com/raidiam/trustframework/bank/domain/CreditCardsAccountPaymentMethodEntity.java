@@ -1,10 +1,7 @@
 package com.raidiam.trustframework.bank.domain;
 
 import com.raidiam.trustframework.mockbank.models.generated.CreditCardsAccountPaymentMethod;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.Type;
@@ -16,7 +13,6 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
 @Entity
 @Audited
 @Table(name = "credit_cards_account_payment_method")
@@ -38,19 +34,24 @@ public class CreditCardsAccountPaymentMethodEntity extends BaseEntity {
     private boolean isMultipleCreditCard;
 
     @NotNull
-    @Type(type = "pg-uuid")
-    @Column(name = "credit_card_account_id", nullable = false)
-    private UUID creditCardAccountId;
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "credit_card_account_id", referencedColumnName = "credit_card_account_id", insertable = false, nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "credit_card_account_id")
     private CreditCardAccountsEntity account;
 
     public CreditCardsAccountPaymentMethod getDTO() {
         return new CreditCardsAccountPaymentMethod()
                 .identificationNumber(this.identificationNumber)
                 .isMultipleCreditCard(this.isMultipleCreditCard);
+    }
+
+    public static CreditCardsAccountPaymentMethodEntity from(CreditCardAccountsEntity account, CreditCardsAccountPaymentMethod paymentMethod) {
+        var paymentMethodEntity = new CreditCardsAccountPaymentMethodEntity();
+        paymentMethodEntity.setAccount(account);
+        paymentMethodEntity.setIdentificationNumber(paymentMethod.getIdentificationNumber());
+        paymentMethodEntity.setMultipleCreditCard(paymentMethod.isIsMultipleCreditCard());
+
+        return paymentMethodEntity;
     }
 }

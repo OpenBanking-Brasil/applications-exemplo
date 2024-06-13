@@ -49,7 +49,7 @@ class consentValidators extends Specification {
 
         LoggedUser lu = new LoggedUser()
                 .document(
-                        new LoggedUserDocument()
+                        new Document()
                                 .rel("CPF")
                                 .identification("12345678901")
                 )

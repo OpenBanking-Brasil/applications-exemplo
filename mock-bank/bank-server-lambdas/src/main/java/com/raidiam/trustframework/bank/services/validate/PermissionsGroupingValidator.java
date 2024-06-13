@@ -1,30 +1,50 @@
 package com.raidiam.trustframework.bank.services.validate;
 
-import com.raidiam.trustframework.bank.exceptions.TrustframeworkException;
-import com.raidiam.trustframework.mockbank.models.generated.CreateConsent;
-import com.raidiam.trustframework.mockbank.models.generated.CreateConsentData;
+import com.raidiam.trustframework.mockbank.models.generated.*;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.exceptions.HttpStatusException;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PermissionsGroupingValidator implements ConsentValidator {
+public class PermissionsGroupingValidator implements ConsentValidator, ConsentValidatorV2, ConsentValidatorV3 {
 
     @Override
     public void validate(CreateConsent request) {
-        List<CreateConsentData.PermissionsEnum> requestedPermissions = request.getData().getPermissions();
-        for(CreateConsentData.PermissionsEnum permission: requestedPermissions) {
-            ensureEntireSetIsInRequest(permission, requestedPermissions);
+        List<EnumConsentPermissions> requestedPermissions = request.getData().getPermissions();
+        for(EnumConsentPermissions permission: requestedPermissions) {
+            ensureEntireSetIsInRequest(permission, requestedPermissions, HttpStatus.BAD_REQUEST, null);
         }
     }
 
-    private void ensureEntireSetIsInRequest(CreateConsentData.PermissionsEnum permission, List<CreateConsentData.PermissionsEnum> requestedPermissions) {
-        for(Set<CreateConsentData.PermissionsEnum> candidate: PermissionGroups.ALL_PERMISSION_GROUPS) {
-            if(candidate.contains(permission)) {
-                if(requestedPermissions.containsAll(candidate)) {
-                    return;
-                }
+    @Override
+    public void validate(CreateConsentV2 request) {
+        List<EnumConsentPermissions> requestedPermissions = request.getData().getPermissions();
+        for(EnumConsentPermissions permission: requestedPermissions) {
+            ensureEntireSetIsInRequest(permission, requestedPermissions, HttpStatus.BAD_REQUEST, null);
+        }
+    }
+
+    @Override
+    public void validate(CreateConsentV3 request) {
+        List<EnumConsentPermissions> requestedPermissions = request.getData().getPermissions();
+        for(EnumConsentPermissions permission: requestedPermissions) {
+            ensureEntireSetIsInRequest(permission, requestedPermissions, HttpStatus.UNPROCESSABLE_ENTITY,
+                    EnumConsentsErrorCodesV3.COMBINACAO_PERMISSOES_INCORRETA.toString());
+        }
+    }
+
+
+    private void ensureEntireSetIsInRequest(EnumConsentPermissions permission, List<EnumConsentPermissions> requestedPermissions,
+                                            HttpStatus httpStatus, String errorCode) {
+        for(Set<EnumConsentPermissions> candidate: PermissionGroups.ALL_PERMISSION_GROUPS) {
+            if(candidate.contains(permission) && new HashSet<>(requestedPermissions).containsAll(candidate)) {
+                return;
             }
         }
-        throw new TrustframeworkException("You must request all the permissions from a given set");
+
+        errorCode = errorCode == null ? "" : errorCode + ": ";
+        throw new HttpStatusException(httpStatus, String.format("%sYou must request all the permissions from a given set", errorCode));
     }
 }

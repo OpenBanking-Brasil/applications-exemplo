@@ -290,12 +290,12 @@ public class InvestmentService extends BaseBankService {
                 .meta(BankLambdaUtils.getMeta(transactions));
     }
 
-    public ResponseVariableIncomesBroker getVariableIncomesBroker(String consentId, UUID investmentId, UUID brokerNoteId) {
-        LOG.info("Getting variable incomes broker notes for consent id {} and investment id {}", consentId, investmentId);
+    public ResponseVariableIncomesBroker getVariableIncomesBroker(String consentId, UUID brokerNoteId) {
+        LOG.info("Getting variable incomes broker notes for consent id {}", consentId);
 
         checkConsentIsAuthorisedAndHasPermission(consentId, EnumConsentPermissions.VARIABLE_INCOMES_READ);
 
-        var brokerNotes = variableIncomesBrokerNotesRepository.findByInvestmentIdAndBrokerNoteId(investmentId, brokerNoteId);
+        var brokerNotes = variableIncomesBrokerNotesRepository.findByBrokerNoteId(brokerNoteId);
         if (brokerNotes.isPresent()) {
             return new ResponseVariableIncomesBroker().data(brokerNotes.get().getResponseVariableIncomesBrokerData());
         }

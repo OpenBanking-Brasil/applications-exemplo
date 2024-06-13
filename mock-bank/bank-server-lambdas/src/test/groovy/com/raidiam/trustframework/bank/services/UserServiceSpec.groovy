@@ -6,7 +6,8 @@ import com.raidiam.trustframework.bank.domain.AccountEntity
 import com.raidiam.trustframework.bank.domain.AccountHolderEntity
 import com.raidiam.trustframework.bank.domain.ContractEntity
 import com.raidiam.trustframework.bank.domain.CreditCardAccountsEntity
-import com.raidiam.trustframework.bank.enums.AccountOrContractType
+import com.raidiam.trustframework.bank.domain.ExchangesOperationEntity
+import com.raidiam.trustframework.bank.enums.ResourceType
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import spock.lang.Shared
 import spock.lang.Stepwise
@@ -46,15 +47,19 @@ class UserServiceSpec extends CleanupSpecification {
     @Shared
     ContractEntity testUnarrangedOverdraft
 
+    @Shared
+    ExchangesOperationEntity testExchangesOperation
+
     def setup() {
         if (runSetup) {
             testAccountHolder = accountHolderRepository.save(anAccountHolder("10117409073", "CPF"))
-            testAccount = accountRepository.save(anAccount(testAccountHolder.getAccountHolderId()))
+            testAccount = accountRepository.save(anAccount(testAccountHolder))
             testCreditCard = creditCardAccountsRepository.save(anCreditCardAccounts(testAccount.getAccountHolderId()))
-            testLoan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),  AccountOrContractType.LOAN, "EMPRESTIMOS",  "CONTA_GARANTIDA")
-            testFinancing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),  AccountOrContractType.FINANCING, "FINANCIAMENTOS",  "CONTA_GARANTIDA")
-            testInvoiceFinancing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),  AccountOrContractType.INVOICE_FINANCING, "FINANCIAMENTOS DE FATURAS",  "CONTA_GARANTIDA")
-            testUnarrangedOverdraft = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),  AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT, "DESCONTO NÃO ACORDADO",  "CONTA_GARANTIDA")
+            testLoan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),  ResourceType.LOAN, "EMPRESTIMOS",  "CONTA_GARANTIDA")
+            testFinancing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),  ResourceType.FINANCING, "FINANCIAMENTOS",  "CONTA_GARANTIDA")
+            testInvoiceFinancing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),  ResourceType.INVOICE_FINANCING, "FINANCIAMENTOS DE FATURAS",  "CONTA_GARANTIDA")
+            testUnarrangedOverdraft = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),  ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT, "DESCONTO NÃO ACORDADO",  "CONTA_GARANTIDA")
+            testExchangesOperation = testEntityDataFactory.createAndSaveExchangeOperation(testAccountHolder.getAccountHolderId())
             runSetup = false
         }
     }
@@ -81,7 +86,7 @@ class UserServiceSpec extends CleanupSpecification {
 
     def "we can get loans" () {
         when:
-        def accounts = userService.getContractList(testAccountHolder.getUserId(), AccountOrContractType.LOAN)
+        def accounts = userService.getContractList(testAccountHolder.getUserId(), ResourceType.LOAN)
         then:
         accounts != null
         accounts.getData() != null
@@ -91,7 +96,7 @@ class UserServiceSpec extends CleanupSpecification {
 
     def "we can get financings" () {
         when:
-        def accounts = userService.getContractList(testAccountHolder.getUserId(), AccountOrContractType.FINANCING)
+        def accounts = userService.getContractList(testAccountHolder.getUserId(), ResourceType.FINANCING)
         then:
         accounts != null
         accounts.getData() != null
@@ -101,7 +106,7 @@ class UserServiceSpec extends CleanupSpecification {
 
     def "we can get invoice financings" () {
         when:
-        def accounts = userService.getContractList(testAccountHolder.getUserId(), AccountOrContractType.INVOICE_FINANCING)
+        def accounts = userService.getContractList(testAccountHolder.getUserId(), ResourceType.INVOICE_FINANCING)
         then:
         accounts != null
         accounts.getData() != null
@@ -111,12 +116,22 @@ class UserServiceSpec extends CleanupSpecification {
 
     def "we can get unarranged overdrafts" () {
         when:
-        def accounts = userService.getContractList(testAccountHolder.getUserId(), AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT)
+        def accounts = userService.getContractList(testAccountHolder.getUserId(), ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT)
         then:
         accounts != null
         accounts.getData() != null
         accounts.getData().size() == 1
         accounts.getData().first().getAccountId() == testUnarrangedOverdraft.getContractId().toString()
+    }
+
+    def "we can get exchanges operations" () {
+        when:
+        def exchanges = userService.getExchangesList(testAccountHolder.getUserId())
+        then:
+        exchanges != null
+        exchanges.getData() != null
+        exchanges.getData().size() == 1
+        exchanges.getData().first().getAccountId() == testExchangesOperation.getOperationId().toString()
     }
 
     def "enable cleanup"() {

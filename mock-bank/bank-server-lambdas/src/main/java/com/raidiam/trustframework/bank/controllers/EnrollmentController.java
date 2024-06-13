@@ -1,5 +1,7 @@
 package com.raidiam.trustframework.bank.controllers;
 
+import com.raidiam.trustframework.bank.auth.AuthenticationGrant;
+import com.raidiam.trustframework.bank.auth.RequiredAuthenticationGrant;
 import com.raidiam.trustframework.bank.fapi.XFapiInteractionIdRequired;
 import com.raidiam.trustframework.bank.services.EnrollmentService;
 import com.raidiam.trustframework.bank.services.FidoService;
@@ -90,6 +92,7 @@ public class EnrollmentController extends BaseBankController {
     @Post(value = "/v1/enrollments/{enrollmentId}/fido-registration-options", consumes = {"application/jwt"}, produces = {"application/jwt", "*/*"})
     @XFapiInteractionIdRequired
     @Status(HttpStatus.CREATED)
+    @RequiredAuthenticationGrant(AuthenticationGrant.AUTHORISATION_CODE)
     public EnrollmentFidoRegistrationOptions postFidoRegistrationOptions(@PathVariable("enrollmentId") String enrollmentId, @Body @Valid EnrollmentFidoOptionsInput body, HttpRequest<?> request) {
         LOG.info("Creating enrollment fido registration options");
         BankLambdaUtils.logObject(mapper, body);
@@ -126,6 +129,7 @@ public class EnrollmentController extends BaseBankController {
 
 
     @Post(value = "/v1/consents/{consentId}/authorise", consumes = {"application/jwt"}, produces = {"application/jwt", "*/*"})
+    @RequiredAuthenticationGrant(AuthenticationGrant.AUTHORISATION_CODE)
     @XFapiInteractionIdRequired
     @Status(HttpStatus.NO_CONTENT)
     public HttpResponse<Object> postEnrollmentAuthorise(@PathVariable("consentId") String consentId, @Body @Valid ConsentAuthorization body) {

@@ -4,9 +4,11 @@ import com.raidiam.trustframework.bank.CleanupSpecification
 import com.raidiam.trustframework.bank.TestEntityDataFactory
 import com.raidiam.trustframework.bank.controllers.ConsentFactory
 import com.raidiam.trustframework.bank.domain.AccountHolderEntity
-import com.raidiam.trustframework.bank.enums.AccountOrContractType
+import com.raidiam.trustframework.bank.enums.ResourceType
 import com.raidiam.trustframework.bank.utils.BankLambdaUtils
 import com.raidiam.trustframework.mockbank.models.generated.*
+import io.micronaut.context.annotation.Value
+import io.micronaut.data.model.Pageable
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.exceptions.HttpStatusException
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
@@ -17,7 +19,6 @@ import spock.lang.Unroll
 import javax.inject.Inject
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
-
 import static com.raidiam.trustframework.bank.TestEntityDataFactory.*
 import static com.raidiam.trustframework.mockbank.models.generated.EnumConsentPermissions.*
 
@@ -32,6 +33,8 @@ class ConsentServiceV3Spec extends CleanupSpecification {
     ConsentService service
     @Inject
     TestEntityDataFactory testEntityDataFactory
+    @Value("\${mockbank.max-page-size}")
+    int maxPageSize
 
     def setup() {
         if (runSetup) {
@@ -41,28 +44,28 @@ class ConsentServiceV3Spec extends CleanupSpecification {
             def creditCard = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
             def creditCard2 = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
             def loan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.LOAN,
+                    ResourceType.LOAN,
                     EnumContractProductTypeLoans.EMPRESTIMOS.toString(), EnumContractProductSubTypeLoans.CAPITAL_GIRO_TETO_ROTATIVO.toString())
             def loan2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.LOAN,
+                    ResourceType.LOAN,
                     EnumContractProductTypeLoans.EMPRESTIMOS.toString(), EnumContractProductSubTypeLoans.CREDITO_PESSOAL_COM_CONSIGNACAO.toString())
             def financing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.FINANCING,
+                    ResourceType.FINANCING,
                     EnumProductType.FINANCIAMENTOS_IMOBILIARIOS.toString(), EnumProductSubType.CUSTEIO.toString())
             def financing2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.FINANCING,
+                    ResourceType.FINANCING,
                     EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.INVESTIMENTO.toString())
             def invoiceFinancing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.INVOICE_FINANCING,
+                    ResourceType.INVOICE_FINANCING,
                     EnumContractProductTypeInvoiceFinancings.DIREITOS_CREDITORIOS_DESCONTADOS.toString(), EnumContractProductSubTypeInvoiceFinancings.DESCONTO_CHEQUES.toString())
             def invoiceFinancing2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.INVOICE_FINANCING,
+                    ResourceType.INVOICE_FINANCING,
                     EnumContractProductTypeInvoiceFinancings.DIREITOS_CREDITORIOS_DESCONTADOS.toString(), EnumContractProductSubTypeInvoiceFinancings.ANTECIPACAO_FATURA_CARTAO_CREDITO.toString())
             def overdraft = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT,
+                    ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT,
                     ProductType.ADIANTAMENTO_A_DEPOSITANTES.toString(), ProductSubType.ADIANTAMENTO_A_DEPOSITANTES.toString())
             def overdraft2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT,
+                    ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT,
                     ProductType.ADIANTAMENTO_A_DEPOSITANTES.toString(), ProductSubType.ADIANTAMENTO_A_DEPOSITANTES.toString())
 
             List<String> linkedAccountIds = [account.getAccountId().toString(), account2.getAccountId().toString()]
@@ -394,7 +397,7 @@ class ConsentServiceV3Spec extends CleanupSpecification {
 
     }
 
-    def "we cant create consent extension if expiration time is in the past or more than one year"() {
+    def "we cant create consent extension if expiration time is in the past, before the current expiration date or more than one year"() {
         def customerIpAddress = "0.0.0.0"
         def customerUserAgent = "User_agent"
         def consentReq = ConsentFactory.createConsentV3(testAccountHolder.documentIdentification, testAccountHolder.documentRel, null)
@@ -414,7 +417,7 @@ class ConsentServiceV3Spec extends CleanupSpecification {
         then:
         def e = thrown(HttpStatusException)
         e.status == HttpStatus.UNPROCESSABLE_ENTITY
-        e.getMessage() == String.format("%s: new expirationDateTime cannot be in the past or more than one year", EnumConsentExtendsErrorCode.DATA_EXPIRACAO_INVALIDA)
+        e.getMessage() == String.format("%s: new expirationDateTime cannot be in the past or more than one year ahead", EnumConsentExtendsErrorCode.DATA_EXPIRACAO_INVALIDA)
 
         when:
         def oldDate = OffsetDateTime.now().minusYears(1)
@@ -424,42 +427,18 @@ class ConsentServiceV3Spec extends CleanupSpecification {
         then:
         def e2 = thrown(HttpStatusException)
         e2.status == HttpStatus.UNPROCESSABLE_ENTITY
-        e2.getMessage() == String.format("%s: new expirationDateTime cannot be in the past or more than one year", EnumConsentExtendsErrorCode.DATA_EXPIRACAO_INVALIDA)
-    }
+        e2.getMessage() == String.format("%s: new expirationDateTime cannot be in the past or more than one year ahead", EnumConsentExtendsErrorCode.DATA_EXPIRACAO_INVALIDA)
 
-    def "we can create consent extension if expiration time is less than or equal to the expiration time of the consent"() {
-        given:
-        def customerIpAddress = "0.0.0.0"
-        def customerUserAgent = "User_agent"
-        def consentReq = ConsentFactory.createConsentV3(testAccountHolder.documentIdentification, testAccountHolder.documentRel, null)
-        def consent = service.createConsentV3(UUID.randomUUID().toString(), consentReq)
-        def consentId = consent.getData().getConsentId()
-        def updatedConsent = consentRepository.findByConsentId(consentId).orElse(null)
-        assert updatedConsent != null
-        updatedConsent.setStatus(EnumConsentStatus.AUTHORISED.toString())
-        consentRepository.update(updatedConsent)
-        def consentExtendsReq = ConsentFactory.createConsentExtendsV3(testAccountHolder.documentIdentification, testAccountHolder.documentRel)
+        when:
+        def plusOneWeekDate = OffsetDateTime.now().plusWeeks(1)
+        consentExtendsReq.getData().setExpirationDateTime(OffsetDateTime.now().plusDays(1))
+        consentReq.getData().setExpirationDateTime(plusOneWeekDate)
         service.createConsentExtensionV3(consentId, consentExtendsReq, customerIpAddress, customerUserAgent)
 
-        when:
-        def extensionResponse = service.createConsentExtensionV3(consentId, consentExtendsReq, customerIpAddress, customerUserAgent)
-        def extensions = consentExtensionRepository.findByConsentId(consentId)
-
         then:
-        noExceptionThrown()
-        extensionResponse != null
-        extensions.size() == 2
-
-        when:
-        def oldDate = BankLambdaUtils.dateToOffsetDate(updatedConsent.getExpirationDateTime()).minusDays(1)
-        consentExtendsReq.getData().setExpirationDateTime(oldDate)
-        extensionResponse = service.createConsentExtensionV3(consentId, consentExtendsReq, customerIpAddress, customerUserAgent)
-        extensions = consentExtensionRepository.findByConsentId(consentId)
-
-        then:
-        noExceptionThrown()
-        extensionResponse != null
-        extensions.size() == 3
+        def e3 = thrown(HttpStatusException)
+        e3.status == HttpStatus.UNPROCESSABLE_ENTITY
+        e3.getMessage() == String.format("%s: new expirationDateTime cannot be before the current expiration date", EnumConsentExtendsErrorCode.DATA_EXPIRACAO_INVALIDA)
     }
 
     def "we cant create consent extension if consent status is not AUTHORISED"() {
@@ -538,6 +517,32 @@ class ConsentServiceV3Spec extends CleanupSpecification {
         "11111111111"                | "TEST"
     }
 
+    @Unroll
+    def "We cant create consent extension if the business entity is different"() {
+        given:
+        def customerIpAddress = "0.0.0.0"
+        def customerUserAgent = "User_agent"
+        def consentReq = ConsentFactory.createConsentV3(testAccountHolder.documentIdentification, testAccountHolder.documentRel, null)
+        def consent = service.createConsentV3(UUID.randomUUID().toString(), consentReq)
+        def consentId = consent.getData().getConsentId()
+        def updatedConsent = consentRepository.findByConsentId(consentId).orElse(null)
+        assert updatedConsent != null
+        updatedConsent.setStatus(EnumConsentStatus.AUTHORISED.toString())
+        consentRepository.update(updatedConsent)
+        def consentExtendsReq = ConsentFactory.createConsentExtendsV3(testAccountHolder.documentIdentification, testAccountHolder.documentRel)
+        def businessEntity = new BusinessEntity().document(new BusinessEntityDocument().identification("1234567899").rel("CPF"))
+        consentExtendsReq.data.setBusinessEntity(businessEntity)
+
+        when:
+        def consentExtendsResponse = service.createConsentExtensionV3(consentId, consentExtendsReq, customerIpAddress, customerUserAgent)
+
+        then:
+        def e = thrown(HttpStatusException)
+        e.getStatus() == HttpStatus.UNAUTHORIZED
+        e.getMessage() == "BusinessEntity values must match those stored in the associated consent"
+        consentExtendsResponse == null
+    }
+
     def "we can create consent extension v3 without expirationDateTime in the request"() {
         given:
         def customerIpAddress = "0.0.0.0"
@@ -582,7 +587,7 @@ class ConsentServiceV3Spec extends CleanupSpecification {
         def secondDate = firstDate.plusMonths(2)
         consentExtendsReq.getData().setExpirationDateTime(secondDate)
         service.createConsentExtensionV3(consentId, consentExtendsReq, customerIpAddress, customerUserAgent)
-        def thirdDate = firstDate.plusDays(1)
+        def thirdDate = firstDate.plusMonths(2).plusDays(1)
         consentExtendsReq.getData().setExpirationDateTime(thirdDate)
         service.createConsentExtensionV3(consentId, consentExtendsReq, customerIpAddress, customerUserAgent)
 
@@ -598,13 +603,15 @@ class ConsentServiceV3Spec extends CleanupSpecification {
         ]
 
         when:
-        def getConsentExtensionsResponse = service.getConsentExtensionsV3(consentId)
+        def getConsentExtensionsResponse = service.getConsentExtensionsV3(consentId, Pageable.from(0, maxPageSize))
         updatedConsent = consentRepository.findByConsentId(consentId).orElse(null)
+
 
         then:
         noExceptionThrown()
         def data = getConsentExtensionsResponse.getData()
         data.size() == 4
+
 
         updatedConsent.getExpirationDateTime() == BankLambdaUtils.offsetDateToDate(data.get(0).getExpirationDateTime())
 
@@ -632,7 +639,7 @@ class ConsentServiceV3Spec extends CleanupSpecification {
         consentRepository.update(updatedConsent)
 
         when:
-        def getConsentExtensionsResponse = service.getConsentExtensionsV3(consentId)
+        def getConsentExtensionsResponse = service.getConsentExtensionsV3(consentId, Pageable.from(0, maxPageSize))
 
         then:
         getConsentExtensionsResponse.getData() != null

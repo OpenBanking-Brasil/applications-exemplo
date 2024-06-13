@@ -6,6 +6,8 @@ public interface ConsentQrCodeValidationErrors {
 
     HttpStatusException getCouldNotDecodeQrCodeError(String qrCode);
 
+    HttpStatusException getQrCodeIsMissingError();
+
     HttpStatusException getCreditorNameDiffError(String qrCodeCreditorName, String creditorName);
 
     HttpStatusException getMerchantAccountInformationIsMissingError();

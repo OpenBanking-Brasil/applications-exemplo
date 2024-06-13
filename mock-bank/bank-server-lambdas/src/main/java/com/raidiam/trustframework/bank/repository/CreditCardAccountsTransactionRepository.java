@@ -8,61 +8,61 @@ import io.micronaut.data.repository.PageableRepository;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Repository
 public interface CreditCardAccountsTransactionRepository extends PageableRepository<CreditCardAccountsTransactionEntity, UUID> {
 
-    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndBillIdAndTransactionDateBetweenIsAndTransactionTypeAndPayeeMCCOrderByCreatedAtAsc(@NotNull UUID accountId,
+    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndBillIdAndTransactionDateTimeBetweenAndTransactionTypeAndPayeeMCCOrderByCreatedAtAsc(@NotNull UUID accountId,
                                                                                                                                                             @NotNull UUID billId,
-                                                                                                                                                            @NotNull LocalDate from,
-                                                                                                                                                            @NotNull LocalDate to,
+                                                                                                                                                            @NotNull OffsetDateTime from,
+                                                                                                                                                            @NotNull OffsetDateTime to,
                                                                                                                                                             @NotNull String transactionType,
                                                                                                                                                             @NotNull BigDecimal payeeMCC,
                                                                                                                                                             Pageable pageable);
 
-    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndTransactionDateBetweenIsAndTransactionTypeAndPayeeMCCOrderByCreatedAtAsc(@NotNull UUID accountId,
-                                                                                                                                                   @NotNull LocalDate from,
-                                                                                                                                                   @NotNull LocalDate to,
+    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndTransactionDateTimeBetweenAndTransactionTypeAndPayeeMCCOrderByCreatedAtAsc(@NotNull UUID accountId,
+                                                                                                                                                   @NotNull OffsetDateTime from,
+                                                                                                                                                   @NotNull OffsetDateTime to,
                                                                                                                                                    @NotNull String transactionType,
                                                                                                                                                    @NotNull BigDecimal payeeMCC,
                                                                                                                                                    Pageable pageable);
 
-    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndBillIdAndTransactionDateBetweenIsAndTransactionTypeOrderByCreatedAtAsc(@NotNull UUID accountId,
+    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndBillIdAndTransactionDateTimeBetweenAndTransactionTypeOrderByCreatedAtAsc(@NotNull UUID accountId,
                                                                                                                                                  @NotNull UUID billId,
-                                                                                                                                                 @NotNull LocalDate from,
-                                                                                                                                                 @NotNull LocalDate to,
+                                                                                                                                                 @NotNull OffsetDateTime from,
+                                                                                                                                                 @NotNull OffsetDateTime to,
                                                                                                                                                  @NotNull String transactionType,
                                                                                                                                                  Pageable pageable);
 
-    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndBillIdAndTransactionDateBetweenIsAndPayeeMCCOrderByCreatedAtAsc(@NotNull UUID accountId,
+    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndBillIdAndTransactionDateTimeBetweenAndPayeeMCCOrderByCreatedAtAsc(@NotNull UUID accountId,
                                                                                                                                           @NotNull UUID billId,
-                                                                                                                                          @NotNull LocalDate from,
-                                                                                                                                          @NotNull LocalDate to,
+                                                                                                                                          @NotNull OffsetDateTime from,
+                                                                                                                                          @NotNull OffsetDateTime to,
                                                                                                                                           @NotNull BigDecimal payeeMCC,
                                                                                                                                           Pageable pageable);
 
-    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndTransactionDateBetweenIsAndTransactionTypeOrderByCreatedAtAsc(@NotNull UUID accountId,
-                                                                                                                                        @NotNull LocalDate from,
-                                                                                                                                        @NotNull LocalDate to,
+    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndTransactionDateTimeBetweenAndTransactionTypeOrderByCreatedAtAsc(@NotNull UUID accountId,
+                                                                                                                                        @NotNull OffsetDateTime from,
+                                                                                                                                        @NotNull OffsetDateTime to,
                                                                                                                                         @NotNull String transactionType,
                                                                                                                                         Pageable pageable);
 
-    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndTransactionDateBetweenIsAndPayeeMCCOrderByCreatedAtAsc(@NotNull UUID accountId,
-                                                                                                                                 @NotNull LocalDate from,
-                                                                                                                                 @NotNull LocalDate to,
+    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndTransactionDateTimeBetweenAndPayeeMCCOrderByCreatedAtAsc(@NotNull UUID accountId,
+                                                                                                                                 @NotNull OffsetDateTime from,
+                                                                                                                                 @NotNull OffsetDateTime to,
                                                                                                                                  @NotNull BigDecimal payeeMCC,
                                                                                                                                  Pageable pageable);
 
-    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndBillIdAndTransactionDateBetweenIsOrderByCreatedAtAsc(@NotNull UUID accountId,
+    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndBillIdAndTransactionDateTimeBetweenOrderByCreatedAtAsc(@NotNull UUID accountId,
                                                                                                                                @NotNull UUID billId,
-                                                                                                                               @NotNull LocalDate from,
-                                                                                                                               @NotNull LocalDate to,
+                                                                                                                               @NotNull OffsetDateTime from,
+                                                                                                                               @NotNull OffsetDateTime to,
                                                                                                                                Pageable pageable);
 
-    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndTransactionDateBetweenIsOrderByCreatedAtAsc(@NotNull UUID accountId,
-                                                                                                                      @NotNull LocalDate from,
-                                                                                                                      @NotNull LocalDate to,
+    Page<CreditCardAccountsTransactionEntity> findByCreditCardAccountIdAndTransactionDateTimeBetweenOrderByCreatedAtAsc(@NotNull UUID accountId,
+                                                                                                                      @NotNull OffsetDateTime from,
+                                                                                                                      @NotNull OffsetDateTime to,
                                                                                                                       Pageable pageable);
 }

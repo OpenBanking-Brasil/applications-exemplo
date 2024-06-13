@@ -5,7 +5,7 @@ import com.raidiam.trustframework.bank.controllers.ConsentFactory
 import com.raidiam.trustframework.bank.domain.ConsentEntity
 import com.raidiam.trustframework.bank.domain.ConsentPermissionEntity
 import com.raidiam.trustframework.mockbank.models.generated.CreateConsent
-import com.raidiam.trustframework.mockbank.models.generated.CreateConsentData
+import com.raidiam.trustframework.mockbank.models.generated.EnumConsentPermissions
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import spock.lang.Stepwise
 
@@ -31,7 +31,7 @@ class ConsentPermissionsRepositorySpec extends CleanupSpecification {
         consentBack.getConsentId() != null
 
         when:
-        ConsentPermissionEntity permEntity = ConsentPermissionEntity.fromRequest(CreateConsentData.PermissionsEnum.ACCOUNTS_READ, consentBack)
+        ConsentPermissionEntity permEntity = ConsentPermissionEntity.fromRequest(EnumConsentPermissions.ACCOUNTS_READ, consentBack)
         ConsentPermissionEntity permSet = consentPermissionsRepository.save(permEntity)
         Optional<ConsentPermissionEntity> permOpt = consentPermissionsRepository.findById(permSet.getReferenceId())
 

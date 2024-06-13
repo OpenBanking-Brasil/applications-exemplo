@@ -12,9 +12,12 @@ import javax.validation.constraints.NotNull;
 @Repository
 public interface ConsentAccountRepository extends PageableRepository<ConsentAccountEntity, Integer> {
 
-    Page<ConsentAccountEntity> findByConsentIdOrderByCreatedAtAsc(@NotNull String consentId, Pageable pageable);
+    @Join(value="account", type = Join.Type.FETCH)
+    @Join(value="consent", type = Join.Type.FETCH)
+    Page<ConsentAccountEntity> findByConsentConsentIdOrderByCreatedAtAsc(@NotNull String consentId, Pageable pageable);
 
     @Join(value="account", type = Join.Type.FETCH)
-    Page<ConsentAccountEntity> findByConsentIdAndAccountAccountTypeOrderByCreatedAtAsc(@NotNull String consentId, @NotNull String accountType,
-                                                                                       Pageable pageable);
+    @Join(value="consent", type = Join.Type.FETCH)
+    Page<ConsentAccountEntity> findByConsentConsentIdAndAccountAccountTypeOrderByCreatedAtAsc(@NotNull String consentId, @NotNull String accountType,
+                                                                                              Pageable pageable);
 }

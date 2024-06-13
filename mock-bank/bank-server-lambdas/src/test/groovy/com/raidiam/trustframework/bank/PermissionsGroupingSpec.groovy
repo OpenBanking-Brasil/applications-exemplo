@@ -1,12 +1,13 @@
 package com.raidiam.trustframework.bank
 
 
-import com.raidiam.trustframework.bank.exceptions.TrustframeworkException
 import com.raidiam.trustframework.bank.services.validate.ConsentValidator
 import com.raidiam.trustframework.bank.services.validate.PermissionGroups
 import com.raidiam.trustframework.bank.services.validate.PermissionsGroupingValidator
 import com.raidiam.trustframework.mockbank.models.generated.CreateConsent
 import com.raidiam.trustframework.mockbank.models.generated.CreateConsentData
+import com.raidiam.trustframework.mockbank.models.generated.EnumConsentPermissions
+import io.micronaut.http.exceptions.HttpStatusException
 import spock.lang.Specification
 
 class PermissionsGroupingSpec extends Specification {
@@ -14,7 +15,7 @@ class PermissionsGroupingSpec extends Specification {
     def "We can request a consent" () {
         given:
         CreateConsentData consentData = new CreateConsentData()
-        consentData.setPermissions([CreateConsentData.PermissionsEnum.ACCOUNTS_BALANCES_READ])
+        consentData.setPermissions([EnumConsentPermissions.ACCOUNTS_BALANCES_READ])
         CreateConsent consent = new CreateConsent().data(consentData)
 
         and:
@@ -24,7 +25,7 @@ class PermissionsGroupingSpec extends Specification {
         validator.validate(consent)
 
         then:
-        thrown(TrustframeworkException)
+        thrown(HttpStatusException)
     }
 
     def "no complete set of permissions fails"() {
@@ -62,7 +63,7 @@ class PermissionsGroupingSpec extends Specification {
         validator.validate(createConsent(permissions))
 
         then:
-        thrown(TrustframeworkException)
+        thrown(HttpStatusException)
 
         where:
         permissions << loseOneFromEach(PermissionGroups.ALL_PERMISSION_GROUPS)
@@ -70,11 +71,11 @@ class PermissionsGroupingSpec extends Specification {
     }
 
     CreateConsent createConsent(permissions) {
-        new CreateConsent().data(new CreateConsentData().permissions(new ArrayList<CreateConsentData.PermissionsEnum>(permissions)))
+        new CreateConsent().data(new CreateConsentData().permissions(new ArrayList<EnumConsentPermissions>(permissions)))
     }
 
-    Set<Set<CreateConsentData.PermissionsEnum>> loseOneFromEach(input) {
-        Set<Set<CreateConsentData.PermissionsEnum>> output = new HashSet<>()
+    Set<Set<EnumConsentPermissions>> loseOneFromEach(input) {
+        Set<Set<EnumConsentPermissions>> output = new HashSet<>()
         input.each {
             def incomplete = new HashSet(it)
             def no = incomplete.iterator().next()
@@ -84,11 +85,11 @@ class PermissionsGroupingSpec extends Specification {
         output
     }
 
-    Set<Set<CreateConsentData.PermissionsEnum>> combinedSets(input) {
-        Set<Set<CreateConsentData.PermissionsEnum>> output = new HashSet<>()
+    Set<Set<EnumConsentPermissions>> combinedSets(input) {
+        Set<Set<EnumConsentPermissions>> output = new HashSet<>()
         input.size().times {x ->
             def iter = input.iterator()
-            Set<CreateConsentData.PermissionsEnum> current = new HashSet<>()
+            Set<EnumConsentPermissions> current = new HashSet<>()
             x.times { y ->
                 current.addAll(iter.next())
             }

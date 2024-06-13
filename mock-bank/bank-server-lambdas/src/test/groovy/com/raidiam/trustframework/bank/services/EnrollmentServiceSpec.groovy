@@ -2,7 +2,6 @@ package com.raidiam.trustframework.bank.services
 
 import com.raidiam.trustframework.bank.CleanupSpecification
 import com.raidiam.trustframework.bank.TestRequestDataFactory
-import com.raidiam.trustframework.bank.controllers.ConsentFactory
 import com.raidiam.trustframework.bank.domain.AccountEntity
 import com.raidiam.trustframework.bank.domain.AccountHolderEntity
 import com.raidiam.trustframework.mockbank.models.generated.*
@@ -71,6 +70,37 @@ class EnrollmentServiceSpec extends CleanupSpecification {
 
     }
 
+    def "we cannot create an enrollment without accountType"() {
+        given:
+        def enrollmentRequest = createEnrollment(accountHolder.getDocumentIdentification(), accountHolder.getDocumentRel(), true)
+        enrollmentRequest.getData().getDebtorAccount().accountType(null)
+
+        when:
+        enrollmentService.createEnrollment(clientId, idemPotencyKey, jti, enrollmentRequest)
+
+        then: "422 CONTA_INVALIDA should bet thrown"
+        def e = thrown(HttpStatusException)
+
+        e.getMessage() == "CONTA_INVALIDA: Debtor account account type is missing or empty"
+        e.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
+
+        when:
+        enrollmentRequest.getData().getDebtorAccount().issuer(null)
+        enrollmentRequest.getData().getDebtorAccount().accountType(EnumAccountPaymentsType.CACC)
+        enrollmentService.createEnrollment(clientId, idemPotencyKey, jti, enrollmentRequest)
+
+        then: "422 CONTA_INVALIDA should bet thrown"
+        def e2 = thrown(HttpStatusException)
+
+        e2.getMessage() == "CONTA_INVALIDA: when issuer is missing cant have accountType as CACC"
+        e2.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
+
+        where:
+        clientId                     | jti                          | idemPotencyKey
+        UUID.randomUUID().toString() | UUID.randomUUID().toString() | UUID.randomUUID().toString()
+
+    }
+
     def "we can get a enrollment"() {
         given:
         def enrollment = createEnrollment(accountHolder.getDocumentIdentification(), accountHolder.getDocumentRel())
@@ -78,9 +108,11 @@ class EnrollmentServiceSpec extends CleanupSpecification {
 
         when:
         def foundResponse = enrollmentService.getEnrollment(response.getData().getEnrollmentId(), clientId, false)
-
         then:
-        foundResponse.getData().getStatus() == EnumEnrollmentStatus.AWAITING_RISK_SIGNALS
+        def data = foundResponse.getData()
+        data.getStatus() == EnumEnrollmentStatus.AWAITING_RISK_SIGNALS
+        data.getPermissions().size() == 1
+        data.getPermissions()[0] == EnumEnrollmentPermission.PAYMENTS_INITIATE
 
         where:
         clientId                     | jti                          | idemPotencyKey
@@ -123,6 +155,7 @@ class EnrollmentServiceSpec extends CleanupSpecification {
         then:
         responseEnrollment.getData().getStatus() == EnumEnrollmentStatus.REJECTED
         responseEnrollment.getData().getCancellation().getReason().getRejectionReason() == EnrollmentRejectionReason.TEMPO_EXPIRADO_RISK_SIGNALS
+        responseEnrollment.getData().getCancellation().getCancelledFrom() == EnrollmentCancellation.CancelledFromEnum.DETENTORA
 
         where:
         clientId                     | jti                          | idemPotencyKey
@@ -149,6 +182,7 @@ class EnrollmentServiceSpec extends CleanupSpecification {
         then:
         responseEnrollment.getData().getStatus() == EnumEnrollmentStatus.REJECTED
         responseEnrollment.getData().getCancellation().getReason().getRejectionReason() == EnrollmentRejectionReason.TEMPO_EXPIRADO_ACCOUNT_HOLDER_VALIDATION
+        responseEnrollment.getData().getCancellation().getCancelledFrom() == EnrollmentCancellation.CancelledFromEnum.DETENTORA
 
         where:
         clientId                     | jti                          | idemPotencyKey
@@ -368,7 +402,7 @@ class EnrollmentServiceSpec extends CleanupSpecification {
                 LocalDate.now(), "BRL", "100")
 
         ResponsePaymentConsentV2 responseConsent = paymentConsentService.createConsentV3(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
-        def consentId = responseConsent.getData().getConsentId();
+        def consentId = responseConsent.getData().getConsentId()
 
         def enrollmentFidoSignOptionsRequest = TestRequestDataFactory.createEnrollmentFidoSignOptionsInput()
         enrollmentFidoSignOptionsRequest.getData().setConsentId(consentId)
@@ -396,7 +430,7 @@ class EnrollmentServiceSpec extends CleanupSpecification {
                 LocalDate.now(), "BRL", "100")
 
         ResponsePaymentConsentV2 responseConsent = paymentConsentService.createConsentV3(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
-        def consentId = responseConsent.getData().getConsentId();
+        def consentId = responseConsent.getData().getConsentId()
 
         def enrollmentFidoSignOptionsRequest = TestRequestDataFactory.createEnrollmentFidoSignOptionsInput()
         enrollmentFidoSignOptionsRequest.getData().setConsentId(consentId)
@@ -432,7 +466,7 @@ class EnrollmentServiceSpec extends CleanupSpecification {
                 "issuer1", "1234567890", accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification(), EnumPaymentType.PIX.toString(),
                 LocalDate.now(), "BRL", "100")
         ResponsePaymentConsentV2 responseConsent = paymentConsentService.createConsentV3(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
-        def consentId = responseConsent.getData().getConsentId();
+        def consentId = responseConsent.getData().getConsentId()
 
         def enrollmentFidoSignOptionsRequest = TestRequestDataFactory.createEnrollmentFidoSignOptionsInput()
         enrollmentFidoSignOptionsRequest.getData().setConsentId(consentId)

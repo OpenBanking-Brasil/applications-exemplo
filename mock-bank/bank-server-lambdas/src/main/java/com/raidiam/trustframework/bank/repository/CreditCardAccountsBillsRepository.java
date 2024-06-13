@@ -1,6 +1,7 @@
 package com.raidiam.trustframework.bank.repository;
 
 import com.raidiam.trustframework.bank.domain.CreditCardAccountsBillsEntity;
+import com.raidiam.trustframework.bank.domain.CreditCardAccountsEntity;
 import io.micronaut.data.annotation.Repository;
 import io.micronaut.data.model.Page;
 import io.micronaut.data.model.Pageable;
@@ -16,9 +17,7 @@ public interface CreditCardAccountsBillsRepository extends PageableRepository<Cr
 
     Optional<CreditCardAccountsBillsEntity> findByBillId(@NotNull UUID billId);
 
-    Page<CreditCardAccountsBillsEntity> findByCreditCardAccountIdOrderByCreatedAtAsc(@NotNull UUID accountId, Pageable pageable);
-
-    Page<CreditCardAccountsBillsEntity> findByCreditCardAccountIdAndDueDateBetweenIsOrderByCreatedAtAsc(@NotNull UUID accountId,
+    Page<CreditCardAccountsBillsEntity> findByAccountAndDueDateBetweenOrderByCreatedAtAsc(@NotNull CreditCardAccountsEntity account,
                                                                                                         @NotNull LocalDate startDate,
                                                                                                         @NotNull LocalDate endDate,
                                                                                                         Pageable pageable);

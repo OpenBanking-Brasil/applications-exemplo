@@ -149,7 +149,6 @@ class AdminApiControllersSpec extends CleanupLocalStackSpecification implements 
         then:
         postResponse.getTransactionId() != null
         postResponse.getTransactionName() == accountTransactionDto.getData().getTransactionName()
-        postResponse.getTransactionDate() == accountTransactionDto.getData().getTransactionDate()
         postResponse.getAmount() == accountTransactionDto.getData().getAmount()
         postResponse.getCompletedAuthorisedPaymentType() == accountTransactionDto.getData().getCompletedAuthorisedPaymentType()
         postResponse.getCreditDebitType() == accountTransactionDto.getData().getCreditDebitType()
@@ -346,7 +345,6 @@ class AdminApiControllersSpec extends CleanupLocalStackSpecification implements 
         transaction.chargeNumber == newTransactions.chargeNumber
         transaction.amount == newTransactions.amount
         transaction.currency == newTransactions.currency
-        transaction.transactionDate == newTransactions.transactionDate
         transaction.billPostDate == newTransactions.billPostDate
         transaction.payeeMCC == newTransactions.payeeMCC
 

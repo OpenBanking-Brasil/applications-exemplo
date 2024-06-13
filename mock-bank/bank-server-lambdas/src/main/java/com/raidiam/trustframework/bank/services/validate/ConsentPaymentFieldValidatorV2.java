@@ -2,12 +2,12 @@ package com.raidiam.trustframework.bank.services.validate;
 
 import com.raidiam.trustframework.bank.enums.ErrorCodesEnumV2;
 import com.raidiam.trustframework.bank.services.message.PaymentErrorMessage;
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.*;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 
@@ -63,7 +63,7 @@ public class ConsentPaymentFieldValidatorV2 implements PaymentConsentValidator{
     }
 
     public void validatePaymentDate(LocalDate consentDate){
-        LocalDate currentDate = new Date().toInstant().atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate();
+        LocalDate currentDate = new Date().toInstant().atZone(BankLambdaUtils.getBrasilZoneId()).toLocalDate();
         if(consentDate.isBefore(currentDate)){
             throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidDate("Data de pagamento " +
                     "inválida no contexto, data no passado. Para pagamentos únicos deve ser informada a data atual, " +
@@ -74,7 +74,7 @@ public class ConsentPaymentFieldValidatorV2 implements PaymentConsentValidator{
 
     private void validatePaymentSchedule(Schedule consentSchedule) {
         LocalDate scheduleDate = consentSchedule.getSingle().getDate();
-        LocalDate currentDate = new Date().toInstant().atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate();
+        LocalDate currentDate = new Date().toInstant().atZone(BankLambdaUtils.getBrasilZoneId()).toLocalDate();
         LocalDate futureDate = currentDate.plusDays(DAYS_ALLOWED_IN_FUTURE);
         if (scheduleDate.isBefore(currentDate)
                 || scheduleDate.equals(currentDate)

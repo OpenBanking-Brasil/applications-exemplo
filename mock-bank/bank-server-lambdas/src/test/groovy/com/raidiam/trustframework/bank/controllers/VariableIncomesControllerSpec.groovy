@@ -166,9 +166,9 @@ class VariableIncomesControllerSpec extends Specification{
 
     void "We can get broker notes"() {
         given:
-        investmentService.getVariableIncomesBroker(_ as String, _ as UUID, _ as UUID) >> responseVariableIncomesBrokerNotes
+        investmentService.getVariableIncomesBroker(_ as String, _ as UUID) >> responseVariableIncomesBrokerNotes
 
-        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder("/open-banking/variable-incomes/v1/investments/${UUID.randomUUID()}/broker-notes/${UUID.randomUUID()}", HttpMethod.GET.toString())
+        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder("/open-banking/variable-incomes/v1/broker-notes/${UUID.randomUUID()}", HttpMethod.GET.toString())
         AuthHelper.authorize(scopes: "variable-incomes", builder)
 
         when:

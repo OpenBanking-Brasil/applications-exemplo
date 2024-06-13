@@ -11,19 +11,21 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 
-public class DbInitHandler implements RequestHandler<Map<String,String>, String> {
+public class DbInitHandler implements RequestHandler<Map<String, Object>, String> {
 
     private static final Logger log = LoggerFactory.getLogger(DbInitHandler.class);
 
     @Override
-    public String handleRequest(Map<String,String> event, Context context)
-    {
+    public String handleRequest(Map<String, Object> event, Context context) {
         log.info("Starting Flyway migrations");
         String dbUrl = System.getenv("DB_URL");
         String dbUsername = System.getenv("DB_USERNAME");
         String dbPassword = System.getenv("DB_PASSWORD");
         boolean existingEnvironment = Boolean.parseBoolean(System.getenv("LEGACY_DB"));
-        Flyway flyway = Flyway.configure().dataSource(dbUrl, dbUsername, dbPassword).load();
+        Flyway flyway = Flyway.configure()
+                .dataSource(dbUrl, dbUsername, dbPassword)
+                .locations("classpath:db/migration", "classpath:db/dataloading")
+                .load();
         if (existingEnvironment) {
             log.info("Running baseline operation");
             flyway.baseline();

@@ -13,7 +13,7 @@ public class ConsentCreditorFieldValidator implements PaymentConsentValidator {
         CreatePaymentConsentData data = request.getData();
         Identification creditor = data.getCreditor();
 
-        if(!checkPersonType(creditor.getPersonType())){
+        if (!checkPersonType(creditor.getPersonType())) {
             // Message: The field creditorAccount - personType does not fulfill the filling in requirements.
             throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "DETAIL_PGTO_INVALID: O campo creditorConta " +
                     "- personType não preenche os requisitos de preenchimento."
@@ -21,9 +21,9 @@ public class ConsentCreditorFieldValidator implements PaymentConsentValidator {
         }
     }
 
-    private boolean checkPersonType(String type){
-        for(EnumCreditorPersonType value : EnumCreditorPersonType.values()){
-            if(value.toString().equals(type)){
+    private boolean checkPersonType(String type) {
+        for (EnumCreditorPersonType value : EnumCreditorPersonType.values()) {
+            if (value.toString().equals(type)) {
                 return true;
             }
         }

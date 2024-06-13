@@ -202,6 +202,21 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         response == null
     }
 
+    def "We can create a recurring consent with empty sweeping fields"() {
+        given:
+        def req = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithoutSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        when:
+        def response = paymentConsentService.createRecurringConsentV1(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), req)
+
+        then:
+        noExceptionThrown()
+        response.data.status == EnumAuthorisationStatusType.AWAITING_AUTHORISATION
+        response.data.recurringConfiguration.sweeping == req.data.recurringConfiguration.sweeping
+        response.data.recurringConfiguration.sweeping.periodicLimits == null
+        response.data.recurringConfiguration.sweeping.totalAllowedAmount == null
+        response.data.recurringConfiguration.sweeping.transactionLimit == null
+    }
+
     // This test needs to be changed once we start supporting more configurations
     def "we cant create a consent if recurringConfiguration is vrp"() {
         given:
@@ -301,6 +316,145 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         e.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
         e.getMessage() == "PARAMETRO_INVALIDO: All Creditors have to have the same CNPJ prefix as the business entity"
         response == null
+    }
+
+    def "when retrieving expired recurring consent its status is set to CONSUMED"() {
+        given:
+        def req = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        req.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("10")
+        req.getData().setExpirationDateTime(OffsetDateTime.now().plusSeconds(1))
+        req.getData().setBusinessEntity(null)
+        Creditors creditors = new Creditors()
+        creditors.addAll(List.of(
+                new Identification()
+                        .name("name")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+                new Identification()
+                        .name("name2")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+        ))
+        req.data.setCreditors(creditors)
+        def clientId = UUID.randomUUID().toString()
+        var createdConsent = paymentConsentService.createRecurringConsentV1(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), req)
+        Thread.sleep(1000)
+
+        when:
+        var response = paymentConsentService.getRecurringConsentsV1(createdConsent.getData().getRecurringConsentId(), clientId)
+
+        then:
+        response.getData().getStatus() == EnumAuthorisationStatusType.CONSUMED
+    }
+
+    def "when retrieving recurring consent with reached totalAllowedLimit its status is set to CONSUMED"() {
+        given:
+        def req = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        req.getData().setBusinessEntity(null)
+        req.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("0")
+        Creditors creditors = new Creditors()
+        creditors.addAll(List.of(
+                new Identification()
+                        .name("name")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+                new Identification()
+                        .name("name2")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+        ))
+        req.data.setCreditors(creditors)
+
+        def clientId = UUID.randomUUID().toString()
+        var createdConsent = paymentConsentService.createRecurringConsentV1(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), req)
+
+        var consentId = createdConsent.getData().getRecurringConsentId()
+
+        var updatePaymentConsent = TestRequestDataFactory.createPaymentConsentUpdateRequest(UpdatePaymentConsentData.StatusEnum.AUTHORISED, true)
+        paymentConsentService.updateRecurringConsentV1(consentId, updatePaymentConsent)
+
+
+        when:
+        var response = paymentConsentService.getRecurringConsentsV1(consentId, clientId)
+
+        then:
+        response.getData().getStatus() == EnumAuthorisationStatusType.CONSUMED
+    }
+
+    def "when posting recurring payment with expired expirationDateTime, 422 is thrown"() {
+        given:
+        def req = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        req.getData().setBusinessEntity(null)
+        req.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("200")
+        Creditors creditors = new Creditors()
+        creditors.addAll(List.of(
+                new Identification()
+                        .name("name")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+                new Identification()
+                        .name("name2")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+        ))
+        req.data.setCreditors(creditors)
+
+        def clientId = UUID.randomUUID().toString()
+        req.getData().setExpirationDateTime(OffsetDateTime.now().plusSeconds(1))
+        var createdConsent = paymentConsentService.createRecurringConsentV1(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), req)
+
+        var consentId = createdConsent.getData().getRecurringConsentId()
+
+        var updatePaymentConsent = TestRequestDataFactory.createPaymentConsentUpdateRequest(UpdatePaymentConsentData.StatusEnum.AUTHORISED, true)
+        paymentConsentService.updateRecurringConsentV1(consentId, updatePaymentConsent)
+
+
+        var reqPayment = TestRequestDataFactory.createRecurringPixPayment(consentId)
+        Thread.sleep(1000)
+
+
+        when:
+        var createdPayment = paymentsService.createRecurringPixPaymentV1(consentId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), clientId, reqPayment)
+
+        then:
+        def e = thrown(HttpStatusException)
+        e.getStatus() == HttpStatus.UNAUTHORIZED
+        e.getMessage() == "O consentimento informado encontra-se expirado"
+    }
+
+    def "when posting recurring payment that would exceed totalAllowedAmount, 422 is thrown"() {
+        given:
+        def req = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        req.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("10.0")
+        req.getData().setBusinessEntity(null)
+        Creditors creditors = new Creditors()
+        creditors.addAll(List.of(
+                new Identification()
+                        .name("name")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+                new Identification()
+                        .name("name2")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+        ))
+        req.data.setCreditors(creditors)
+        def clientId = UUID.randomUUID().toString()
+        var createdConsent = paymentConsentService.createRecurringConsentV1(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), req)
+
+        var consentId = createdConsent.getData().getRecurringConsentId()
+        var reqPayment= TestRequestDataFactory.createRecurringPixPayment(consentId)
+
+        var updatePaymentConsent = TestRequestDataFactory.createPaymentConsentUpdateRequest(UpdatePaymentConsentData.StatusEnum.AUTHORISED, true)
+        paymentConsentService.updateRecurringConsentV1(consentId, updatePaymentConsent)
+
+        when:
+        paymentsService.createRecurringPixPaymentV1(consentId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), clientId, reqPayment)
+
+        then:
+        def e = thrown(HttpStatusException)
+        e.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
+        e.getMessage() == "CONSENTIMENTO_INVALIDO: O limite do pagamento excede o limite definido no consentimento"
     }
 
     def "we can retrieve recurring payment consent"() {
@@ -701,7 +855,7 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         def reqConsent = TestRequestDataFactory.createRecurringPaymentConsentRequestV1(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
         reqConsent.getData().setRecurringConfiguration(new AllOfCreateRecurringConsentV1DataRecurringConfiguration()
                 .sweeping(new SweepingSweeping()
-                        .totalAllowedAmount("100.00")
+                        .totalAllowedAmount("200.00")
                         .transactionLimit("100.00")
                         .periodicLimits(new PeriodicLimits()
                                 .day(new Day()
@@ -763,6 +917,7 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         given:
         def clientId = UUID.randomUUID().toString()
         def reqConsent = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        reqConsent.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("200")
 
         reqConsent.getData().setBusinessEntity(null)
         Creditors creditors = new Creditors()
@@ -812,6 +967,7 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         given:
         def clientId = UUID.randomUUID().toString()
         def reqConsent = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        reqConsent.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("4000")
 
         reqConsent.getData().setBusinessEntity(null)
         Creditors creditors = new Creditors()
@@ -863,6 +1019,7 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         given:
         def clientId = UUID.randomUUID().toString()
         def reqConsent = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        reqConsent.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("300")
 
         reqConsent.getData().setBusinessEntity(null)
         Creditors creditors = new Creditors()
@@ -926,6 +1083,11 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         then:
         noExceptionThrown()
         response.data.recurringPaymentId != null
+
+        //extra checks
+        response.data.payment != null
+        response.data.ibgeTownCode != null
+        response.data.document != null
     }
 
     def "we can Force a 422 for with PAGAMENTO_DIVERGENTE_CONSENTIMENTO meaning the creditor validation"() {
@@ -1067,6 +1229,15 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         then:
         noExceptionThrown()
         response.data.recurringPaymentId != null
+
+        //assertions added for testing values that are mentioned missing in OMB-6 & not expected in OMB-40
+        response.data.ibgeTownCode != null
+        response.data.payment != null
+        response.data.document != null
+        req.data.localInstrument != null
+        req.data.proxy != null
+        response.data.localInstrument == null
+        response.data.proxy == null
     }
 
     def "we can cancel a recurring pix payment"() {
@@ -1093,6 +1264,7 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         paymentConsentRepository.update(paymentConsentEntity)
 
         def req = TestRequestDataFactory.createRecurringPixPayment(consentResponse.getData().getRecurringConsentId())
+        req.data.date(LocalDate.now().plusDays(1))
         def respPixPayment = paymentsService.createRecurringPixPaymentV1(consentResponse.getData().getRecurringConsentId(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), req)
         paymentsService.getRecurringPixPaymentV1(respPixPayment.data.getRecurringPaymentId(), clientId)
         def patchReq = TestRequestDataFactory.createPatchRecurringPixPaymentRequestV1Cancelled(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
@@ -1142,11 +1314,12 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         e.getMessage().contains("PAGAMENTO_NAO_PERMITE_CANCELAMENTO: Pagamento está com um status que não permite cancelamento")
     }
 
-    def "we can retrieve a recurring pix payment by consentId"() {
+    def "we can retrieve recurring pix payments by consentId and return the correct fields for a payments list"() {
         given:
         def clientId = UUID.randomUUID().toString()
         def reqConsent = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
 
+        reqConsent.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("300")
         reqConsent.getData().setBusinessEntity(null)
         Creditors creditors = new Creditors()
         creditors.addAll(List.of(
@@ -1166,22 +1339,24 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         paymentConsentRepository.update(paymentConsentEntity)
 
         def req = TestRequestDataFactory.createRecurringPixPayment(consentResponse.getData().getRecurringConsentId())
+        req.getData().getIbgeTownCode() == "5300108"
         req.data.date(LocalDate.now().plusMonths(2))
         paymentsService.createRecurringPixPaymentV1(consentResponse.getData().getRecurringConsentId(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), clientId, req)
         req.data.date(LocalDate.now().plusMonths(3))
         paymentsService.createRecurringPixPaymentV1(consentResponse.getData().getRecurringConsentId(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), clientId, req)
-        req.data.date(LocalDate.now().plusMonths(1).plusDays(3))
+        req.data.date(LocalDate.now().plusMonths(1))
         paymentsService.createRecurringPixPaymentV1(consentResponse.getData().getRecurringConsentId(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), clientId, req)
 
         when:
-        def startDate = LocalDate.now()
-        def endDate = LocalDate.now().plusMonths(5)
 
-        def response = paymentsService.getRecurringPixPaymentByConsentIdV1(consentResponse.getData().getRecurringConsentId(), startDate, endDate, clientId)
+        def response = paymentsService.getRecurringPixPaymentByConsentIdV1(consentResponse.getData().getRecurringConsentId(), clientId)
 
         then:
         noExceptionThrown()
         response.data.size() == 3
+        def payment  = response.data.get(0)
+        payment.getRecurringConsentId() == consentResponse.getData().getRecurringConsentId()
+        payment.getIbgeTownCode() == null
     }
 
     def "we cannot update a payment consent with a debtor if the consent already has it"() {
@@ -1241,10 +1416,46 @@ class AutomaticPaymentsServiceV1Spec extends CleanupSpecification {
         updatePaymentConsent.data.debtorAccount(new DebtorAccount().accountType(EnumAccountPaymentsType.CACC).ispb("123412345").issuer("1234").number("1234567890"))
 
         when:
-        paymentConsentService.updateConsent(consentResponse.getData().getRecurringConsentId(), clientId, updatePaymentConsent)
+        paymentConsentService.updateRecurringConsentV1(consentResponse.getData().getRecurringConsentId(), updatePaymentConsent)
 
         then:
         noExceptionThrown()
+    }
+
+    def "we post two payments to reach total allowed limit, and get consumed"() {
+        given:
+        def req = TestRequestDataFactory.createRecurringPaymentConsentRequestV1WithSweeping(accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification())
+        req.getData().getRecurringConfiguration().getSweeping().setTotalAllowedAmount("100.0")
+        req.getData().setBusinessEntity(null)
+        Creditors creditors = new Creditors()
+        creditors.addAll(List.of(
+                new Identification()
+                        .name("name")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+                new Identification()
+                        .name("name2")
+                        .personType(EnumCreditorPersonType.NATURAL.toString())
+                        .cpfCnpj(accountHolder.getDocumentIdentification()),
+        ))
+        req.data.setCreditors(creditors)
+        def clientId = UUID.randomUUID().toString()
+        var createdConsent = paymentConsentService.createRecurringConsentV1(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), req)
+
+        var consentId = createdConsent.getData().getRecurringConsentId()
+        var reqPayment= TestRequestDataFactory.createRecurringPixPayment(consentId)
+        var reqPayment2 = TestRequestDataFactory.createRecurringPixPayment(consentId)
+
+        var updatePaymentConsent = TestRequestDataFactory.createPaymentConsentUpdateRequest(UpdatePaymentConsentData.StatusEnum.AUTHORISED, true)
+        paymentConsentService.updateRecurringConsentV1(consentId, updatePaymentConsent)
+        paymentsService.createRecurringPixPaymentV1(consentId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), clientId, reqPayment)
+        paymentsService.createRecurringPixPaymentV1(consentId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), clientId, reqPayment2)
+
+        when:
+        var response = paymentConsentService.getRecurringConsentsV1(consentId, clientId)
+
+        then:
+        response.getData().getStatus() == EnumAuthorisationStatusType.CONSUMED
     }
 
     def "enable cleanup"() {

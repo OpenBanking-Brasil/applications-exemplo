@@ -30,7 +30,7 @@ flyway:
       locations:
         - classpath:db/migration
         - classpath:db/dataloading
-      enabled: true
+      enabled: false
 
 datasources:
   default:
@@ -51,7 +51,8 @@ aws:
   region: ${REGION:region}
 
 mockbank:
-  mockbankUrl: ${MOCKBANK_URL}
+  mockbankUrl: ${MOCKBANK_URL:https://matls-api.mockbank.poc.raidiam.io}
+  max-page-size: 25
 
 trustframework:
   issuer: 74e929d9-33b6-4d85-8ba7-c146c867a817

@@ -1,13 +1,15 @@
 package com.raidiam.trustframework.bank
 
 import com.raidiam.trustframework.bank.domain.*
-import com.raidiam.trustframework.bank.enums.AccountOrContractType
+import com.raidiam.trustframework.bank.enums.ContractStatusEnum
+import com.raidiam.trustframework.bank.enums.ResourceType
 import com.raidiam.trustframework.mockbank.models.generated.*
 import jakarta.inject.Singleton
 
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
+import java.time.OffsetDateTime
 
 import static com.raidiam.trustframework.mockbank.models.generated.PartiesParticipation.PersonTypeEnum.NATURAL
 
@@ -15,11 +17,12 @@ import static com.raidiam.trustframework.mockbank.models.generated.PartiesPartic
 @Singleton
 class TestEntityDataFactory extends CleanupSpecification {
 
-    static AccountEntity anAccount(UUID accountHolderId) {
+    static AccountEntity anAccount(AccountHolderEntity accountHolder, UUID accountHolderId) {
         AccountEntity account = new AccountEntity()
+        account.setAccountHolder(accountHolder)
         account.setAccountHolderId(accountHolderId)
-        account.setAccountType(EnumAccountType.DEPOSITO_A_VISTA.toString())
-        account.setAccountSubType(EnumAccountSubType.INDIVIDUAL.toString())
+        account.setAccountType(EnumAccountTypeCustomersV2.DEPOSITO_A_VISTA.toString())
+        account.setAccountSubType(EnumAccountSubTypeV2.INDIVIDUAL.toString())
         account.setCurrency("GBP")
         account.setStatus("AVAILABLE")
         account.setBrandName("Some Brand")
@@ -44,8 +47,16 @@ class TestEntityDataFactory extends CleanupSpecification {
         account
     }
 
+    static AccountEntity anAccount(AccountHolderEntity accountHolder) {
+        return anAccount(accountHolder, accountHolder.getAccountHolderId())
+    }
+
+    static AccountEntity anAccount(UUID accountHolderId) {
+        return anAccount(null, accountHolderId)
+    }
+
     static AccountEntity anAccount() {
-        anAccount(UUID.randomUUID())
+        anAccount(null, UUID.randomUUID())
     }
 
     static aConsent (UUID accountHolderId) {
@@ -53,7 +64,7 @@ class TestEntityDataFactory extends CleanupSpecification {
         consent.setExpirationDateTime(Date.from(Instant.now() + Duration.ofDays(10)))
         consent.setTransactionFromDateTime(Date.from(Instant.now() - Duration.ofDays(10)))
         consent.setTransactionToDateTime(Date.from(Instant.now() - Duration.ofDays(9)))
-        consent.setStatus(ResponseConsentData.StatusEnum.AUTHORISED.toString())
+        consent.setStatus(EnumConsentStatus.AUTHORISED.toString())
         consent.setCreationDateTime(Date.from(Instant.now()))
         consent.setStatusUpdateDateTime(Date.from(Instant.now()))
         consent.setConsentId(String.format("urn:raidiambank:%s", UUID.randomUUID().toString()))
@@ -61,7 +72,7 @@ class TestEntityDataFactory extends CleanupSpecification {
         consent
     }
 
-    static aConsentPermission(CreateConsentData.PermissionsEnum permission, String consentId){
+    static aConsentPermission(EnumConsentPermissions permission, String consentId){
         def consentPermission = new ConsentPermissionEntity()
         consentPermission.setPermission(permission.name())
         consentPermission.setConsentId(consentId)
@@ -77,68 +88,69 @@ class TestEntityDataFactory extends CleanupSpecification {
     }
 
     static anAccountHolder () {
-        anAccountHolder("01234567890", "ABC")
+        long number = (long) Math.floor(Math.random() * 90000000000L) + 10000000000L
+        anAccountHolder(Long.toString(number), "ABC")
     }
 
-    static ContractBalloonPaymentsEntity aBalloonPayment(UUID contractId) {
+    static ContractBalloonPaymentsEntity aBalloonPayment(ContractEntity contract) {
         ContractBalloonPaymentsEntity balloonPayment = new ContractBalloonPaymentsEntity()
         balloonPayment.setDueDate(LocalDate.parse("2022-01-20"))
         balloonPayment.setCurrency("BRL")
         balloonPayment.setAmount(20.2222)
-        balloonPayment.setContractId(contractId)
+        balloonPayment.setContract(contract)
 
         balloonPayment
     }
 
-    static ContractWarrantyEntity aWarranty(UUID contractId) {
+    static ContractWarrantyEntity aWarranty(ContractEntity contract) {
         ContractWarrantyEntity warranty = new ContractWarrantyEntity()
         warranty.setCurrency("Bells")
-        warranty.setWarrantyType("SEM_TIPO_GARANTIA")
+        warranty.setWarrantyType("PENHOR")
         warranty.setWarrantySubType("CHEQUES")
         warranty.setWarrantyAmount(99.99)
-        warranty.setContractId(contractId)
+        warranty.setContract(contract)
         warranty
     }
 
-    static ContractChargeOverParcelEntity anOverParcelCharge (UUID releasesId) {
+    static ContractChargeOverParcelEntity anOverParcelCharge (ContractReleasesEntity releases) {
         ContractChargeOverParcelEntity overParcelCharge = new ContractChargeOverParcelEntity()
         overParcelCharge.setChargeType("IOF_CONTRATACAO")
         overParcelCharge.setChargeAdditionalInfo("Money")
         overParcelCharge.setChargeAmount(19.23)
-        overParcelCharge.setReleasesId(releasesId)
+        overParcelCharge.setReleases(releases)
         overParcelCharge
     }
 
-    static ContractFeeOverParcelEntity anOverParcelFee (UUID releasesId) {
+    static ContractFeeOverParcelEntity anOverParcelFee (ContractReleasesEntity releases) {
         ContractFeeOverParcelEntity overParcelFee = new ContractFeeOverParcelEntity()
         overParcelFee.setFeeName("Steven")
         overParcelFee.setFeeCode("s4ewrv3d823ed-re2d")
         overParcelFee.setFeeAmount(30.99)
-        overParcelFee.setReleasesId(releasesId)
+        overParcelFee.setReleases(releases)
         overParcelFee
     }
 
-    static ContractReleasesEntity aContractReleasesEntity (UUID contractId) {
+    static ContractReleasesEntity aContractReleasesEntity (ContractEntity contract) {
         ContractReleasesEntity release = new ContractReleasesEntity()
         release.setOverParcelPayment(true)
         release.setInstalmentId("e23dh72c823c-2d2323d4")
         release.setPaidDate(LocalDate.parse("2022-01-20"))
         release.setCurrency("BRL")
         release.setPaidAmount(20.00)
-        release.setContractId(contractId)
+        release.setContract(contract)
         release
     }
 
-    static ContractedFinanceChargesEntity aFinanceChargeEntity (UUID contractId) {
+    static ContractedFinanceChargesEntity aFinanceChargeEntity (ContractEntity contract) {
         ContractedFinanceChargesEntity charge = new ContractedFinanceChargesEntity()
         charge.setChargeType("JUROS_REMUNERATORIOS_POR_ATRASO")
         charge.setChargeAdditionalInfo("string")
         charge.setChargeRate(3.333)
-        charge.setContractId(contractId)
+        charge.setContract(contract)
         charge
     }
 
-    static ContractedFeesEntity aContractedFeesEntity (UUID contractId) {
+    static ContractedFeesEntity aContractedFeesEntity (ContractEntity contract) {
         ContractedFeesEntity fee = new ContractedFeesEntity()
         fee.setFeeName("string")
         fee.setFeeCode("string")
@@ -146,11 +158,11 @@ class TestEntityDataFactory extends CleanupSpecification {
         fee.setFeeChargeType("UNICA")
         fee.setFeeAmount(10.50)
         fee.setFeeRate(0.0150)
-        fee.setContractId(contractId)
+        fee.setContract(contract)
         fee
     }
 
-    static ContractInterestRatesEntity aContractInterestRateEntity (UUID contractId) {
+    static ContractInterestRatesEntity aContractInterestRateEntity (ContractEntity contract) {
         ContractInterestRatesEntity interest = new ContractInterestRatesEntity()
         interest.setTaxType("NOMINAL")
         interest.setInterestRateType("SIMPLES")
@@ -162,11 +174,11 @@ class TestEntityDataFactory extends CleanupSpecification {
         interest.setPreFixedRate(0.8)
         interest.setPostFixedRate(0.5)
         interest.setAdditionalInfo("Beans")
-        interest.setContractId(contractId)
+        interest.setContract(contract)
         interest
     }
 
-    static ContractEntity aContractEntity (UUID accountHolderId, AccountOrContractType contractType, String productType, String productSubType) {
+    static ContractEntity aContractEntity (UUID accountHolderId, ResourceType contractType, String productType, String productSubType, String status) {
         ContractEntity newContract = new ContractEntity()
         newContract.setContractNumber("1")
         newContract.setIpocCode("341234nedfywefdy")
@@ -196,38 +208,137 @@ class TestEntityDataFactory extends CleanupSpecification {
         newContract.setContractRemainingNumber(15)
         newContract.setDueInstalments(44)
         newContract.setPastDueInstalments(1)
-        newContract.setStatus("AVAILABLE")
+        newContract.setStatus(status)
         newContract
     }
 
-    ContractEntity createAndSaveFullContract(UUID accountHolderId, AccountOrContractType contractType, String productType, String productSubType) {
-        ContractEntity newContract = aContractEntity(accountHolderId, contractType, productType, productSubType)
-        contractsRepository.save(newContract)
+    ContractEntity createAndSaveFullContract(UUID accountHolderId, ResourceType contractType, String productType, String productSubType) {
+        ContractEntity newContract = aContractEntity(accountHolderId, contractType, productType, productSubType, ContractStatusEnum.AVAILABLE.toString())
 
-        ContractInterestRatesEntity interest = aContractInterestRateEntity(newContract.getContractId())
-        contractInterestRatesRepository.save(interest)
+        newContract.setInterestRates(Set.of(aContractInterestRateEntity(newContract)))
+        newContract.setContractedFees(Set.of(aContractedFeesEntity(newContract)))
+        newContract.setContractedFinanceCharges(Set.of(aFinanceChargeEntity(newContract)))
+        newContract.setBalloonPayments(Set.of(aBalloonPayment(newContract)))
 
-        ContractedFeesEntity fee = aContractedFeesEntity(newContract.getContractId())
-        contractedFeesRepository.save(fee)
-        ContractedFinanceChargesEntity charge = aFinanceChargeEntity(newContract.getContractId())
-        contractedFinanceChargesRepository.save(charge)
+        ContractReleasesEntity release = aContractReleasesEntity(newContract)
+        release.setFees(Set.of(anOverParcelFee(release)))
+        release.setCharges(Set.of(anOverParcelCharge(release)))
+        newContract.setContractReleases(Set.of(release))
 
-        ContractReleasesEntity release = aContractReleasesEntity(newContract.getContractId())
-        contractReleasesRepository.save(release)
+        def contractEntity = contractsRepository.save(newContract)
 
-        ContractFeeOverParcelEntity overParcelFee = anOverParcelFee(release.getReleasesId())
-        contractOverParcelFeesRepository.save(overParcelFee)
+        contractWarrantiesRepository.save(aWarranty(contractEntity))
 
-        ContractChargeOverParcelEntity overParcelCharge = anOverParcelCharge(release.getReleasesId())
-        contractOverParcelChargesRepository.save(overParcelCharge)
+        Optional<ContractEntity> updatedContract = contractsRepository.findByContractIdAndContractType(contractEntity.getContractId(), contractEntity.getContractType())
 
-        ContractBalloonPaymentsEntity balloonPayment = aBalloonPayment(newContract.getContractId())
-        contractBalloonPaymentsRepository.save(balloonPayment)
+        return updatedContract.get()
+    }
 
-        ContractWarrantyEntity warranty = aWarranty(newContract.getContractId())
-        contractWarrantiesRepository.save(warranty)
+    ExchangesOperationEntity createAndSaveExchangeOperation(UUID accountHolderId) {
+        def newExchangeOperation = aExchangesOperationEntity()
+        newExchangeOperation.setAccountHolderId(accountHolderId)
+        def exchangeOperationEntity = exchangesOperationRepository.save(newExchangeOperation)
 
-        Optional<ContractEntity> updatedContract = contractsRepository.findById(newContract.getContractId())
+        exchangeOperationEntity
+    }
+
+    ExchangesOperationEntity createAndSaveUnavailableExchangeOperation(UUID accountHolderId) {
+        def newExchangeOperation = aExchangesOperationEntity()
+        newExchangeOperation.setAccountHolderId(accountHolderId)
+        newExchangeOperation.setStatus("UNAVAILABLE")
+        def exchangeOperationEntity = exchangesOperationRepository.save(newExchangeOperation)
+
+        return exchangeOperationEntity
+    }
+
+    BankFixedIncomesEntity createAndSaveBankFixedIncome(UUID accountHolderId) {
+        BankFixedIncomesEntity newBankFixedIncome = new BankFixedIncomesEntity()
+
+        newBankFixedIncome.setAccountHolderId(accountHolderId)
+        newBankFixedIncome.setBrandName("test Bank Fixed Income")
+        newBankFixedIncome.setStatus("AVAILABLE")
+
+        def bankFixedIncometEntity = bankFixedIncomesRepository.save(newBankFixedIncome)
+
+        Optional<BankFixedIncomesEntity> updatedBankFixedIncome = bankFixedIncomesRepository.findByInvestmentId(bankFixedIncometEntity.getInvestmentId())
+
+        return updatedBankFixedIncome.get()
+    }
+
+    CreditFixedIncomesEntity createAndSaveCreditFixedIncome(UUID accountHolderId) {
+        CreditFixedIncomesEntity newCreditFixedIncome = new CreditFixedIncomesEntity()
+
+        newCreditFixedIncome.setAccountHolderId(accountHolderId)
+        newCreditFixedIncome.setBrandName("test Bank Fixed Income")
+        newCreditFixedIncome.setStatus("AVAILABLE")
+
+        def creditFixedIncometEntity = creditFixedIncomesRepository.save(newCreditFixedIncome)
+
+        Optional<CreditFixedIncomesEntity> updatedCreditFixedIncome = creditFixedIncomesRepository.findByInvestmentId(creditFixedIncometEntity.getInvestmentId())
+
+        return updatedCreditFixedIncome.get()
+    }
+
+    VariableIncomesEntity createAndSaveVariableIncome(UUID accountHolderId) {
+        VariableIncomesEntity newVariableIncome = new VariableIncomesEntity()
+
+        newVariableIncome.setAccountHolderId(accountHolderId)
+        newVariableIncome.setBrandName("test Bank Fixed Income")
+        newVariableIncome.setStatus("AVAILABLE")
+
+        def variableIncometEntity = variableIncomesRepository.save(newVariableIncome)
+
+        Optional<VariableIncomesEntity> updatedVariableIncome = variableIncomesRepository.findByInvestmentId(variableIncometEntity.getInvestmentId())
+
+        return updatedVariableIncome.get()
+    }
+
+    TreasureTitlesEntity createAndSaveTreasureTitle(UUID accountHolderId) {
+        TreasureTitlesEntity newTreasureTitle = new TreasureTitlesEntity()
+
+        newTreasureTitle.setAccountHolderId(accountHolderId)
+        newTreasureTitle.setBrandName("test Bank Fixed Income")
+        newTreasureTitle.setStatus("AVAILABLE")
+
+        def treasureTitleEntity = treasureTitlesRepository.save(newTreasureTitle)
+
+        Optional<TreasureTitlesEntity> updatedTreasureTitle = treasureTitlesRepository.findByInvestmentId(treasureTitleEntity.getInvestmentId())
+
+        return updatedTreasureTitle.get()
+    }
+
+    FundsEntity createAndSaveFund(UUID accountHolderId) {
+        FundsEntity newFund = new FundsEntity()
+
+        newFund.setAccountHolderId(accountHolderId)
+        newFund.setBrandName("test Bank Fixed Income")
+        newFund.setStatus("AVAILABLE")
+
+        def fundEntity = fundsRepository.save(newFund)
+
+        Optional<FundsEntity> updatedFund = fundsRepository.findByInvestmentId(fundEntity.getInvestmentId())
+
+        return updatedFund.get()
+    }
+
+    ContractEntity createAndSaveFullContractUnavailable(UUID accountHolderId, ResourceType contractType, String productType, String productSubType) {
+        ContractEntity newContract = aContractEntity(accountHolderId, contractType, productType, productSubType, ContractStatusEnum.UNAVAILABLE.toString())
+
+        newContract.setInterestRates(Set.of(aContractInterestRateEntity(newContract)))
+        newContract.setContractedFees(Set.of(aContractedFeesEntity(newContract)))
+        newContract.setContractedFinanceCharges(Set.of(aFinanceChargeEntity(newContract)))
+        newContract.setBalloonPayments(Set.of(aBalloonPayment(newContract)))
+
+        ContractReleasesEntity release = aContractReleasesEntity(newContract)
+        release.setFees(Set.of(anOverParcelFee(release)))
+        release.setCharges(Set.of(anOverParcelCharge(release)))
+        newContract.setContractReleases(Set.of(release))
+
+        def contractEntity = contractsRepository.save(newContract)
+
+        contractWarrantiesRepository.save(aWarranty(contractEntity))
+
+        Optional<ContractEntity> updatedContract = contractsRepository.findByContractIdAndContractType(contractEntity.getContractId(), contractEntity.getContractType())
 
         return updatedContract.get()
     }
@@ -237,32 +348,32 @@ class TestEntityDataFactory extends CleanupSpecification {
         testBusinessIdentifications.setCnpjNumber("27051421000106")
         testBusinessIdentifications.setBrandName("Some Brand")
         testBusinessIdentifications.setTradeName("Trade Name")
-        testBusinessIdentifications.setIncorporationDate(Date.from(Instant.now()))
+        testBusinessIdentifications.setIncorporationDate(LocalDate.now())
         testBusinessIdentifications.setAccountHolderId(accountHolderId)
 
         testBusinessIdentifications
     }
 
-    static aBusinessIdentificationCompanyCnpjEntity (UUID businessIdentificationsId) {
+    static aBusinessIdentificationCompanyCnpjEntity (BusinessIdentificationsEntity businessIdentifications) {
         def testBusinessIdentificationsCompanyCnpj = new BusinessIdentificationsCompanyCnpjEntity()
-        testBusinessIdentificationsCompanyCnpj.setBusinessIdentificationsId(businessIdentificationsId)
+        testBusinessIdentificationsCompanyCnpj.setBusinessIdentifications(businessIdentifications)
         testBusinessIdentificationsCompanyCnpj.setCompanyCnpj("41726882000154")
 
         testBusinessIdentificationsCompanyCnpj
     }
 
-    static aBusinessOtherDocument (UUID businessIdId) {
+    static aBusinessOtherDocument (BusinessIdentificationsEntity businessIdentifications) {
         def businessOtherDocument = new BusinessOtherDocumentEntity()
         businessOtherDocument.setType("BOD1")
         businessOtherDocument.setNumber("1")
         businessOtherDocument.setCountry("AU")
-        businessOtherDocument.setExpirationDate(Date.from(Instant.now()))
-        businessOtherDocument.setBusinessIdentificationsId(businessIdId)
+        businessOtherDocument.setExpirationDate(LocalDate.now())
+        businessOtherDocument.setBusinessIdentifications(businessIdentifications)
 
         businessOtherDocument
     }
 
-    static aBusinessParty (UUID businessIdId) {
+    static aBusinessParty (BusinessIdentificationsEntity businessIdentifications) {
         def businessParty = new BusinessPartyEntity()
         businessParty.setPersonType(NATURAL.toString())
         businessParty.setType(PartiesParticipation.TypeEnum.ADMINISTRADOR.toString())
@@ -270,20 +381,20 @@ class TestEntityDataFactory extends CleanupSpecification {
         businessParty.setSocialName("Bob Social")
         businessParty.setCompanyName("Bob Company")
         businessParty.setTradeName("Bob Trade")
-        businessParty.setStartDate(Date.from(Instant.now()))
-        businessParty.setShareholding("ABC")
+        businessParty.setStartDate(LocalDate.now())
+        businessParty.setShareholding("123")
         businessParty.setDocumentType(EnumPartiesParticipationDocumentType.CPF.toString())
         businessParty.setDocumentNumber("45677371483")
         businessParty.setDocumentAdditionalInfo("N/A")
         businessParty.setDocumentCountry("BR")
-        businessParty.setDocumentExpirationDate(Date.from(Instant.now()))
-        businessParty.setDocumentIssueDate(Date.from(Instant.now()))
-        businessParty.setBusinessIdentificationsId(businessIdId)
+        businessParty.setDocumentExpirationDate(LocalDate.now())
+        businessParty.setDocumentIssueDate(LocalDate.now())
+        businessParty.setBusinessIdentifications(businessIdentifications)
 
         businessParty
     }
 
-    static aBusinessPostalAddress (UUID businessIdId) {
+    static aBusinessPostalAddress (BusinessIdentificationsEntity businessIdentifications) {
         def businessPostalAddress = new BusinessPostalAddressEntity()
         businessPostalAddress.setMain(true)
         businessPostalAddress.setAddress("1, Place")
@@ -297,12 +408,12 @@ class TestEntityDataFactory extends CleanupSpecification {
         businessPostalAddress.setCountryCode("BR")
         businessPostalAddress.setLatitude("1")
         businessPostalAddress.setLongitude("1")
-        businessPostalAddress.setBusinessIdentificationsId(businessIdId)
+        businessPostalAddress.setBusinessIdentifications(businessIdentifications)
 
         businessPostalAddress
     }
 
-    static aBusinessPhone (UUID businessIdId) {
+    static aBusinessPhone (BusinessIdentificationsEntity businessIdentifications) {
         def businessPhone = new BusinessPhoneEntity()
         businessPhone.setMain(true)
         businessPhone.setType(EnumCustomerPhoneType.FIXO.toString())
@@ -311,43 +422,44 @@ class TestEntityDataFactory extends CleanupSpecification {
         businessPhone.setAreaCode("11")
         businessPhone.setNumber("0000")
         businessPhone.setPhoneExtension("1")
-        businessPhone.setBusinessIdentificationsId(businessIdId)
+        businessPhone.setBusinessIdentifications(businessIdentifications)
 
         businessPhone
     }
 
-    static aBusinessEmail (UUID businessIdId) {
+    static aBusinessEmail (BusinessIdentificationsEntity businessIdentifications) {
         def businessEmail = new BusinessEmailEntity()
         businessEmail.setMain(true)
         businessEmail.setEmail("bob@place")
-        businessEmail.setBusinessIdentificationsId(businessIdId)
+        businessEmail.setBusinessIdentifications(businessIdentifications)
 
         businessEmail
     }
 
     static aBusinessFinancialRelations (UUID accountHolderId) {
         def businessFinancialRelations = new BusinessFinancialRelationsEntity()
-        businessFinancialRelations.setStartDate(Date.from(Instant.now()))
+        businessFinancialRelations.setStartDate(LocalDate.now())
         businessFinancialRelations.setAccountHolderId(accountHolderId)
 
         businessFinancialRelations
+
     }
 
-    static aBusinessFinancialRelationsProductServicesType (UUID businessFinancialRelationsId) {
+    static aBusinessFinancialRelationsProductServicesType (BusinessFinancialRelationsEntity businessFinancialRelations) {
         def businessFinancialRelationsProductServicesType = new BusinessFinancialRelationsProductsServicesTypeEntity()
         businessFinancialRelationsProductServicesType.setType(EnumProductServiceType.CARTAO_CREDITO.toString())
-        businessFinancialRelationsProductServicesType.setBusinessFinancialRelationsId(businessFinancialRelationsId)
+        businessFinancialRelationsProductServicesType.setFinancialRelations(businessFinancialRelations)
 
         businessFinancialRelationsProductServicesType
     }
 
-    static aBusinessFinancialRelationsProcurator (UUID businessFinancialRelationsId) {
+    static aBusinessFinancialRelationsProcurator (BusinessFinancialRelationsEntity businessFinancialRelations) {
         def businessFinancialRelationsProcurator = new BusinessFinancialRelationsProcuratorEntity()
         businessFinancialRelationsProcurator.setType(BusinessProcurator.TypeEnum.NAO_POSSUI.toString())
         businessFinancialRelationsProcurator.setCnpjCpfNumber("88777707753")
         businessFinancialRelationsProcurator.setCivilName("Bob Civil")
         businessFinancialRelationsProcurator.setSocialName("Bob Social")
-        businessFinancialRelationsProcurator.setBusinessFinancialRelationsId(businessFinancialRelationsId)
+        businessFinancialRelationsProcurator.setFinancialRelations(businessFinancialRelations)
 
         businessFinancialRelationsProcurator
     }
@@ -361,17 +473,17 @@ class TestEntityDataFactory extends CleanupSpecification {
         businessQualifications.setInformedRevenueYear(1972)
         businessQualifications.setInformedPatrimonyAmount(1.0)
         businessQualifications.setInformedPatrimonyCurrency("AUD")
-        businessQualifications.setInformedPatrimonyDate(Date.from(Instant.now()))
+        businessQualifications.setInformedPatrimonyDate(LocalDate.now())
         businessQualifications.setAccountHolderId(accountHolderId)
 
         businessQualifications
     }
 
-    static aBusinessQualificationsEconomicActivities (UUID businessQualificationsId) {
+    static aBusinessQualificationsEconomicActivities (BusinessQualificationsEntity businessQualifications) {
         def businessQualificationsEconomicActivities = new BusinessQualificationsEconomicActivitiesEntity()
         businessQualificationsEconomicActivities.setMain(true)
         businessQualificationsEconomicActivities.setCode(1)
-        businessQualificationsEconomicActivities.setBusinessQualificationsId(businessQualificationsId)
+        businessQualificationsEconomicActivities.setQualification(businessQualifications)
 
         businessQualificationsEconomicActivities
     }
@@ -381,7 +493,7 @@ class TestEntityDataFactory extends CleanupSpecification {
         personalIdentifications.setBrandName("Bill Brand")
         personalIdentifications.setCivilName("Bill Civil")
         personalIdentifications.setSocialName("Bill Social")
-        personalIdentifications.setBirthDate(Date.from(Instant.now()))
+        personalIdentifications.setBirthDate(LocalDate.now())
         personalIdentifications.setMaritalStatusCode(EnumMaritalStatusCode.CASADO.toString())
         personalIdentifications.setMaritalStatusAdditionalInfo("N/A")
         personalIdentifications.setSex(EnumSex.FEMININO.toString())
@@ -389,67 +501,67 @@ class TestEntityDataFactory extends CleanupSpecification {
         personalIdentifications.setCpfNumber("82837319805")
         personalIdentifications.setPassportNumber("01234567890")
         personalIdentifications.setPassportCountry("UK")
-        personalIdentifications.setPassportExpirationDate(Date.from(Instant.now()))
-        personalIdentifications.setPassportIssueDate(Date.from(Instant.now()))
+        personalIdentifications.setPassportExpirationDate(LocalDate.now())
+        personalIdentifications.setPassportIssueDate(LocalDate.now())
 
         personalIdentifications.setAccountHolderId(accountHolderId)
 
         personalIdentifications
     }
 
-    static aPersonalCompanyCnpj (UUID personalIdId) {
-        def personalOtherDocument = new PersonalCompanyCnpjEntity()
-        personalOtherDocument.setCompanyCnpj("55881412000170")
-        personalOtherDocument.setPersonalIdentificationsId(personalIdId)
+    static aPersonalCompanyCnpj (PersonalIdentificationsEntity personal) {
+        def personalCompanyCnpjEntity = new PersonalCompanyCnpjEntity()
+        personalCompanyCnpjEntity.setCompanyCnpj("55881412000170")
+        personalCompanyCnpjEntity.setIdentification(personal)
 
-        personalOtherDocument
+        personalCompanyCnpjEntity
     }
 
-    static aPersonalOtherDocument (UUID personalIdId) {
+    static aPersonalOtherDocument (PersonalIdentificationsEntity personal) {
         def personalOtherDocument = new PersonalOtherDocumentEntity()
         personalOtherDocument.setType(EnumPersonalOtherDocumentType.OUTROS.toString())
         personalOtherDocument.setTypeAdditionalInfo("N/A")
         personalOtherDocument.setNumber("1")
         personalOtherDocument.setCheckDigit("2")
         personalOtherDocument.setAdditionalInfo("N/A")
-        personalOtherDocument.setExpirationDate(Date.from(Instant.now()))
-        personalOtherDocument.setPersonalIdentificationsId(personalIdId)
+        personalOtherDocument.setExpirationDate(LocalDate.now())
+        personalOtherDocument.setIdentification(personal)
 
         personalOtherDocument
     }
 
-    static aPersonalNationality (UUID personalIdId) {
+    static aPersonalNationality (PersonalIdentificationsEntity personal) {
         def personalNationality = new PersonalNationalityEntity()
         personalNationality.setOtherNationalitiesInfo("Other Info")
-        personalNationality.setPersonalIdentificationsId(personalIdId)
+        personalNationality.setIdentification(personal)
 
         personalNationality
     }
 
-    static aPersonalNationalityDocument (UUID personalNationalityId) {
+    static aPersonalNationalityDocument (PersonalNationalityEntity personalNationality) {
         def personalNationalityDocument = new PersonalNationalityDocumentEntity()
         personalNationalityDocument.setType("Passport")
         personalNationalityDocument.setNumber("1")
-        personalNationalityDocument.setExpirationDate(Date.from(Instant.now()))
-        personalNationalityDocument.setIssueDate(Date.from(Instant.now()))
+        personalNationalityDocument.setExpirationDate(LocalDate.now())
+        personalNationalityDocument.setIssueDate(LocalDate.now())
         personalNationalityDocument.setCountry("UK")
         personalNationalityDocument.setTypeAdditionalInfo("Additional Info")
-        personalNationalityDocument.setPersonalNationalityId(personalNationalityId)
+        personalNationalityDocument.setNationality(personalNationality)
 
         personalNationalityDocument
     }
 
-    static aPersonalFiliation (UUID personalIdId) {
-        def personalNationalityDocument = new PersonalFiliationEntity()
-        personalNationalityDocument.setType(EnumFiliationType.MAE.toString())
-        personalNationalityDocument.setCivilName("Ted Civil")
-        personalNationalityDocument.setSocialName("Ted Social")
-        personalNationalityDocument.setPersonalIdentificationsId(personalIdId)
+    static aPersonalFiliation (PersonalIdentificationsEntity personal) {
+        def filiationEntity = new PersonalFiliationEntity()
+        filiationEntity.setType(EnumFiliationType.MAE.toString())
+        filiationEntity.setCivilName("Ted Civil")
+        filiationEntity.setSocialName("Ted Social")
+        filiationEntity.setIdentification(personal)
 
-        personalNationalityDocument
+        filiationEntity
     }
 
-    static aPersonalPostalAddress (UUID personalIdId) {
+    static aPersonalPostalAddress (PersonalIdentificationsEntity personal) {
         def personalPostalAddress = new PersonalPostalAddressEntity()
         personalPostalAddress.setMain(true)
         personalPostalAddress.setAddress("1, Place")
@@ -463,12 +575,12 @@ class TestEntityDataFactory extends CleanupSpecification {
         personalPostalAddress.setCountryCode("BR")
         personalPostalAddress.setLatitude("1")
         personalPostalAddress.setLongitude("1")
-        personalPostalAddress.setPersonalIdentificationsId(personalIdId)
+        personalPostalAddress.setIdentification(personal)
 
         personalPostalAddress
     }
 
-    static aPersonalPhone (UUID personalIdId) {
+    static aPersonalPhone (PersonalIdentificationsEntity personal) {
         def personalPhone = new PersonalPhoneEntity()
         personalPhone.setMain(true)
         personalPhone.setType(EnumCustomerPhoneType.FIXO.toString())
@@ -477,44 +589,44 @@ class TestEntityDataFactory extends CleanupSpecification {
         personalPhone.setAreaCode("11")
         personalPhone.setNumber("0000")
         personalPhone.setPhoneExtension("1")
-        personalPhone.setPersonalIdentificationsId(personalIdId)
+        personalPhone.setIdentification(personal)
 
         personalPhone
     }
 
-    static aPersonalEmail (UUID personalIdId) {
+    static aPersonalEmail (PersonalIdentificationsEntity personal) {
         def personalEmail = new PersonalEmailEntity()
         personalEmail.setMain(true)
         personalEmail.setEmail("bob@place")
-        personalEmail.setPersonalIdentificationsId(personalIdId)
+        personalEmail.setIdentification(personal)
 
         personalEmail
     }
 
     static aPersonalFinancialRelations (UUID accountHolderId) {
         def personalFinancialRelations = new PersonalFinancialRelationsEntity()
-        personalFinancialRelations.setStartDate(Date.from(Instant.now()))
+        personalFinancialRelations.setStartDate(LocalDate.now())
         personalFinancialRelations.setProductsServicesTypeAdditionalInfo("N/A")
         personalFinancialRelations.setAccountHolderId(accountHolderId)
 
         personalFinancialRelations
     }
 
-    static aPersonalFinancialRelationsProductServicesType (UUID personalFinancialRelationsId) {
+    static aPersonalFinancialRelationsProductServicesType (PersonalFinancialRelationsEntity personalFinancialRelations) {
         def personalFinancialRelationsProductServicesType = new PersonalFinancialRelationsProductsServicesTypeEntity()
         personalFinancialRelationsProductServicesType.setType(EnumProductServiceType.CARTAO_CREDITO.toString())
-        personalFinancialRelationsProductServicesType.setPersonalFinancialRelationsId(personalFinancialRelationsId)
+        personalFinancialRelationsProductServicesType.setFinancialRelations(personalFinancialRelations)
 
         personalFinancialRelationsProductServicesType
     }
 
-    static aPersonalFinancialRelationsProcurator (UUID personalFinancialRelationsId) {
+    static aPersonalFinancialRelationsProcurator (PersonalFinancialRelationsEntity personalFinancialRelations) {
         def personalFinancialRelationsProcurator = new PersonalFinancialRelationsProcuratorEntity()
         personalFinancialRelationsProcurator.setType(EnumProcuratorsTypePersonal.PROCURADOR.toString())
         personalFinancialRelationsProcurator.setCpfNumber("54119670155")
         personalFinancialRelationsProcurator.setCivilName("Alice Civil")
         personalFinancialRelationsProcurator.setSocialName("Alice Social")
-        personalFinancialRelationsProcurator.setPersonalFinancialRelationsId(personalFinancialRelationsId)
+        personalFinancialRelationsProcurator.setFinancialRelations(personalFinancialRelations)
 
         personalFinancialRelationsProcurator
     }
@@ -527,7 +639,7 @@ class TestEntityDataFactory extends CleanupSpecification {
         personalQualifications.setInformedIncomeFrequency(EnumInformedIncomeFrequency.BIMESTRAL.toString())
         personalQualifications.setInformedIncomeAmount(1.0)
         personalQualifications.setInformedIncomeCurrency("AUD")
-        personalQualifications.setInformedIncomeDate(Date.from(Instant.now()))
+        personalQualifications.setInformedIncomeDate(LocalDate.now())
         personalQualifications.setInformedPatrimonyAmount(1.0)
         personalQualifications.setInformedPatrimonyCurrency("AUD")
         personalQualifications.setInformedPatrimonyYear(1986)
@@ -539,13 +651,12 @@ class TestEntityDataFactory extends CleanupSpecification {
     static aTransaction (UUID accountId) {
         def transaction = new AccountTransactionsEntity()
         transaction.setAccountId(accountId)
-        transaction.setTransactionId(UUID.randomUUID().toString())
         transaction.setCompletedAuthorisedPaymentType(EnumCompletedAuthorisedPaymentIndicator.LANCAMENTO_FUTURO.name())
         transaction.setCreditDebitType(EnumCreditDebitIndicator.DEBITO.name())
         transaction.setType(EnumTransactionTypes.BOLETO.name())
         transaction.setAmount(1.0)
         transaction.setTransactionCurrency('BRL')
-        transaction.setTransactionDate(LocalDate.now())
+        transaction.setTransactionDateTime(OffsetDateTime.now())
         transaction.setTransactionName('My Transaction')
         transaction.setPartieCnpjCpf('47235211000177')
         transaction.setPartiePersonType(EnumPartiePersonType.JURIDICA.name())
@@ -556,9 +667,9 @@ class TestEntityDataFactory extends CleanupSpecification {
         transaction
     }
 
-    static aTransaction (UUID accountId, LocalDate date) {
+    static aTransaction (UUID accountId, OffsetDateTime date) {
         def transaction = aTransaction(accountId)
-        transaction.setTransactionDate(date)
+        transaction.setTransactionDateTime(date)
         transaction
     }
 
@@ -577,11 +688,11 @@ class TestEntityDataFactory extends CleanupSpecification {
         creditCardAccount
     }
 
-    static CreditCardsAccountPaymentMethodEntity anCreditCardsAccountPaymentMethod(UUID creditCardAccountId){
+    static CreditCardsAccountPaymentMethodEntity anCreditCardsAccountPaymentMethod(CreditCardAccountsEntity account){
         CreditCardsAccountPaymentMethodEntity accountPaymentMethod = new CreditCardsAccountPaymentMethodEntity()
         accountPaymentMethod.setIdentificationNumber("5320")
         accountPaymentMethod.setMultipleCreditCard(false)
-        accountPaymentMethod.setCreditCardAccountId(creditCardAccountId)
+        accountPaymentMethod.setAccount(account)
 
         accountPaymentMethod
     }
@@ -605,7 +716,7 @@ class TestEntityDataFactory extends CleanupSpecification {
         accountLimits
     }
 
-    static CreditCardAccountsBillsEntity anCreditCardAccountsBill(UUID creditCardAccountId){
+    static CreditCardAccountsBillsEntity anCreditCardAccountsBill(CreditCardAccountsEntity account){
         CreditCardAccountsBillsEntity creditCardAccountsBill = new CreditCardAccountsBillsEntity()
         creditCardAccountsBill.setDueDate(LocalDate.now())
         creditCardAccountsBill.setBillTotalAmount(409.2600)
@@ -613,37 +724,37 @@ class TestEntityDataFactory extends CleanupSpecification {
         creditCardAccountsBill.setBillMinimumAmount(143.8912)
         creditCardAccountsBill.setBillMinimumAmountCurrency("BRL")
         creditCardAccountsBill.setInstalment(true)
-        creditCardAccountsBill.setCreditCardAccountId(creditCardAccountId)
+        creditCardAccountsBill.setAccount(account)
 
         creditCardAccountsBill
     }
 
-    static CreditCardAccountsBillsEntity anCreditCardAccountsBill(UUID creditCardAccountId, LocalDate dueDate){
-        def bill = anCreditCardAccountsBill(creditCardAccountId)
+    static CreditCardAccountsBillsEntity anCreditCardAccountsBill(CreditCardAccountsEntity account, LocalDate dueDate){
+        def bill = anCreditCardAccountsBill(account)
         bill.setDueDate(dueDate)
 
         bill
     }
 
-    static CreditCardAccountsBillsFinanceChargeEntity anCreditCardAccountsBillsFinanceCharge(UUID billId){
+    static CreditCardAccountsBillsFinanceChargeEntity anCreditCardAccountsBillsFinanceCharge(CreditCardAccountsBillsEntity bill){
         CreditCardAccountsBillsFinanceChargeEntity billsFinanceCharge = new CreditCardAccountsBillsFinanceChargeEntity()
         billsFinanceCharge.setType(EnumCreditCardAccountsFinanceChargeType.JUROS_REMUNERATORIOS_ATRASO_PAGAMENTO_FATURA.name())
         billsFinanceCharge.setAdditionalInfo("NA")
         billsFinanceCharge.setAmount(35.4500)
         billsFinanceCharge.setCurrency("BRL")
-        billsFinanceCharge.setBillId(billId)
+        billsFinanceCharge.setBill(bill)
 
         billsFinanceCharge
     }
 
-    static CreditCardAccountsBillsPaymentEntity anCreditCardAccountsBillsPayment(UUID billId){
+    static CreditCardAccountsBillsPaymentEntity anCreditCardAccountsBillsPayment(CreditCardAccountsBillsEntity bill){
         CreditCardAccountsBillsPaymentEntity billsPayment = new CreditCardAccountsBillsPaymentEntity()
         billsPayment.setValueType(EnumCreditCardAccountsBillingValueType.OUTRO_VALOR_PAGO_FATURA.name())
         billsPayment.setPaymentDate(LocalDate.parse("2021-06-21"))
         billsPayment.setPaymentMode(EnumCreditCardAccountsPaymentMode.DEBITO_CONTA_CORRENTE.name())
         billsPayment.setAmount(1990.0000)
         billsPayment.setCurrency("BRL")
-        billsPayment.setBillId(billId)
+        billsPayment.setBill(bill)
 
         billsPayment
     }
@@ -654,7 +765,7 @@ class TestEntityDataFactory extends CleanupSpecification {
         accountTransaction.setLineName(EnumCreditCardAccountsLineName.CREDITO_A_VISTA.name())
         accountTransaction.setTransactionName("ARMAZEM ")
         accountTransaction.setBillId(billId)
-        accountTransaction.setCreditDebitType(EnumCreditDebitIndicator1.CREDITO.name())
+        accountTransaction.setCreditDebitType(EnumCreditDebitIndicator.CREDITO.name())
         accountTransaction.setTransactionType(EnumCreditCardTransactionType.OPERACOES_CREDITO_CONTRATADAS_CARTAO.name())
         accountTransaction.setTransactionalAdditionalInfo("NA")
         accountTransaction.setPaymentType(EnumCreditCardAccountsPaymentType.VISTA.name())
@@ -667,7 +778,7 @@ class TestEntityDataFactory extends CleanupSpecification {
         accountTransaction.setBrazilianAmount(2043.0400)
         accountTransaction.setAmount(0.0000)
         accountTransaction.setCurrency("BRL")
-        accountTransaction.setTransactionDate(LocalDate.now())
+        accountTransaction.setTransactionDateTime(OffsetDateTime.now())
         accountTransaction.setBillPostDate(LocalDate.now())
         accountTransaction.setPayeeMCC(new BigDecimal(5912))
         accountTransaction.setCreditCardAccountId(creditCardAccountId)
@@ -682,7 +793,7 @@ class TestEntityDataFactory extends CleanupSpecification {
         accountTransaction.setLineName(EnumCreditCardAccountsLineName.CREDITO_A_VISTA.name())
         accountTransaction.setTransactionName("ARMAZEM ")
         accountTransaction.setBillId(billId)
-        accountTransaction.setCreditDebitType(EnumCreditDebitIndicator1.CREDITO.name())
+        accountTransaction.setCreditDebitType(EnumCreditDebitIndicator.CREDITO.name())
         accountTransaction.setTransactionType(transactionType)
         accountTransaction.setTransactionalAdditionalInfo("NA")
         accountTransaction.setPaymentType(EnumCreditCardAccountsPaymentType.VISTA.name())
@@ -690,12 +801,12 @@ class TestEntityDataFactory extends CleanupSpecification {
         accountTransaction.setFeeTypeAdditionalInfo("NA")
         accountTransaction.setOtherCreditsType(EnumCreditCardAccountsOtherCreditType.CREDITO_ROTATIVO.name())
         accountTransaction.setOtherCreditsAdditionalInfo("NA")
-        accountTransaction.setChargeIdentificator("PARCELA_UNICA")
+        accountTransaction.setChargeIdentificator("1")
         accountTransaction.setChargeNumber(new BigDecimal(1))
         accountTransaction.setBrazilianAmount(2043.0400)
         accountTransaction.setAmount(0.0000)
         accountTransaction.setCurrency("BRL")
-        accountTransaction.setTransactionDate(LocalDate.now())
+        accountTransaction.setTransactionDateTime(OffsetDateTime.now())
         accountTransaction.setBillPostDate(LocalDate.now())
         accountTransaction.setPayeeMCC(payeeMCC)
         accountTransaction.setCreditCardAccountId(creditCardAccountId)
@@ -703,10 +814,212 @@ class TestEntityDataFactory extends CleanupSpecification {
         accountTransaction
     }
 
-    static CreditCardAccountsTransactionEntity anCreditCardAccountsTransaction(UUID billId, UUID creditCardAccountId, LocalDate transactionDate){
+    static CreditCardAccountsTransactionEntity anCreditCardAccountsTransaction(UUID billId, UUID creditCardAccountId, OffsetDateTime transactionDate){
         def transaction = anCreditCardAccountsTransaction(billId, creditCardAccountId)
-        transaction.setTransactionDate(transactionDate)
+        transaction.setTransactionDateTime(transactionDate)
 
         transaction
     }
+
+    static BankFixedIncomesEntity aBankFixedIncomesEntity() {
+        BankFixedIncomesEntity bankFixedIncomesEntity = new BankFixedIncomesEntity()
+        bankFixedIncomesEntity.setBrandName("Banco do Brasil S.A")
+        bankFixedIncomesEntity.setCompanyCnpj("00000000000191")
+        bankFixedIncomesEntity.setInvestmentType("CDB")
+        bankFixedIncomesEntity.setIsinCode("BBBRT4CTF001")
+        bankFixedIncomesEntity.setDueDate(LocalDate.of(2023, 02,  15))
+        bankFixedIncomesEntity.setIssueDate(LocalDate.of(2023, 02,  15))
+        bankFixedIncomesEntity.setClearingCode("CDB421GPXXX")
+        bankFixedIncomesEntity.setPurchaseDate(LocalDate.of(2023, 02,  15))
+        bankFixedIncomesEntity.setGracePeriodDate(LocalDate.of(2023, 02,  15))
+
+        bankFixedIncomesEntity
+    }
+
+    static BankFixedIncomesBalanceEntity aBankFixedIncomesBalanceEntity(BankFixedIncomesEntity bankFixedIncomesEntity) {
+        BankFixedIncomesBalanceEntity bankFixedIncomesBalanceEntity = new BankFixedIncomesBalanceEntity()
+        bankFixedIncomesBalanceEntity.setInvestment(bankFixedIncomesEntity)
+        bankFixedIncomesBalanceEntity.setQuantity(1000.0004)
+        bankFixedIncomesBalanceEntity.setPreFixedRate(0.300000)
+        bankFixedIncomesBalanceEntity.setPostFixedIndexerPercentage(1.000000)
+        bankFixedIncomesBalanceEntity.setReferenceDateTime(LocalDate.of(2023, 04,  21))
+
+        bankFixedIncomesBalanceEntity
+    }
+
+    static BankFixedIncomesTransactionsEntity aBankFixedIncomesTransactionsEntity(BankFixedIncomesEntity bankFixedIncomesEntity) {
+        BankFixedIncomesTransactionsEntity bankFixedIncomesBalanceEntity = new BankFixedIncomesTransactionsEntity()
+        bankFixedIncomesBalanceEntity.setInvestmentId(bankFixedIncomesEntity.getInvestmentId())
+        bankFixedIncomesBalanceEntity.setInvestment(bankFixedIncomesEntity)
+        bankFixedIncomesBalanceEntity.setTransactionType("APLICACAO")
+        bankFixedIncomesBalanceEntity.setType("ENTRADA")
+        bankFixedIncomesBalanceEntity.setTransactionDate(LocalDate.now())
+        bankFixedIncomesBalanceEntity.setTransactionQuantity(42.25)
+
+        bankFixedIncomesBalanceEntity
+    }
+
+    static CreditFixedIncomesEntity aCreditFixedIncomesEntity() {
+        CreditFixedIncomesEntity creditFixedIncomesEntity = new CreditFixedIncomesEntity()
+        creditFixedIncomesEntity.setBrandName("Banco do Brasil S.A")
+        creditFixedIncomesEntity.setCompanyCnpj("00000000000191")
+        creditFixedIncomesEntity.setInvestmentType("CDB")
+        creditFixedIncomesEntity.setIsinCode("BBBRT4CTF001")
+        creditFixedIncomesEntity.setDueDate(LocalDate.of(2023, 02,  15))
+        creditFixedIncomesEntity.setIssueDate(LocalDate.of(2023, 02,  15))
+        creditFixedIncomesEntity.setClearingCode("CDB421GPXXX")
+        creditFixedIncomesEntity.setPurchaseDate(LocalDate.of(2023, 02,  15))
+        creditFixedIncomesEntity.setGracePeriodDate(LocalDate.of(2023, 02,  15))
+
+        creditFixedIncomesEntity
+    }
+
+    static CreditFixedIncomesBalanceEntity aCreditFixedIncomesBalanceEntity(CreditFixedIncomesEntity creditFixedIncomesEntity) {
+        CreditFixedIncomesBalanceEntity creditFixedIncomesBalanceEntity = new CreditFixedIncomesBalanceEntity()
+        creditFixedIncomesBalanceEntity.setInvestment(creditFixedIncomesEntity)
+        creditFixedIncomesBalanceEntity.setQuantity(1000.0004)
+        creditFixedIncomesBalanceEntity.setPreFixedRate(0.300000)
+        creditFixedIncomesBalanceEntity.setPostFixedIndexerPercentage(1.000000)
+        creditFixedIncomesBalanceEntity.setReferenceDateTime(LocalDate.of(2023, 04,  21))
+
+        creditFixedIncomesBalanceEntity
+    }
+
+    static CreditFixedIncomesTransactionsEntity aCreditFixedIncomesTransactionsEntity(CreditFixedIncomesEntity creditFixedIncomesEntity) {
+        CreditFixedIncomesTransactionsEntity creditFixedIncomesBalanceEntity = new CreditFixedIncomesTransactionsEntity()
+        creditFixedIncomesBalanceEntity.setInvestmentId(creditFixedIncomesEntity.getInvestmentId())
+        creditFixedIncomesBalanceEntity.setInvestment(creditFixedIncomesEntity)
+        creditFixedIncomesBalanceEntity.setTransactionType("APLICACAO")
+        creditFixedIncomesBalanceEntity.setType("ENTRADA")
+        creditFixedIncomesBalanceEntity.setTransactionDate(LocalDate.now())
+        creditFixedIncomesBalanceEntity.setTransactionQuantity(42.25)
+
+        creditFixedIncomesBalanceEntity
+    }
+
+    static FundsEntity aFundsEntity() {
+        FundsEntity fundsEntity = new FundsEntity()
+        fundsEntity.setBrandName("Banco do Brasil S.A")
+        fundsEntity.setCompanyCnpj("00000000000191")
+        fundsEntity.setIsinCode("BBBRT4CTF001")
+        fundsEntity.setAnbimaCategory("RENDA_FIXA")
+        fundsEntity.setAnbimaClass("Renda Fixa")
+        fundsEntity.setAnbimaSubclass("Longo Prazo")
+
+        return fundsEntity
+    }
+
+    static FundsBalanceEntity aFundsBalanceEntity(FundsEntity fundsEntity) {
+        FundsBalanceEntity fundsBalanceEntity = new FundsBalanceEntity()
+        fundsBalanceEntity.setInvestment(fundsEntity)
+        fundsBalanceEntity.setQuotaQuantity(11.1)
+        fundsBalanceEntity.setReferenceDate(LocalDate.of(2023, 04, 21))
+
+        return fundsBalanceEntity
+    }
+
+    static FundsTransactionsEntity aFundsTransactionsEntity(FundsEntity fundsEntity) {
+        FundsTransactionsEntity fundsTransactionsEntity = new FundsTransactionsEntity()
+        fundsTransactionsEntity.setInvestmentId(fundsEntity.getInvestmentId())
+        fundsTransactionsEntity.setInvestment(fundsEntity)
+        fundsTransactionsEntity.setTransactionType("APLICACAO")
+        fundsTransactionsEntity.setType("ENTRADA")
+        fundsTransactionsEntity.setTransactionConversionDate(LocalDate.now())
+
+        return fundsTransactionsEntity
+    }
+
+    static TreasureTitlesEntity aTreasureTitlesEntity() {
+        TreasureTitlesEntity treasureTitlesEntity = new TreasureTitlesEntity()
+        treasureTitlesEntity.setBrandName("Banco do Brasil S.A")
+        treasureTitlesEntity.setCompanyCnpj("00000000000191")
+        treasureTitlesEntity.setIsinCode("BBBRT4CTF001")
+        treasureTitlesEntity.setDueDate(LocalDate.of(2023, 02, 15))
+        treasureTitlesEntity.setPurchaseDate(LocalDate.of(2023, 02, 15))
+
+        return treasureTitlesEntity
+    }
+
+    static TreasureTitlesBalanceEntity aTreasureTitlesBalanceEntity(TreasureTitlesEntity treasureTitlesEntity) {
+        TreasureTitlesBalanceEntity treasureTitlesBalanceEntity = new TreasureTitlesBalanceEntity()
+        treasureTitlesBalanceEntity.setInvestment(treasureTitlesEntity)
+        treasureTitlesBalanceEntity.setQuantity(1000.0004)
+        treasureTitlesBalanceEntity.setReferenceDateTime(LocalDate.of(2023, 04, 21))
+
+        return treasureTitlesBalanceEntity
+    }
+
+    static TreasureTitlesTransactionsEntity aTreasureTitlesTransactionsEntity(TreasureTitlesEntity treasureTitlesEntity) {
+        TreasureTitlesTransactionsEntity treasureTitlesTransactionsEntity = new TreasureTitlesTransactionsEntity()
+        treasureTitlesTransactionsEntity.setInvestmentId(treasureTitlesEntity.getInvestmentId())
+        treasureTitlesTransactionsEntity.setInvestment(treasureTitlesEntity)
+        treasureTitlesTransactionsEntity.setTransactionType("APLICACAO")
+        treasureTitlesTransactionsEntity.setType("ENTRADA")
+        treasureTitlesTransactionsEntity.setTransactionDate(LocalDate.now())
+        treasureTitlesTransactionsEntity.setTransactionQuantity(42.25)
+
+        return treasureTitlesTransactionsEntity
+    }
+
+    static VariableIncomesEntity aVariableIncomesEntity() {
+        VariableIncomesEntity variableIncomesEntity = new VariableIncomesEntity()
+        variableIncomesEntity.setBrandName("Banco do Brasil S.A")
+        variableIncomesEntity.setCompanyCnpj("00000000000191")
+        variableIncomesEntity.setIsinCode("BBBRT4CTF001")
+
+        return variableIncomesEntity
+    }
+
+    static VariableIncomesBalanceEntity aVariableIncomesBalanceEntity(VariableIncomesEntity variableIncomesEntity) {
+        VariableIncomesBalanceEntity variableIncomesBalanceEntity = new VariableIncomesBalanceEntity()
+        variableIncomesBalanceEntity.setInvestment(variableIncomesEntity)
+        variableIncomesBalanceEntity.setQuantity(1000.0004)
+
+        return variableIncomesBalanceEntity
+    }
+
+    static VariableIncomesBrokerNotesEntity aVariableIncomesBrokerNotesEntity() {
+        VariableIncomesBrokerNotesEntity variableIncomesBrokerNotes = new VariableIncomesBrokerNotesEntity()
+        variableIncomesBrokerNotes.setBrokerNoteNumber("11111111111")
+
+        return variableIncomesBrokerNotes
+    }
+
+    static VariableIncomesTransactionsEntity aVariableIncomesTransactionsEntity(VariableIncomesEntity variableIncomesEntity, UUID brokerNoteId) {
+        VariableIncomesTransactionsEntity variableIncomesTransactionsEntity = new VariableIncomesTransactionsEntity()
+        variableIncomesTransactionsEntity.setInvestmentId(variableIncomesEntity.getInvestmentId())
+        variableIncomesTransactionsEntity.setInvestment(variableIncomesEntity)
+        variableIncomesTransactionsEntity.setTransactionType("APLICACAO")
+        variableIncomesTransactionsEntity.setType("ENTRADA")
+        variableIncomesTransactionsEntity.setTransactionDate(LocalDate.now())
+        variableIncomesTransactionsEntity.setTransactionQuantity(42.25)
+        variableIncomesTransactionsEntity.setBrokerNoteId(brokerNoteId)
+
+        return variableIncomesTransactionsEntity
+    }
+
+    static ExchangesOperationEntity aExchangesOperationEntity() {
+        ExchangesOperationEntity entity = new ExchangesOperationEntity()
+        entity.setBrandName("Banco do Brasil S.A")
+        entity.setCompanyCnpj("00000000000191")
+        entity.setIntermediaryInstitutionCnpjNumber("00000000000192")
+        entity.setIntermediaryInstitutionName("Banco do Brasil S.A")
+        entity.setStatus("AVAILABLE")
+
+        return entity
+    }
+
+    static ExchangesOperationEventEntity aExchangesOperationEventEntity(operationId) {
+        ExchangesOperationEventEntity entity = new ExchangesOperationEventEntity()
+        entity.setEventSequenceNumber("Test2")
+        entity.setEventType(EnumExchangesEventType._1)
+        entity.setDeliveryForeignCurrency(EnumExchangesDeliveryForeignCurrency.CONTA_DEPOSITO)
+        entity.setOperationId(operationId)
+        entity.setForeignPartieCountryCode("ZA")
+        entity.setForeignPartieName("José da Silva")
+        entity.setRelationshipCode("50")
+
+        return entity
+    }
+
 }

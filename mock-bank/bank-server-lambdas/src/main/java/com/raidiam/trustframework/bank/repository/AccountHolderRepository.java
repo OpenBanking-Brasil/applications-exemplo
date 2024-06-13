@@ -11,9 +11,7 @@ import java.util.UUID;
 
 @Repository
 public interface AccountHolderRepository extends PageableRepository<AccountHolderEntity, Integer> {
-
-    Optional<AccountHolderEntity> findByAccountHolderId(@NotNull UUID userId);
-
     List<AccountHolderEntity> findByDocumentIdentificationAndDocumentRel(@NotNull String documentId, @NotNull String documentRel);
 
+    Optional<AccountHolderEntity> findByAccountHolderId(@NotNull UUID accountHolderId);
 }

@@ -1,10 +1,8 @@
 package com.raidiam.trustframework.bank.domain;
 
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.Type;
@@ -14,11 +12,12 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
 @Entity
 @Audited
 @Table(name = "credit_card_accounts_transaction")
@@ -100,9 +99,10 @@ public class CreditCardAccountsTransactionEntity extends BaseEntity {
     @Column(name = "currency", nullable = false)
     private String currency;
 
-    @NotNull
-    @Column(name = "transaction_date", nullable = false)
-    private LocalDate transactionDate;
+
+    @EqualsAndHashCode.Exclude
+    @Column(name = "transaction_date_time")
+    private OffsetDateTime transactionDateTime;
 
     @NotNull
     @Column(name = "bill_post_date", nullable = false)
@@ -136,7 +136,7 @@ public class CreditCardAccountsTransactionEntity extends BaseEntity {
                 .lineName(EnumCreditCardAccountsLineName.valueOf(this.lineName))
                 .transactionName(this.transactionName)
                 .billId(this.billId.toString())
-                .creditDebitType(EnumCreditDebitIndicator1.valueOf(this.creditDebitType))
+                .creditDebitType(EnumCreditDebitIndicator.valueOf(this.creditDebitType))
                 .transactionType(EnumCreditCardTransactionType.valueOf(this.transactionType))
                 .transactionalAdditionalInfo(this.transactionalAdditionalInfo)
                 .paymentType(EnumCreditCardAccountsPaymentType.valueOf(this.paymentType))
@@ -149,8 +149,109 @@ public class CreditCardAccountsTransactionEntity extends BaseEntity {
                 .brazilianAmount(this.brazilianAmount)
                 .amount(this.amount)
                 .currency(this.currency)
-                .transactionDate(this.transactionDate)
                 .billPostDate(this.billPostDate)
                 .payeeMCC(this.payeeMCC);
     }
+
+    public CreditCardAccountsTransactionV2 getDtoV2() {
+        return new CreditCardAccountsTransactionV2()
+                .transactionId(this.transactionId.toString())
+                .identificationNumber(this.identificationNumber)
+                .transactionName(this.transactionName)
+                .billId(this.billId.toString())
+                .creditDebitType(EnumCreditDebitIndicatorV2.valueOf(this.creditDebitType))
+                .transactionType(EnumCreditCardTransactionTypeV2.valueOf(this.transactionType))
+                .transactionalAdditionalInfo(this.transactionalAdditionalInfo)
+                .paymentType(EnumCreditCardAccountsPaymentTypeV2.valueOf(this.paymentType))
+                .feeType(EnumCreditCardAccountFeeV2.valueOf(this.feeType))
+                .feeTypeAdditionalInfo(this.feeTypeAdditionalInfo)
+                .otherCreditsType(EnumCreditCardAccountsOtherCreditTypeV2.valueOf(this.otherCreditsType))
+                .otherCreditsAdditionalInfo(this.otherCreditsAdditionalInfo)
+                .chargeIdentificator(new BigDecimal(this.chargeIdentificator))
+                .chargeNumber(this.chargeNumber)
+                .brazilianAmount(new CreditCardAccountsTransactionBrazilianAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.brazilianAmount))
+                        .currency(this.currency))
+                .amount(new CreditCardAccountsTransactionAmountV2()
+                        .amount(BankLambdaUtils.formatAmountV2(this.amount))
+                        .currency(this.currency))
+                .transactionDateTime(BankLambdaUtils.formatTransactionDateTime(this.transactionDateTime))
+                .billPostDate(this.billPostDate)
+                .payeeMCC(this.payeeMCC);
+    }
+
+    public static CreditCardAccountsTransactionEntity from(UUID creditCardAccountId, UUID billId, CreateCreditCardAccountTransactionData transaction) {
+        var transactionEntity = new CreditCardAccountsTransactionEntity();
+        transactionEntity.setBillId(billId);
+        transactionEntity.setCreditCardAccountId(creditCardAccountId);
+        transactionEntity.setIdentificationNumber(transaction.getIdentificationNumber());
+        transactionEntity.setLineName(transaction.getLineName().name());
+        transactionEntity.setTransactionName(transaction.getTransactionName());
+        transactionEntity.setCreditDebitType(transaction.getCreditDebitType().name());
+        transactionEntity.setTransactionType(transaction.getTransactionType().name());
+        transactionEntity.setTransactionalAdditionalInfo(transaction.getTransactionalAdditionalInfo());
+        transactionEntity.setPaymentType(transaction.getPaymentType().name());
+        transactionEntity.setFeeType(transaction.getFeeType().name());
+        transactionEntity.setFeeTypeAdditionalInfo(transaction.getFeeTypeAdditionalInfo());
+        transactionEntity.setOtherCreditsType(transaction.getOtherCreditsType().name());
+        transactionEntity.setOtherCreditsAdditionalInfo(transaction.getOtherCreditsAdditionalInfo());
+        transactionEntity.setChargeIdentificator(transaction.getChargeIdentificator());
+        transactionEntity.setChargeNumber(transaction.getChargeNumber());
+        transactionEntity.setBrazilianAmount(transaction.getBrazilianAmount());
+        transactionEntity.setAmount(transaction.getAmount());
+        transactionEntity.setCurrency(transaction.getCurrency());
+        transactionEntity.setTransactionDateTime(transaction.getTransactionDateTime());
+        transactionEntity.setBillPostDate(transaction.getBillPostDate());
+        transactionEntity.setPayeeMCC(transaction.getPayeeMCC());
+        return transactionEntity;
+    }
+
+    public CreditCardAccountsTransactionEntity update(CreateCreditCardAccountTransactionData transaction) {
+        this.identificationNumber = transaction.getIdentificationNumber();
+        this.lineName = transaction.getLineName().name();
+        this.transactionName = transaction.getTransactionName();
+        this.creditDebitType = transaction.getCreditDebitType().name();
+        this.transactionType = transaction.getTransactionType().name();
+        this.transactionalAdditionalInfo = transaction.getTransactionalAdditionalInfo();
+        this.paymentType = transaction.getPaymentType().name();
+        this.feeType = transaction.getFeeType().name();
+        this.feeTypeAdditionalInfo = transaction.getFeeTypeAdditionalInfo();
+        this.otherCreditsType = transaction.getOtherCreditsType().name();
+        this.otherCreditsAdditionalInfo = transaction.getOtherCreditsAdditionalInfo();
+        this.chargeIdentificator = transaction.getChargeIdentificator();
+        this.chargeNumber = transaction.getChargeNumber();
+        this.brazilianAmount = transaction.getBrazilianAmount();
+        this.amount = transaction.getAmount();
+        this.currency = transaction.getCurrency();
+        this.transactionDateTime = transaction.getTransactionDateTime();
+        this.billPostDate = transaction.getBillPostDate();
+        this.payeeMCC = transaction.getPayeeMCC();
+        return this;
+    }
+
+    public ResponseCreditCardAccountTransactionData getAdminCreditCardTransactionDto() {
+        return new ResponseCreditCardAccountTransactionData()
+                .transactionId(this.transactionId)
+                .identificationNumber(this.identificationNumber)
+                .lineName(EnumCreditCardAccountsLineName.valueOf(this.lineName))
+                .transactionName(this.transactionName)
+                .creditDebitType(EnumCreditDebitIndicator.valueOf(this.creditDebitType))
+                .transactionType(EnumCreditCardTransactionType.valueOf(this.transactionType))
+                .transactionalAdditionalInfo(this.transactionalAdditionalInfo)
+                .paymentType(EnumCreditCardAccountsPaymentType.valueOf(this.paymentType))
+                .feeType(EnumCreditCardAccountFee.valueOf(this.feeType))
+                .feeTypeAdditionalInfo(this.feeTypeAdditionalInfo)
+                .otherCreditsType(EnumCreditCardAccountsOtherCreditType.valueOf(this.otherCreditsType))
+                .otherCreditsAdditionalInfo(this.otherCreditsAdditionalInfo)
+                .chargeIdentificator(this.chargeIdentificator)
+                .chargeNumber(this.chargeNumber)
+                .brazilianAmount(this.brazilianAmount)
+                .amount(this.amount)
+                .currency(this.currency)
+                .transactionDateTime(this.transactionDateTime)
+                .billPostDate(this.billPostDate)
+                .payeeMCC(this.payeeMCC);
+    }
+
+
 }

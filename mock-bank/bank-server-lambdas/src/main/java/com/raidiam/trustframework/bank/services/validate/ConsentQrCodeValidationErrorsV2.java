@@ -14,7 +14,7 @@ public class ConsentQrCodeValidationErrorsV2 extends ConsentQrCodeValidationErro
 
     @Override
     public HttpStatusException getAmountIsDifferentError(String qrCodeTransactionAmount, String amount) {
-        String message = errorMessage.getMessageInvalidValue(String.format("Amount defined in QrCode - %s differs from the amount specified in the Consent - %s",
+        String message = errorMessage.getMessagePaymentDetailInvalid(String.format("Amount defined in QrCode - %s differs from the amount specified in the Consent - %s",
                 qrCodeTransactionAmount, amount));
         return new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, message);
     }

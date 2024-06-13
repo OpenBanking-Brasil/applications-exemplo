@@ -1,6 +1,7 @@
 package com.raidiam.trustframework.bank.services.validate;
 
 import com.raidiam.trustframework.bank.services.message.PaymentErrorMessage;
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.BusinessEntity;
 import com.raidiam.trustframework.mockbank.models.generated.CreateRecurringConsentV1;
 import com.raidiam.trustframework.mockbank.models.generated.CreateRecurringConsentV1Data;
@@ -55,17 +56,21 @@ public class RecurringPaymentConsentFieldsValidatorV1 implements RecurringPaymen
 
 
         OffsetDateTime expirationDateTime = data.getExpirationDateTime();
-        if (expirationDateTime.isBefore(OffsetDateTime.now())) {
-            throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    errorMessage.getMessageInvalidParameter("expirationDateTime cannot be in the past")
-            );
-        }
 
-        OffsetDateTime startDateTime = data.getStartDateTime();
-        if (expirationDateTime.isBefore(startDateTime)) {
-            throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                    errorMessage.getMessageInvalidParameter("startDateTime cannot be after expirationDateTime")
-            );
+        if(expirationDateTime!=null) {
+            expirationDateTime = expirationDateTime.atZoneSameInstant(BankLambdaUtils.getBrasilZoneId()).toOffsetDateTime();
+            if (expirationDateTime.isBefore(BankLambdaUtils.getOffsetDateTimeInBrasil())) {
+                throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        errorMessage.getMessageInvalidParameter("expirationDateTime cannot be in the past")
+                );
+            }
+
+            OffsetDateTime startDateTime = Optional.ofNullable(data.getStartDateTime()).orElse(BankLambdaUtils.getOffsetDateTimeInBrasil());
+            if (expirationDateTime.isBefore(startDateTime)) {
+                throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        errorMessage.getMessageInvalidParameter("startDateTime cannot be after expirationDateTime")
+                );
+            }
         }
         LOG.info("recurring consent fields validation complete");
 

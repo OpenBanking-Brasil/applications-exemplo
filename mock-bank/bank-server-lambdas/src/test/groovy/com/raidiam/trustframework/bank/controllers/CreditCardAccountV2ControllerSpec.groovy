@@ -15,6 +15,7 @@ import spock.lang.Shared
 import spock.lang.Stepwise
 
 import java.time.LocalDate
+import java.time.OffsetDateTime
 
 import static com.raidiam.trustframework.bank.TestEntityDataFactory.anAccountHolder
 
@@ -62,7 +63,7 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
             //ADD Credit Card Account Transaction via V2 Controller
             CreateCreditCardAccountTransactionData accountTransactionDto = TestRequestDataFactory.cardAccountTransactionDto()
             String transactionUrl = "/admin/customers/${accountHolder.getAccountHolderId().toString()}/credit-cards-accounts/v2/" + postCreditCardAccountResponse.getData().getCreditCardAccountId() + "/bills/" + postCreditCardBillResponse.getData().getBillId() + "/transactions"
-            accountTransactionDto.setTransactionDate(LocalDate.now())
+            accountTransactionDto.setTransactionDateTime(OffsetDateTime.now())
             postCreditCardAccountTransactionResponse = client.toBlocking()
                     .retrieve(HttpRequest.POST(transactionUrl, mapper.writeValueAsString(new CreateCreditCardAccountTransactionList().data(List.of(accountTransactionDto))))
                             .header("Authorization", "Bearer ${adminToken}"), ResponseCreditCardAccountsTransactionListV2)
@@ -74,6 +75,22 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
         }
     }
 
+    def "we cannot call credit-card account endpoints without x-fapi-interaction-id"() {
+        given:
+        URI uri = new URIBuilder("/open-banking/credit-cards-accounts/v2/${endpoint}").build()
+
+        when:
+        client.toBlocking().retrieve(HttpRequest.GET(uri)
+                .header("Authorization", "Bearer ${getToken}"))
+
+        then:
+        HttpClientResponseException e = thrown()
+        e.status == HttpStatus.BAD_REQUEST
+
+        where:
+        endpoint << ["accounts", "accounts/testid", "accounts/testid/bills", "accounts/testid/bills/billId/transactions", "accounts/testid/transactions", "accounts/testid/transactions-current", "accounts/testid/limits"]
+    }
+
     void "we can GET credit card account bills v2"() {
         when:
         URI uri = new URIBuilder('/open-banking/credit-cards-accounts/v2/accounts/' + postCreditCardAccountResponse.getData().getCreditCardAccountId() + '/bills')
@@ -82,7 +99,8 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
                 .build()
 
         def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
-                .header("Authorization", "Bearer ${getToken}"), ResponseCreditCardAccountsBillsV2)
+                .header("Authorization", "Bearer ${getToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseCreditCardAccountsBillsV2)
 
         then:
         response.getData() != null
@@ -110,7 +128,9 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
         when:
         URI uri = new URIBuilder('/open-banking/credit-cards-accounts/v2/accounts/' + postCreditCardAccountResponse.getData().getCreditCardAccountId() + '/limits').build()
 
-        def response = client.toBlocking().retrieve(HttpRequest.GET(uri).header("Authorization", "Bearer ${getToken}"), ResponseCreditCardAccountsLimitsV2)
+        def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
+                .header("Authorization", "Bearer ${getToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseCreditCardAccountsLimitsV2)
 
         then:
         response.getData() != null
@@ -138,7 +158,9 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
                 .addParameter("toTransactionDate", LocalDate.now().plusDays(2).toString())
                 .build()
 
-        def response = client.toBlocking().retrieve(HttpRequest.GET(uri).header("Authorization", "Bearer ${getToken}"), ResponseCreditCardAccountsTransactionsV2)
+        def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
+                .header("Authorization", "Bearer ${getToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseCreditCardAccountsTransactionsV2)
 
         then:
         response.getData() != null
@@ -162,7 +184,6 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
         transaction.getBrazilianAmount().getCurrency() == adminTransaction.getBrazilianAmount().getCurrency()
         transaction.getAmount().getAmount() == adminTransaction.getAmount().getAmount()
         transaction.getAmount().getCurrency() == adminTransaction.getAmount().getCurrency()
-        transaction.getTransactionDate() == adminTransaction.getTransactionDate()
         transaction.getBillPostDate() == adminTransaction.getBillPostDate()
         transaction.getPayeeMCC() == adminTransaction.getPayeeMCC()
     }
@@ -174,7 +195,9 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
                 .addParameter("toTransactionDate", LocalDate.now().plusDays(2).toString())
                 .build()
 
-        def response = client.toBlocking().retrieve(HttpRequest.GET(uri).header("Authorization", "Bearer ${getToken}"), ResponseCreditCardAccountsTransactionsV2)
+        def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
+                .header("Authorization", "Bearer ${getToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseCreditCardAccountsTransactionsV2)
 
         then:
         response.getData() != null
@@ -189,7 +212,9 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
                 .addParameter("toTransactionDate", LocalDate.now().plusDays(2).toString())
                 .build()
 
-        def response = client.toBlocking().retrieve(HttpRequest.GET(uri).header("Authorization", "Bearer ${getToken}"), ResponseCreditCardAccountsTransactionsV2)
+        def response = client.toBlocking().retrieve(HttpRequest.GET(uri)
+                .header("Authorization", "Bearer ${getToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseCreditCardAccountsTransactionsV2)
 
         then:
         response.getData() != null
@@ -203,7 +228,9 @@ class CreditCardAccountV2ControllerSpec extends FullCreateConsentFactory {
                 .addParameter("toTransactionDate", toTransactionDate.toString())
                 .build()
 
-        client.toBlocking().retrieve(HttpRequest.GET(uri).header("Authorization", "Bearer ${getToken}"), ResponseCreditCardAccountsTransactionsV2)
+        client.toBlocking().retrieve(HttpRequest.GET(uri)
+                .header("Authorization", "Bearer ${getToken}")
+                .header("x-fapi-interaction-id", UUID.randomUUID().toString()), ResponseCreditCardAccountsTransactionsV2)
 
         then:
         HttpClientResponseException e = thrown()

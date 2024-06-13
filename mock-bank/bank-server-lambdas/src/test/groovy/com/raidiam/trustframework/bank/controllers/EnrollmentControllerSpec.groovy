@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jwt.SignedJWT
+import com.raidiam.trustframework.bank.AuthHelper
 import com.raidiam.trustframework.bank.AwsProxyHelper
 import com.raidiam.trustframework.bank.TestJwtSigner
 import com.raidiam.trustframework.bank.TestRequestDataFactory
@@ -226,6 +227,7 @@ class EnrollmentControllerSpec extends Specification {
 
         def entity = AwsProxyHelper.signPayload(fidoRegistrationOptionRequest)
         AwsProxyRequestBuilder builder = AwsProxyHelper.buildJwtCall('/open-banking/enrollments/v1/enrollments/testId/fido-registration-options', HttpMethod.POST, entity)
+        AuthHelper.authorizeAuthorizationCodeGrant(scopes: "payments", org_id: 'issuer', builder)
 
         when:
         def response = handler.proxy(builder.build(), lambdaContext)
@@ -311,6 +313,7 @@ class EnrollmentControllerSpec extends Specification {
 
         def entity = AwsProxyHelper.signPayload(registrationRequest)
         AwsProxyRequestBuilder builder = AwsProxyHelper.buildJwtCall('/open-banking/enrollments/v1/consents/testId/authorise', HttpMethod.POST, entity)
+        AuthHelper.authorizeAuthorizationCodeGrant(scopes: "payments", org_id: 'issuer', builder)
 
         when:
         def response = handler.proxy(builder.build(), lambdaContext)
@@ -330,7 +333,9 @@ class EnrollmentControllerSpec extends Specification {
         def entity = mapper.writeValueAsString(entityRequest)
 
         AwsProxyRequestBuilder builder = AwsProxyHelper.buildCall(path, httpMedhod, entity)
-
+        if(!clientCredentialAuth) {
+            AuthHelper.authorizeAuthorizationCodeGrant(scopes: "payments", org_id: 'issuer', builder)
+        }
         when:
         def response = handler.proxy(builder.build(), lambdaContext)
 
@@ -338,14 +343,14 @@ class EnrollmentControllerSpec extends Specification {
         response.statusCode == HttpStatus.FORBIDDEN.code
 
         where:
-        entityRequest                                             | path                                                                        | httpMedhod
-        EnrollmentFactory.createEnrollment()                      | "/open-banking/enrollments/v1/enrollments/"                                 | HttpMethod.POST
-        EnrollmentFactory.patchEnrollment(true)                   | "/open-banking/enrollments/v1/enrollments/testid"                           | HttpMethod.PATCH
-        TestRequestDataFactory.createEnrollmentRiskSignal()       | "/open-banking/enrollments/v1/enrollments/testid/risk-signals"              | HttpMethod.POST
-        TestRequestDataFactory.createEnrollmentFidoOptionsInput() | "/open-banking/enrollments/v1/enrollments/testid/fido-registration-options" | HttpMethod.POST
-        TestRequestDataFactory.createEnrollmentFidoOptionsInput() | "/open-banking/enrollments/v1/enrollments/testid/fido-registration"         | HttpMethod.POST
-        TestRequestDataFactory.createEnrollmentFidoSignOptionsInput() | "/open-banking/enrollments/v1/enrollments/testid/fido-sign-options"     | HttpMethod.POST
-        EnrollmentFactory.enrollmentFidoAuthorisation()           | "/open-banking/enrollments/v1/consents/testId/authorise"                    | HttpMethod.POST
+        entityRequest                                             | path                                                                        | httpMedhod          | clientCredentialAuth
+        EnrollmentFactory.createEnrollment()                      | "/open-banking/enrollments/v1/enrollments/"                                 | HttpMethod.POST     |         true
+        EnrollmentFactory.patchEnrollment(true)                   | "/open-banking/enrollments/v1/enrollments/testid"                           | HttpMethod.PATCH    |         true
+        TestRequestDataFactory.createEnrollmentRiskSignal()       | "/open-banking/enrollments/v1/enrollments/testid/risk-signals"              | HttpMethod.POST     |         true
+        TestRequestDataFactory.createEnrollmentFidoOptionsInput() | "/open-banking/enrollments/v1/enrollments/testid/fido-registration-options" | HttpMethod.POST     |         false
+        TestRequestDataFactory.createEnrollmentFidoOptionsInput() | "/open-banking/enrollments/v1/enrollments/testid/fido-registration"         | HttpMethod.POST     |         true
+        TestRequestDataFactory.createEnrollmentFidoSignOptionsInput() | "/open-banking/enrollments/v1/enrollments/testid/fido-sign-options"     | HttpMethod.POST     |         true
+        EnrollmentFactory.enrollmentFidoAuthorisation()           | "/open-banking/enrollments/v1/consents/testId/authorise"                    | HttpMethod.POST     |         false
     }
 
     def "we can update enrollment"() {

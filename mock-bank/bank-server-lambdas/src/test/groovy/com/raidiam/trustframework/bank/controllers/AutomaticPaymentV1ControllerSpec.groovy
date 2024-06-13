@@ -2,6 +2,7 @@ package com.raidiam.trustframework.bank.controllers
 
 import com.amazonaws.serverless.proxy.internal.testutils.AwsProxyRequestBuilder
 import com.amazonaws.serverless.proxy.internal.testutils.MockLambdaContext
+import com.amazonaws.serverless.proxy.model.MultiValuedTreeMap
 import com.amazonaws.services.lambda.runtime.Context
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.nimbusds.jose.jwk.JWKSet
@@ -73,7 +74,7 @@ class AutomaticPaymentV1ControllerSpec extends Specification {
                         .recurringConsentId("id")
                         .statusUpdateDateTime(OffsetDateTime.now())
                         .loggedUser(new LoggedUser()
-                                .document(new LoggedUserDocument()
+                                .document(new Document()
                                         .rel("CPF")
                                         .identification("12345678901")))
                         .status(EnumAuthorisationStatusType.AUTHORISED)
@@ -105,7 +106,7 @@ class AutomaticPaymentV1ControllerSpec extends Specification {
 
         consentFull = new ResponsePaymentConsentFull()
                 .data(new ResponsePaymentConsentFullData()
-                        .status(ResponsePaymentConsentFullData.StatusEnum.AWAITING_AUTHORISATION)
+                        .status(EnumAuthorisationStatusType.AWAITING_AUTHORISATION)
                         .clientId("client1")
                         .expirationDateTime(OffsetDateTime.now())
                         .consentId("somepaymentconsent")
@@ -378,7 +379,7 @@ class AutomaticPaymentV1ControllerSpec extends Specification {
 
         String entity = signEntity(mapper.writeValueAsString(req))
         AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/automatic-payments/v1/pix/recurring-payments', HttpMethod.POST.toString()).body(entity)
-        AuthHelper.authorizeAuthorizationCodeGrant(scopes: "recurring-payments consent:urn:raidiambank:C1DD33123", org_id: "issuer", builder)
+        AuthHelper.authorizeAuthorizationCodeGrant(scopes: "recurring-payments recurring-consent:urn:raidiambank:C1DD33123", org_id: "issuer", builder)
         builder.header("x-idempotency-key", UUID.randomUUID().toString())
         builder.header("Content-Type", "application/jwt")
         builder.header("Accept", "application/jwt")
@@ -415,7 +416,7 @@ class AutomaticPaymentV1ControllerSpec extends Specification {
         mockService.getRecurringPixPaymentV1(_ as String, _ as String) >> responseRecurringPixPayments
 
         AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/automatic-payments/v1/pix/recurring-payments/testeID', HttpMethod.GET.toString())
-        AuthHelper.authorize(scopes: "recurring-payments consent:urn:raidiambank:C1DD33123", org_id: "issuer", builder)
+        AuthHelper.authorize(scopes: "recurring-payments recurring-consent:urn:raidiambank:C1DD33123", org_id: "issuer", builder)
         builder.header("x-idempotency-key", "idempotencyToken1")
         builder.header("Content-Type", "application/jwt")
         builder.header("Accept", "application/jwt")
@@ -441,7 +442,7 @@ class AutomaticPaymentV1ControllerSpec extends Specification {
 
 
         AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/automatic-payments/v1/pix/recurring-payments/testId', HttpMethod.PATCH.toString()).body(entity)
-        AuthHelper.authorize(scopes: "recurring-payments consent:urn:raidiambank:C1DD33123", org_id: "issuer", builder)
+        AuthHelper.authorize(scopes: "recurring-payments recurring-consent:urn:raidiambank:C1DD33123", org_id: "issuer", builder)
         builder.header("x-idempotency-key", "idempotencyToken1")
         builder.header("Content-Type", "application/jwt")
         builder.header("Accept", "application/jwt")
@@ -475,12 +476,14 @@ class AutomaticPaymentV1ControllerSpec extends Specification {
         given:
 
         def req = createRecurringPixPayment("urn:raidiambank:C1DD33123")
-        mockService.getRecurringPixPaymentByConsentIdV1(_ as String, _ as LocalDate, _ as LocalDate, _ as String) >> new ResponseRecurringPixPaymentByConsent().data(List.of(responseRecurringPixPayments.getData()))
+        mockService.getRecurringPixPaymentByConsentIdV1(_ as String, _ as String) >> new ResponseRecurringPixPaymentByConsent().data(List.of(responseRecurringPixPayments.getData()))
 
         AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/automatic-payments/v1/pix/recurring-payments', HttpMethod.GET.toString())
+        var queryParams = new MultiValuedTreeMap()
+        queryParams.add("recurringConsentId", "urn:raidiambank:C1DD33123")
+        builder.multiValueQueryString(queryParams)
         AuthHelper.authorize(scopes: "recurring-payments", org_id: "issuer", builder)
         builder.header("x-idempotency-key", "idempotencyToken1")
-        builder.header("recurringConsentId", "urn:raidiambank:C1DD33123")
         builder.header("Content-Type", "application/jwt")
         builder.header("Accept", "application/jwt")
         builder.header("x-fapi-interaction-id", UUID.randomUUID().toString())
@@ -494,7 +497,7 @@ class AutomaticPaymentV1ControllerSpec extends Specification {
         response.body != null
     }
 
-    def "we cannt retrieve a recurring pix payment by consentId without consentId"() {
+    def "we can't retrieve a recurring pix payment by consentId without consentId"() {
         given:
         AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/automatic-payments/v1/pix/recurring-payments', HttpMethod.GET.toString())
         AuthHelper.authorize(scopes: "recurring-payments", org_id: "issuer", builder)
@@ -509,6 +512,27 @@ class AutomaticPaymentV1ControllerSpec extends Specification {
         then:
         response.statusCode == HttpStatus.UNAUTHORIZED.code
         response.body.contains("Request has no associated recurring consent Id")
+    }
+
+    def "we can't create a recurring pix payment with wrong dynamic scope prefix"() {
+        given:
+        mockService.createRecurringPixPaymentV1("urn:raidiambank:C1DD33123", _ as String, _ as String, _ as String, _ as CreateRecurringPixPaymentV1) >> responseRecurringPixPayments
+        def req = createRecurringPixPayment("urn:raidiambank:C1DD33123")
+
+        String entity = signEntity(mapper.writeValueAsString(req))
+        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/automatic-payments/v1/pix/recurring-payments', HttpMethod.POST.toString()).body(entity)
+        AuthHelper.authorizeAuthorizationCodeGrant(scopes: "recurring-payments consent:urn:raidiambank:C1DD33123", org_id: "issuer", builder)
+        builder.header("x-idempotency-key", UUID.randomUUID().toString())
+        builder.header("Content-Type", "application/jwt")
+        builder.header("Accept", "application/jwt")
+        builder.header("x-fapi-interaction-id", UUID.randomUUID().toString())
+
+        when:
+        def response = handler.proxy(builder.build(), lambdaContext)
+
+        then:
+        response.statusCode == HttpStatus.FORBIDDEN.code
+        response.body.contains("Request has no associated consent Id")
     }
 
     def "we can PUT consent"(){

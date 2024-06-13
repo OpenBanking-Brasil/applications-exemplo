@@ -17,7 +17,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: 
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner:
 --
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
@@ -30,9 +30,1076 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
 COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
 
 
+--
+-- Name: addaccount(character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, double precision, character varying, double precision, character varying, double precision, character varying, double precision, character varying, double precision, character varying, double precision, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addaccount(docid character varying, status character varying, currency character varying, accounttype character varying, accountsubtype character varying, brandname character varying, companycnpj character varying, compecode character varying, branchcode character varying, number character varying, checkdigit character varying, availableamount double precision, availableamountcurrency character varying, blockedamount double precision, blockedamountcurrency character varying, automaticallyinvestedamount double precision, automaticallyinvestedamountcurrency character varying, overdraftcontractedlimit double precision, overdraftcontractedlimitcurrency character varying, overdraftusedlimit double precision, overdraftusedlimitcurrency character varying, unarrangedoverdraftamount double precision, unarrangedoverdraftamountcurrency character varying, debtorispb character varying, debtorissuer character varying, debtortype character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO accounts (account_holder_id, status, currency, account_type, account_sub_type, brand_name, company_cnpj,
+                          compe_code, branch_code, number, check_digit, available_amount, available_amount_currency,
+                          blocked_amount, blocked_amount_currency, automatically_invested_amount,
+                          automatically_invested_amount_currency, overdraft_contracted_limit,
+                          overdraft_contracted_limit_currency, overdraft_used_limit, overdraft_used_limit_currency,
+                          unarranged_overdraft_amount, unarranged_overdraft_amount_currency, debtor_ispb, debtor_issuer,
+                          debtor_type,
+                          created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), status, currency, accountType, accountSubType, brandName, companyCnpj,
+            compeCode, branchCode, number, checkDigit, availableAmount, availableAmountCurrency, blockedAmount,
+            blockedAmountCurrency, automaticallyInvestedAmount, automaticallyInvestedAmountCurrency,
+            overdraftContractedLimit, overdraftContractedLimitCurrency, overdraftUsedLimit, overdraftUsedLimitCurrency,
+            unarrangedOverdraftAmount, unarrangedOverdraftAmountCurrency, debtorIspb, debtorIssuer, debtorType,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING account_id
+$$;
+
+
+ALTER FUNCTION public.addaccount(docid character varying, status character varying, currency character varying, accounttype character varying, accountsubtype character varying, brandname character varying, companycnpj character varying, compecode character varying, branchcode character varying, number character varying, checkdigit character varying, availableamount double precision, availableamountcurrency character varying, blockedamount double precision, blockedamountcurrency character varying, automaticallyinvestedamount double precision, automaticallyinvestedamountcurrency character varying, overdraftcontractedlimit double precision, overdraftcontractedlimitcurrency character varying, overdraftusedlimit double precision, overdraftusedlimitcurrency character varying, unarrangedoverdraftamount double precision, unarrangedoverdraftamountcurrency character varying, debtorispb character varying, debtorissuer character varying, debtortype character varying) OWNER TO test;
+
+--
+-- Name: addaccountholder(character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addaccountholder(doc character varying, rel character varying, accountholdername character varying, userid character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO account_holders (document_identification, document_rel, account_holder_name, user_id,
+                                 created_at, created_by, updated_at, updated_by)
+    VALUES (doc, rel, accountHolderName, userId,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING account_holder_id
+$$;
+
+
+ALTER FUNCTION public.addaccountholder(doc character varying, rel character varying, accountholdername character varying, userid character varying) OWNER TO test;
+
+--
+-- Name: addaccounttransaction(uuid, character varying, character varying, character varying, character varying, double precision, character varying, date, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addaccounttransaction(accountid uuid, completedauthorisedpaymenttype character varying, creditdebittype character varying, transactionname character varying, transactiontype character varying, transactionamount double precision, transactioncurrency character varying, transactiondate date, partiecnpjcpf character varying, partiepersontype character varying, partiecompecode character varying, partiebranchcode character varying, partienumber character varying, partiecheckdigit character varying) RETURNS integer
+    LANGUAGE sql
+    AS $$
+    INSERT INTO account_transactions (account_id, transaction_id, completed_authorised_payment_type, credit_debit_type,
+                                  transaction_name, type, amount, transaction_currency, transaction_date,
+                                  partie_cnpj_cpf, partie_person_type, partie_compe_code, partie_branch_code,
+                                  partie_number, partie_check_digit,
+                                  created_at, created_by, updated_at, updated_by)
+    VALUES (accountId, uuid_generate_v4(), completedAuthorisedPaymentType, creditDebitType, transactionName,
+            transactionType, transactionAmount, transactionCurrency, transactionDate, partieCnpjCpf, partiePersonType,
+            partieCompeCode, partieBranchCode, partieNumber, partieCheckDigit,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING account_transaction_id
+$$;
+
+
+ALTER FUNCTION public.addaccounttransaction(accountid uuid, completedauthorisedpaymenttype character varying, creditdebittype character varying, transactionname character varying, transactiontype character varying, transactionamount double precision, transactioncurrency character varying, transactiondate date, partiecnpjcpf character varying, partiepersontype character varying, partiecompecode character varying, partiebranchcode character varying, partienumber character varying, partiecheckdigit character varying) OWNER TO test;
+
+--
+-- Name: addaccounttransactionwithid(uuid, uuid, character varying, character varying, character varying, character varying, double precision, character varying, date, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addaccounttransactionwithid(accountid uuid, transactionid uuid, completedauthorisedpaymenttype character varying, creditdebittype character varying, transactionname character varying, transactiontype character varying, transactionamount double precision, transactioncurrency character varying, transactiondate date, partiecnpjcpf character varying, partiepersontype character varying, partiecompecode character varying, partiebranchcode character varying, partienumber character varying, partiecheckdigit character varying) RETURNS integer
+    LANGUAGE sql
+    AS $$
+INSERT INTO account_transactions (account_id, transaction_id, completed_authorised_payment_type, credit_debit_type,
+                                  transaction_name, type, amount, transaction_currency, transaction_date,
+                                  partie_cnpj_cpf, partie_person_type, partie_compe_code, partie_branch_code,
+                                  partie_number, partie_check_digit,
+                                  created_at, created_by, updated_at, updated_by)
+VALUES (accountId, transactionId, completedAuthorisedPaymentType, creditDebitType, transactionName,
+        transactionType, transactionAmount, transactionCurrency, transactionDate, partieCnpjCpf, partiePersonType,
+        partieCompeCode, partieBranchCode, partieNumber, partieCheckDigit,
+        NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING account_transaction_id
+$$;
+
+
+ALTER FUNCTION public.addaccounttransactionwithid(accountid uuid, transactionid uuid, completedauthorisedpaymenttype character varying, creditdebittype character varying, transactionname character varying, transactiontype character varying, transactionamount double precision, transactioncurrency character varying, transactiondate date, partiecnpjcpf character varying, partiepersontype character varying, partiecompecode character varying, partiebranchcode character varying, partienumber character varying, partiecheckdigit character varying) OWNER TO test;
+
+--
+-- Name: addaccounttransactionwithid(uuid, character varying, character varying, character varying, character varying, character varying, double precision, character varying, date, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addaccounttransactionwithid(accountid uuid, transactionid character varying, completedauthorisedpaymenttype character varying, creditdebittype character varying, transactionname character varying, transactiontype character varying, transactionamount double precision, transactioncurrency character varying, transactiondate date, partiecnpjcpf character varying, partiepersontype character varying, partiecompecode character varying, partiebranchcode character varying, partienumber character varying, partiecheckdigit character varying) RETURNS integer
+    LANGUAGE sql
+    AS $$
+INSERT INTO account_transactions (account_id, transaction_id, completed_authorised_payment_type, credit_debit_type,
+                                  transaction_name, type, amount, transaction_currency, transaction_date,
+                                  partie_cnpj_cpf, partie_person_type, partie_compe_code, partie_branch_code,
+                                  partie_number, partie_check_digit,
+                                  created_at, created_by, updated_at, updated_by)
+VALUES (accountId, transactionId, completedAuthorisedPaymentType, creditDebitType, transactionName,
+        transactionType, transactionAmount, transactionCurrency, transactionDate, partieCnpjCpf, partiePersonType,
+        partieCompeCode, partieBranchCode, partieNumber, partieCheckDigit,
+        NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING account_transaction_id
+$$;
+
+
+ALTER FUNCTION public.addaccounttransactionwithid(accountid uuid, transactionid character varying, completedauthorisedpaymenttype character varying, creditdebittype character varying, transactionname character varying, transactiontype character varying, transactionamount double precision, transactioncurrency character varying, transactiondate date, partiecnpjcpf character varying, partiepersontype character varying, partiecompecode character varying, partiebranchcode character varying, partienumber character varying, partiecheckdigit character varying) OWNER TO test;
+
+--
+-- Name: addaccountwithid(character varying, uuid, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, double precision, character varying, double precision, character varying, double precision, character varying, double precision, character varying, double precision, character varying, double precision, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addaccountwithid(docid character varying, accountid uuid, status character varying, currency character varying, accounttype character varying, accountsubtype character varying, brandname character varying, companycnpj character varying, compecode character varying, branchcode character varying, number character varying, checkdigit character varying, availableamount double precision, availableamountcurrency character varying, blockedamount double precision, blockedamountcurrency character varying, automaticallyinvestedamount double precision, automaticallyinvestedamountcurrency character varying, overdraftcontractedlimit double precision, overdraftcontractedlimitcurrency character varying, overdraftusedlimit double precision, overdraftusedlimitcurrency character varying, unarrangedoverdraftamount double precision, unarrangedoverdraftamountcurrency character varying, debtorispb character varying, debtorissuer character varying, debtortype character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO accounts (account_holder_id, account_id, status, currency, account_type, account_sub_type, brand_name,
+                          company_cnpj, compe_code, branch_code, number, check_digit, available_amount,
+                          available_amount_currency, blocked_amount, blocked_amount_currency,
+                          automatically_invested_amount, automatically_invested_amount_currency,
+                          overdraft_contracted_limit, overdraft_contracted_limit_currency, overdraft_used_limit,
+                          overdraft_used_limit_currency, unarranged_overdraft_amount,
+                          unarranged_overdraft_amount_currency, debtor_ispb, debtor_issuer, debtor_type,
+                          created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), accountId, status, currency, accountType, accountSubType, brandName,
+            companyCnpj, compeCode, branchCode, number, checkDigit, availableAmount, availableAmountCurrency,
+            blockedAmount, blockedAmountCurrency, automaticallyInvestedAmount, automaticallyInvestedAmountCurrency,
+            overdraftContractedLimit, overdraftContractedLimitCurrency, overdraftUsedLimit, overdraftUsedLimitCurrency,
+            unarrangedOverdraftAmount, unarrangedOverdraftAmountCurrency, debtorIspb, debtorIssuer, debtorType,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING account_id
+$$;
+
+
+ALTER FUNCTION public.addaccountwithid(docid character varying, accountid uuid, status character varying, currency character varying, accounttype character varying, accountsubtype character varying, brandname character varying, companycnpj character varying, compecode character varying, branchcode character varying, number character varying, checkdigit character varying, availableamount double precision, availableamountcurrency character varying, blockedamount double precision, blockedamountcurrency character varying, automaticallyinvestedamount double precision, automaticallyinvestedamountcurrency character varying, overdraftcontractedlimit double precision, overdraftcontractedlimitcurrency character varying, overdraftusedlimit double precision, overdraftusedlimitcurrency character varying, unarrangedoverdraftamount double precision, unarrangedoverdraftamountcurrency character varying, debtorispb character varying, debtorissuer character varying, debtortype character varying) OWNER TO test;
+
+--
+-- Name: addballoonpayments(uuid, character varying, character varying, double precision); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addballoonpayments(contractid uuid, duedate character varying, currency character varying, amount double precision) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO balloon_payments (contract_id , due_date , currency, amount,
+                                  created_at, created_by, updated_at, updated_by)
+    VALUES (contractId, dueDate, currency, amount,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addballoonpayments(contractid uuid, duedate character varying, currency character varying, amount double precision) OWNER TO test;
+
+--
+-- Name: addbusinessfinancialrelations(character varying, timestamp without time zone); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessfinancialrelations(docid character varying, startdate timestamp without time zone) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_financial_relations (account_holder_id, start_date,
+                                              created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), startDate,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING business_financial_relations_id
+$$;
+
+
+ALTER FUNCTION public.addbusinessfinancialrelations(docid character varying, startdate timestamp without time zone) OWNER TO test;
+
+--
+-- Name: addbusinessfinancialrelationsprocurator(character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessfinancialrelationsprocurator(docid character varying, type character varying, cnpj_cpf character varying, civilname character varying, socialname character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_financial_relations_procurators (business_financial_relations_id, type, cnpj_cpf_number, civil_name,
+                                                          social_name,
+                                                          created_at, created_by, updated_at, updated_by)
+    VALUES (getBusinessFinancialRelationsId(docId), type, cnpj_cpf, civilName, socialName,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addbusinessfinancialrelationsprocurator(docid character varying, type character varying, cnpj_cpf character varying, civilname character varying, socialname character varying) OWNER TO test;
+
+--
+-- Name: addbusinessfinancialrelationsproductservicestype(character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessfinancialrelationsproductservicestype(docid character varying, type character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_financial_relations_products_services_type (business_financial_relations_id, type,
+                                                                     created_at, created_by, updated_at, updated_by)
+    VALUES (getBusinessFinancialRelationsId(docId), type,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addbusinessfinancialrelationsproductservicestype(docid character varying, type character varying) OWNER TO test;
+
+--
+-- Name: addbusinessidentifications(character varying, character varying, character varying, character varying, date, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessidentifications(docid character varying, brandname character varying, companyname character varying, tradename character varying, incorporationdate date, cnpjnumber character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+
+    INSERT INTO business_identifications (account_holder_id, brand_name, company_name, trade_name,
+                                          incorporation_date, cnpj_number,
+                                          created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId),brandName, companyName, tradeName, incorporationDate, cnpjNumber,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING business_identifications_id
+$$;
+
+
+ALTER FUNCTION public.addbusinessidentifications(docid character varying, brandname character varying, companyname character varying, tradename character varying, incorporationdate date, cnpjnumber character varying) OWNER TO test;
+
+--
+-- Name: addbusinessidentificationscompanycnpj(uuid, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessidentificationscompanycnpj(businessidentificationsid uuid, companycnpj character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_identifications_company_cnpj (business_identifications_id, company_cnpj,
+                                                   created_at, created_by, updated_at, updated_by)
+    VALUES (businessIdentificationsId, companyCnpj,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING business_identifications_id
+$$;
+
+
+ALTER FUNCTION public.addbusinessidentificationscompanycnpj(businessidentificationsid uuid, companycnpj character varying) OWNER TO test;
+
+--
+-- Name: addbusinessidentificationsemail(uuid, boolean, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessidentificationsemail(businessidentificationsid uuid, ismain boolean, email character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_emails (business_identifications_id, is_main, email,
+                                 created_at, created_by, updated_at, updated_by)
+    VALUES (businessIdentificationsId, isMain, email,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addbusinessidentificationsemail(businessidentificationsid uuid, ismain boolean, email character varying) OWNER TO test;
+
+--
+-- Name: addbusinessidentificationsotherdocument(uuid, character varying, character varying, character varying, date); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessidentificationsotherdocument(businessidentificationsid uuid, type character varying, number character varying, country character varying, expirationdate date) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_other_documents (business_identifications_id, type, number, country, expiration_date,
+                                          created_at, created_by, updated_at, updated_by)
+    VALUES (businessIdentificationsId, type, number, country, expirationDate,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING business_identifications_id
+$$;
+
+
+ALTER FUNCTION public.addbusinessidentificationsotherdocument(businessidentificationsid uuid, type character varying, number character varying, country character varying, expirationdate date) OWNER TO test;
+
+--
+-- Name: addbusinessidentificationsparties(uuid, character varying, character varying, character varying, character varying, character varying, character varying, date, character varying, character varying, character varying, character varying, character varying, date, date); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessidentificationsparties(businessidentificationsid uuid, persontype character varying, type character varying, civilname character varying, socialname character varying, companyname character varying, tradename character varying, startdate date, shareholding character varying, documenttype character varying, documentnumber character varying, documentadditionalinfo character varying, documentcountry character varying, documentexpirationdate date, documentissuedate date) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_parties (business_identifications_id, person_type, type, civil_name, social_name, company_name,
+                                  trade_name, start_date, shareholding, document_type, document_number,
+                                  document_additional_info, document_country, document_expiration_date,
+                                  document_issue_date,
+                                  created_at, created_by, updated_at, updated_by)
+    VALUES (businessIdentificationsId, personType, type, civilName, socialName, companyName, tradeName, startDate,
+            shareholding, documentType, documentNumber, documentAdditionalInfo, documentCountry, documentExpirationDate,
+            documentIssueDate,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addbusinessidentificationsparties(businessidentificationsid uuid, persontype character varying, type character varying, civilname character varying, socialname character varying, companyname character varying, tradename character varying, startdate date, shareholding character varying, documenttype character varying, documentnumber character varying, documentadditionalinfo character varying, documentcountry character varying, documentexpirationdate date, documentissuedate date) OWNER TO test;
+
+--
+-- Name: addbusinessidentificationsphone(uuid, boolean, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessidentificationsphone(businessidentificationsid uuid, ismain boolean, type character varying, additionalinfo character varying, countrycallingcode character varying, areacode character varying, number character varying, phoneextension character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_phones (business_identifications_id, is_main, type, additional_info, country_calling_code,
+                                 area_code, number, phone_extension,
+                                 created_at, created_by, updated_at, updated_by)
+    VALUES (businessIdentificationsId, isMain, type, additionalInfo, countryCallingCode, areaCode, number, phoneExtension,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addbusinessidentificationsphone(businessidentificationsid uuid, ismain boolean, type character varying, additionalinfo character varying, countrycallingcode character varying, areacode character varying, number character varying, phoneextension character varying) OWNER TO test;
+
+--
+-- Name: addbusinessidentificationspostaladdress(uuid, boolean, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessidentificationspostaladdress(businessidentificationsid uuid, ismain boolean, address character varying, additionalinfo character varying, districtname character varying, townname character varying, ibgetowncode character varying, countrysubdivision character varying, postcode character varying, country character varying, countrycode character varying, latitude character varying, longitude character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_postal_addresses (business_identifications_id, is_main, address, additional_info,
+                                           district_name, town_name, ibge_town_code, country_subdivision,
+                                           post_code, country, country_code, latitude, longitude,
+                                           created_at, created_by, updated_at, updated_by)
+    VALUES (businessIdentificationsId, isMain, address, additionalInfo, districtName, townName, ibgeTownCode,
+            countrySubdivision, postCode, country, countryCode, latitude, longitude,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addbusinessidentificationspostaladdress(businessidentificationsid uuid, ismain boolean, address character varying, additionalinfo character varying, districtname character varying, townname character varying, ibgetowncode character varying, countrysubdivision character varying, postcode character varying, country character varying, countrycode character varying, latitude character varying, longitude character varying) OWNER TO test;
+
+--
+-- Name: addbusinessqualifications(character varying, character varying, character varying, numeric, character varying, integer, double precision, character varying, date); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessqualifications(docid character varying, informedrevenuefrequency character varying, informedrevenuefrequencyadditionalinformation character varying, informedrevenueamount numeric, informedrevenuecurrency character varying, informedrevenueyear integer, informedpatrimonyamount double precision, informedpatrimonycurrency character varying, informedpatrimonydate date) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_qualifications (account_holder_id, informed_revenue_frequency,
+                                         informed_revenue_frequency_additional_information, informed_revenue_amount,
+                                         informed_revenue_currency, informed_revenue_year, informed_patrimony_amount,
+                                         informed_patrimony_currency, informed_patrimony_date,
+                                         created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), informedRevenueFrequency, informedRevenueFrequencyAdditionalInformation,
+            informedRevenueAmount, informedRevenueCurrency, informedRevenueYear, informedPatrimonyAmount,
+            informedPatrimonyCurrency, informedPatrimonyDate,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING business_qualifications_id
+$$;
+
+
+ALTER FUNCTION public.addbusinessqualifications(docid character varying, informedrevenuefrequency character varying, informedrevenuefrequencyadditionalinformation character varying, informedrevenueamount numeric, informedrevenuecurrency character varying, informedrevenueyear integer, informedpatrimonyamount double precision, informedpatrimonycurrency character varying, informedpatrimonydate date) OWNER TO test;
+
+--
+-- Name: addbusinessqualificationseconomicactivities(uuid, integer, boolean); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addbusinessqualificationseconomicactivities(businessqualificationsid uuid, code integer, ismain boolean) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO business_qualifications_economic_activities (business_qualifications_id, code, is_main,
+                                                             created_at, created_by, updated_at, updated_by)
+    VALUES (businessQualificationsId, code, isMain,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addbusinessqualificationseconomicactivities(businessqualificationsid uuid, code integer, ismain boolean) OWNER TO test;
+
+--
+-- Name: addconsent(character varying, character varying, character varying, character varying, date, date, date, date, date, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addconsent(docid character varying, consentid character varying, businessdocumentidentification character varying, businessdocumentrel character varying, expirationdatetime date, transactionfromdatetime date, transactiontodatetime date, creationdatetime date, statusupdatedatetime date, status character varying, clientid character varying) RETURNS text
+    LANGUAGE sql
+    AS $$
+    INSERT INTO consents (consent_id, business_document_identification, business_document_rel, account_holder_id, expiration_date_time, transaction_from_date_time,
+                          transaction_to_date_time, creation_date_time, status_update_date_time, status, client_id,
+                          created_at, created_by, updated_at, updated_by)
+    VALUES (consentId, businessDocumentIdentification, businessDocumentRel, getAccountHolderId(docId), expirationDateTime,
+            transactionFromDateTime, transactionToDateTime, creationDateTime, statusUpdateDateTime, status, clientId,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING consent_id
+$$;
+
+
+ALTER FUNCTION public.addconsent(docid character varying, consentid character varying, businessdocumentidentification character varying, businessdocumentrel character varying, expirationdatetime date, transactionfromdatetime date, transactiontodatetime date, creationdatetime date, statusupdatedatetime date, status character varying, clientid character varying) OWNER TO test;
+
+--
+-- Name: addconsentpermissions(character varying, text); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addconsentpermissions(permission character varying, consentid text) RETURNS integer
+    LANGUAGE sql
+    AS $$
+    INSERT INTO consent_permissions (permission, consent_id, created_at, created_by, updated_at, updated_by)
+    VALUES (permission, consentId,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING reference_id
+$$;
+
+
+ALTER FUNCTION public.addconsentpermissions(permission character varying, consentid text) OWNER TO test;
+
+--
+-- Name: addcontract(character varying, character varying, character varying, character varying, character varying, character varying, date, character varying, character varying, character varying, date, date, double precision, date, character varying, character varying, date, double precision, character varying, character varying, character varying, integer, double precision, character varying, integer, character varying, integer, integer, integer); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcontract(docid character varying, status character varying, currency character varying, companycnpj character varying, contracttype character varying, contractnumber character varying, contractdate date, productname character varying, producttype character varying, productsubtype character varying, disbursementdate date, settlementdate date, contractamount double precision, duedate date, instalmentperiodicity character varying, instalmentperiodicityadditionalinfo character varying, firstinstalmentduedate date, cet double precision, amortizationscheduled character varying, amortizationscheduledadditionalinfo character varying, ipoccode character varying, paidinstalments integer, contractoutstandingbalance double precision, typenumberofinstalments character varying, totalnumberofinstalments integer, typecontractremaining character varying, contractremainingnumber integer, dueinstalments integer, pastdueinstalments integer) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO contracts (account_holder_id, status, currency, company_cnpj, contract_type, contract_number,
+                           contract_date, product_name, product_type, product_sub_type, disbursement_date,
+                           settlement_date, contract_amount, due_date, instalment_periodicity,
+                           instalment_periodicity_additional_info, first_instalment_due_date, cet,
+                           amortization_scheduled, amortization_scheduled_additional_info, ipoc_code, paid_instalments,
+                           contract_outstanding_balance, type_number_of_instalments, total_number_of_instalments,
+                           type_contract_remaining, contract_remaining_number, due_instalments, past_due_instalments,
+                           created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), status, currency, companyCnpj, contractType, contractNumber, contractDate,
+            productName, productType, productSubType, disbursementDate, settlementDate, contractAmount, dueDate,
+            instalmentPeriodicity, instalmentPeriodicityAdditionalInfo, firstInstalmentDueDate, cet,
+            amortizationScheduled, amortizationScheduledAdditionalInfo, ipocCode, paidInstalments,
+            contractOutstandingBalance, typeNumberOfInstalments, totalNumberOfInstalments, typeContractRemaining,
+            contractRemainingNumber, dueInstalments, pastDueInstalments,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING contract_id
+$$;
+
+
+ALTER FUNCTION public.addcontract(docid character varying, status character varying, currency character varying, companycnpj character varying, contracttype character varying, contractnumber character varying, contractdate date, productname character varying, producttype character varying, productsubtype character varying, disbursementdate date, settlementdate date, contractamount double precision, duedate date, instalmentperiodicity character varying, instalmentperiodicityadditionalinfo character varying, firstinstalmentduedate date, cet double precision, amortizationscheduled character varying, amortizationscheduledadditionalinfo character varying, ipoccode character varying, paidinstalments integer, contractoutstandingbalance double precision, typenumberofinstalments character varying, totalnumberofinstalments integer, typecontractremaining character varying, contractremainingnumber integer, dueinstalments integer, pastdueinstalments integer) OWNER TO test;
+
+--
+-- Name: addcontractedfees(uuid, character varying, character varying, character varying, character varying, double precision, double precision); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcontractedfees(contractid uuid, feename character varying, feecode character varying, feechargetype character varying, feecharge character varying, feeamount double precision, feerate double precision) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO contracted_fees (contract_id, fee_name, fee_code, fee_charge_type,
+                                 fee_charge, fee_amount, fee_rate,
+                                 created_at, created_by, updated_at, updated_by)
+    VALUES (contractId, feeName, feeCode, feeChargeType, feeCharge, feeAmount, feeRate,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcontractedfees(contractid uuid, feename character varying, feecode character varying, feechargetype character varying, feecharge character varying, feeamount double precision, feerate double precision) OWNER TO test;
+
+--
+-- Name: addcontractedfinancecharges(uuid, character varying, character varying, double precision); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcontractedfinancecharges(contractid uuid, chargetype character varying, chargeadditionalinfo character varying, chargerate double precision) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO contracted_finance_charges (contract_id , charge_type , charge_additional_info, charge_rate,
+                                            created_at, created_by, updated_at, updated_by)
+    VALUES (contractId, chargeType, chargeAdditionalInfo, chargeRate,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcontractedfinancecharges(contractid uuid, chargetype character varying, chargeadditionalinfo character varying, chargerate double precision) OWNER TO test;
+
+--
+-- Name: addcontractinterestrates(uuid, character varying, character varying, character varying, character varying, character varying, character varying, character varying, double precision, double precision, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcontractinterestrates(contractid uuid, taxtype character varying, interestratetype character varying, taxperiodicity character varying, calculation character varying, referentialrateindexertype character varying, referentialrateindexersubtype character varying, referentialrateindexeradditionalinfo character varying, prefixedrate double precision, postfixedrate double precision, additionalinfo character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO interest_rates (contract_id, tax_type, interest_rate_type, tax_periodicity, calculation,
+                                referential_rate_indexer_type, referential_rate_indexer_sub_type,
+                                referential_rate_indexer_additional_info, pre_fixed_rate, post_fixed_rate,
+                                additional_info,
+                                created_at, created_by, updated_at, updated_by)
+    VALUES (contractId, taxType, interestRateType, taxPeriodicity, calculation, referentialRateIndexerType,
+            referentialRateIndexerSubType, referentialRateIndexerAdditionalInfo, preFixedRate,
+            postFixedRate, additionalInfo,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcontractinterestrates(contractid uuid, taxtype character varying, interestratetype character varying, taxperiodicity character varying, calculation character varying, referentialrateindexertype character varying, referentialrateindexersubtype character varying, referentialrateindexeradditionalinfo character varying, prefixedrate double precision, postfixedrate double precision, additionalinfo character varying) OWNER TO test;
+
+--
+-- Name: addcontractwarranties(uuid, character varying, character varying, character varying, double precision); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcontractwarranties(contractid uuid, currency character varying, warrantytype character varying, warrantysubtype character varying, warrantyamount double precision) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO warranties (contract_id , currency , warranty_type, warranty_subtype, warranty_amount,
+                            created_at, created_by, updated_at, updated_by)
+    VALUES (contractId, currency, warrantyType, warrantySubtype, warrantyAmount,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcontractwarranties(contractid uuid, currency character varying, warrantytype character varying, warrantysubtype character varying, warrantyamount double precision) OWNER TO test;
+
+--
+-- Name: addcontractwithid(character varying, uuid, character varying, character varying, character varying, character varying, character varying, date, character varying, character varying, character varying, date, date, double precision, date, character varying, character varying, date, double precision, character varying, character varying, character varying, integer, double precision, character varying, integer, character varying, integer, integer, integer); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcontractwithid(docid character varying, contractid uuid, status character varying, currency character varying, companycnpj character varying, contracttype character varying, contractnumber character varying, contractdate date, productname character varying, producttype character varying, productsubtype character varying, disbursementdate date, settlementdate date, contractamount double precision, duedate date, instalmentperiodicity character varying, instalmentperiodicityadditionalinfo character varying, firstinstalmentduedate date, cet double precision, amortizationscheduled character varying, amortizationscheduledadditionalinfo character varying, ipoccode character varying, paidinstalments integer, contractoutstandingbalance double precision, typenumberofinstalments character varying, totalnumberofinstalments integer, typecontractremaining character varying, contractremainingnumber integer, dueinstalments integer, pastdueinstalments integer) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+INSERT INTO contracts (account_holder_id, contract_id, status, currency, company_cnpj, contract_type, contract_number,
+                       contract_date, product_name, product_type, product_sub_type, disbursement_date, settlement_date,
+                       contract_amount, due_date, instalment_periodicity, instalment_periodicity_additional_info,
+                       first_instalment_due_date, cet, amortization_scheduled, amortization_scheduled_additional_info,
+                       ipoc_code, paid_instalments, contract_outstanding_balance, type_number_of_instalments,
+                       total_number_of_instalments, type_contract_remaining, contract_remaining_number, due_instalments,
+                       past_due_instalments,
+                       created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), contractId, status, currency, companyCnpj, contractType, contractNumber,
+            contractDate, productName, productType, productSubType, disbursementDate, settlementDate, contractAmount,
+            dueDate, instalmentPeriodicity, instalmentPeriodicityAdditionalInfo, firstInstalmentDueDate, cet,
+            amortizationScheduled, amortizationScheduledAdditionalInfo, ipocCode, paidInstalments,
+            contractOutstandingBalance, typeNumberOfInstalments, totalNumberOfInstalments, typeContractRemaining,
+            contractRemainingNumber, dueInstalments, pastDueInstalments,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING contract_id
+$$;
+
+
+ALTER FUNCTION public.addcontractwithid(docid character varying, contractid uuid, status character varying, currency character varying, companycnpj character varying, contracttype character varying, contractnumber character varying, contractdate date, productname character varying, producttype character varying, productsubtype character varying, disbursementdate date, settlementdate date, contractamount double precision, duedate date, instalmentperiodicity character varying, instalmentperiodicityadditionalinfo character varying, firstinstalmentduedate date, cet double precision, amortizationscheduled character varying, amortizationscheduledadditionalinfo character varying, ipoccode character varying, paidinstalments integer, contractoutstandingbalance double precision, typenumberofinstalments character varying, totalnumberofinstalments integer, typecontractremaining character varying, contractremainingnumber integer, dueinstalments integer, pastdueinstalments integer) OWNER TO test;
+
+--
+-- Name: addcreditcardaccounts(character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccounts(docid character varying, brandname character varying, companycnpj character varying, name character varying, producttype character varying, productadditionalinfo character varying, creditcardnetwork character varying, networkadditionalinfo character varying, status character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO credit_card_accounts(brand_name, company_cnpj, name, product_type, product_additional_info,
+                                     credit_card_network, network_additional_info, status, account_holder_id,
+                                     created_at, created_by, updated_at, updated_by)
+    VALUES (brandName, companyCnpj, name, productType, productAdditionalInfo, creditCardNetwork,
+            networkAdditionalInfo, status, getAccountHolderId(docId),
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING credit_card_account_id
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccounts(docid character varying, brandname character varying, companycnpj character varying, name character varying, producttype character varying, productadditionalinfo character varying, creditcardnetwork character varying, networkadditionalinfo character varying, status character varying) OWNER TO test;
+
+--
+-- Name: addcreditcardaccountsbills(uuid, date, double precision, character varying, double precision, character varying, boolean); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccountsbills(creditcardaccountid uuid, duedate date, billtotalamount double precision, billtotalamountcurrency character varying, billminimumamount double precision, billminimumamountcurrency character varying, isinstalment boolean) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO credit_card_accounts_bills(credit_card_account_id, due_date, bill_total_amount,
+                                           bill_total_amount_currency, bill_minimum_amount,
+                                           bill_minimum_amount_currency, is_instalment,
+                                           created_at, created_by, updated_at, updated_by)
+    VALUES (creditCardAccountId, dueDate, billTotalAmount, billTotalAmountCurrency, billMinimumAmount,
+            billMinimumAmountCurrency, isInstalment,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING bill_id
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccountsbills(creditcardaccountid uuid, duedate date, billtotalamount double precision, billtotalamountcurrency character varying, billminimumamount double precision, billminimumamountcurrency character varying, isinstalment boolean) OWNER TO test;
+
+--
+-- Name: addcreditcardaccountsbillsfinancecharge(uuid, character varying, character varying, double precision, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccountsbillsfinancecharge(billid uuid, type character varying, additionalinfo character varying, amount double precision, currency character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO credit_card_accounts_bills_finance_charge(bill_id, type, additional_info, amount, currency,
+                                                          created_at, created_by, updated_at, updated_by)
+    VALUES (billId, type, additionalInfo, amount, currency,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccountsbillsfinancecharge(billid uuid, type character varying, additionalinfo character varying, amount double precision, currency character varying) OWNER TO test;
+
+--
+-- Name: addcreditcardaccountsbillspayment(uuid, character varying, date, character varying, double precision, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccountsbillspayment(billid uuid, valuetype character varying, paymentdate date, paymentmode character varying, amount double precision, currency character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO credit_card_accounts_bills_payment(bill_id, value_type, payment_date, payment_mode, amount, currency,
+                                                   created_at, created_by, updated_at, updated_by)
+    VALUES (billId, valueType, paymentDate, paymentMode, amount, currency,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccountsbillspayment(billid uuid, valuetype character varying, paymentdate date, paymentmode character varying, amount double precision, currency character varying) OWNER TO test;
+
+--
+-- Name: addcreditcardaccountsbillswithid(uuid, uuid, date, double precision, character varying, double precision, character varying, boolean); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccountsbillswithid(creditcardaccountid uuid, billid uuid, duedate date, billtotalamount double precision, billtotalamountcurrency character varying, billminimumamount double precision, billminimumamountcurrency character varying, isinstalment boolean) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+INSERT INTO credit_card_accounts_bills(credit_card_account_id, bill_id, due_date, bill_total_amount,
+                                       bill_total_amount_currency, bill_minimum_amount, bill_minimum_amount_currency,
+                                       is_instalment,
+                                       created_at, created_by, updated_at, updated_by)
+    VALUES (creditCardAccountId, billId, dueDate, billTotalAmount, billTotalAmountCurrency, billMinimumAmount,
+            billMinimumAmountCurrency, isInstalment,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING bill_id
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccountsbillswithid(creditcardaccountid uuid, billid uuid, duedate date, billtotalamount double precision, billtotalamountcurrency character varying, billminimumamount double precision, billminimumamountcurrency character varying, isinstalment boolean) OWNER TO test;
+
+--
+-- Name: addcreditcardaccountslimits(uuid, character varying, character varying, character varying, character varying, character varying, boolean, character varying, double precision, character varying, double precision, character varying, double precision); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccountslimits(creditcardaccountid uuid, creditlinelimittype character varying, consolidationtype character varying, identificationnumber character varying, linename character varying, linenameadditionalinfo character varying, islimitflexible boolean, limitamountcurrency character varying, limitamount double precision, usedamountcurrency character varying, usedamount double precision, availableamountcurrency character varying, availableamount double precision) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO credit_card_accounts_limits(credit_card_account_id, credit_line_limit_type, consolidation_type,
+                                            identification_number, line_name, line_name_additional_info,
+                                            is_limit_flexible, limit_amount_currency, limit_amount, used_amount_currency,
+                                            used_amount, available_amount_currency, available_amount,
+                                            created_at, created_by, updated_at, updated_by)
+    VALUES (creditCardAccountId, creditLineLimitType, consolidationType, identificationNumber, lineName,
+            lineNameAdditionalInfo, isLimitFlexible, limitAmountCurrency, limitAmount, usedAmountCurrency, usedAmount,
+            availableAmountCurrency, availableAmount,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccountslimits(creditcardaccountid uuid, creditlinelimittype character varying, consolidationtype character varying, identificationnumber character varying, linename character varying, linenameadditionalinfo character varying, islimitflexible boolean, limitamountcurrency character varying, limitamount double precision, usedamountcurrency character varying, usedamount double precision, availableamountcurrency character varying, availableamount double precision) OWNER TO test;
+
+--
+-- Name: addcreditcardaccountstransaction(uuid, uuid, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, bigint, double precision, double precision, character varying, date, date, bigint); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccountstransaction(creditcardaccountid uuid, billid uuid, identificationnumber character varying, linename character varying, transactionname character varying, creditdebittype character varying, transactiontype character varying, transactionaladditionalinfo character varying, paymenttype character varying, feetype character varying, feetypeadditionalinfo character varying, othercreditstype character varying, othercreditsadditionalinfo character varying, chargeidentificator character varying, chargenumber bigint, brazilianamount double precision, amount double precision, currency character varying, transactiondate date, billpostdate date, payeemcc bigint) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO credit_card_accounts_transaction(credit_card_account_id, bill_id, identification_number, line_name,
+                                                 transaction_name, credit_debit_type, transaction_type,
+                                                 transactional_additional_info, payment_type, fee_type,
+                                                 fee_type_additional_info, other_credits_type,
+                                                 other_credits_additional_info, charge_identificator, charge_number,
+                                                 brazilian_amount, amount, currency, transaction_date, bill_post_date,
+                                                 payee_mcc,
+                                                 created_at, created_by, updated_at, updated_by)
+    VALUES (creditCardAccountId, billId, identificationNumber, lineName, transactionName, creditDebitType,
+            transactionType, transactionalAdditionalInfo, paymentType, feeType, feeTypeAdditionalInfo, otherCreditsType,
+            otherCreditsAdditionalInfo, chargeIdentificator, chargeNumber, brazilianAmount, amount, currency,
+            transactionDate, billPostDate, payeeMCC,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccountstransaction(creditcardaccountid uuid, billid uuid, identificationnumber character varying, linename character varying, transactionname character varying, creditdebittype character varying, transactiontype character varying, transactionaladditionalinfo character varying, paymenttype character varying, feetype character varying, feetypeadditionalinfo character varying, othercreditstype character varying, othercreditsadditionalinfo character varying, chargeidentificator character varying, chargenumber bigint, brazilianamount double precision, amount double precision, currency character varying, transactiondate date, billpostdate date, payeemcc bigint) OWNER TO test;
+
+--
+-- Name: addcreditcardaccountstransactionwithid(uuid, uuid, uuid, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, bigint, double precision, double precision, character varying, date, date, bigint); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccountstransactionwithid(creditcardaccountid uuid, billid uuid, transactionid uuid, identificationnumber character varying, linename character varying, transactionname character varying, creditdebittype character varying, transactiontype character varying, transactionaladditionalinfo character varying, paymenttype character varying, feetype character varying, feetypeadditionalinfo character varying, othercreditstype character varying, othercreditsadditionalinfo character varying, chargeidentificator character varying, chargenumber bigint, brazilianamount double precision, amount double precision, currency character varying, transactiondate date, billpostdate date, payeemcc bigint) RETURNS void
+    LANGUAGE sql
+    AS $$
+INSERT INTO credit_card_accounts_transaction(credit_card_account_id, bill_id, transaction_id, identification_number,
+                                             line_name, transaction_name, credit_debit_type, transaction_type,
+                                             transactional_additional_info, payment_type, fee_type,
+                                             fee_type_additional_info, other_credits_type, other_credits_additional_info,
+                                             charge_identificator, charge_number, brazilian_amount, amount, currency,
+                                             transaction_date, bill_post_date, payee_mcc,
+                                             created_at, created_by, updated_at, updated_by)
+    VALUES (creditCardAccountId, billId, transactionId, identificationNumber, lineName, transactionName, creditDebitType,
+            transactionType, transactionalAdditionalInfo, paymentType, feeType, feeTypeAdditionalInfo, otherCreditsType,
+            otherCreditsAdditionalInfo, chargeIdentificator, chargeNumber, brazilianAmount, amount, currency, transactionDate,
+            billPostDate, payeeMCC,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccountstransactionwithid(creditcardaccountid uuid, billid uuid, transactionid uuid, identificationnumber character varying, linename character varying, transactionname character varying, creditdebittype character varying, transactiontype character varying, transactionaladditionalinfo character varying, paymenttype character varying, feetype character varying, feetypeadditionalinfo character varying, othercreditstype character varying, othercreditsadditionalinfo character varying, chargeidentificator character varying, chargenumber bigint, brazilianamount double precision, amount double precision, currency character varying, transactiondate date, billpostdate date, payeemcc bigint) OWNER TO test;
+
+--
+-- Name: addcreditcardaccountswithid(character varying, uuid, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardaccountswithid(docid character varying, creditcardaccountid uuid, brandname character varying, companycnpj character varying, name character varying, producttype character varying, productadditionalinfo character varying, creditcardnetwork character varying, networkadditionalinfo character varying, status character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+INSERT INTO credit_card_accounts(brand_name, credit_card_account_id, company_cnpj, name, product_type,
+                                 product_additional_info, credit_card_network, network_additional_info, status,
+                                 account_holder_id,
+                                 created_at, created_by, updated_at, updated_by)
+    VALUES (brandName, creditCardAccountId, companyCnpj, name, productType, productAdditionalInfo, creditCardNetwork,
+            networkAdditionalInfo, status, getAccountHolderId(docId),
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING credit_card_account_id
+$$;
+
+
+ALTER FUNCTION public.addcreditcardaccountswithid(docid character varying, creditcardaccountid uuid, brandname character varying, companycnpj character varying, name character varying, producttype character varying, productadditionalinfo character varying, creditcardnetwork character varying, networkadditionalinfo character varying, status character varying) OWNER TO test;
+
+--
+-- Name: addcreditcardsaccountpaymentmethod(uuid, character varying, boolean); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addcreditcardsaccountpaymentmethod(creditcardaccountid uuid, identificationnumber character varying, ismultiplecreditcard boolean) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO credit_cards_account_payment_method(credit_card_account_id, identification_number,
+                                                    is_multiple_credit_card,
+                                                    created_at, created_by, updated_at, updated_by)
+    VALUES (creditCardAccountId, identificationNumber, isMultipleCreditCard,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addcreditcardsaccountpaymentmethod(creditcardaccountid uuid, identificationnumber character varying, ismultiplecreditcard boolean) OWNER TO test;
+
+--
+-- Name: addoverparcelcharge(uuid, character varying, character varying, double precision); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addoverparcelcharge(releasesid uuid, chargetype character varying, chargeadditionalinfo character varying, chargeamount double precision) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO over_parcel_charges (releases_id, charge_type, charge_additional_info, charge_amount,
+                                  created_at, created_by, updated_at, updated_by)
+    VALUES (releasesId, chargeType, chargeAdditionalInfo, chargeAmount,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addoverparcelcharge(releasesid uuid, chargetype character varying, chargeadditionalinfo character varying, chargeamount double precision) OWNER TO test;
+
+--
+-- Name: addoverparcelfee(uuid, character varying, character varying, double precision); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addoverparcelfee(releasesid uuid, feename character varying, feecode character varying, feeamount double precision) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO over_parcel_fees (releases_id, fee_name, fee_code, fee_amount,
+                                  created_at, created_by, updated_at, updated_by)
+    VALUES (releasesId, feeName, feeCode, feeAmount,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addoverparcelfee(releasesid uuid, feename character varying, feecode character varying, feeamount double precision) OWNER TO test;
+
+--
+-- Name: addpersonalemails(uuid, boolean, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalemails(personalid uuid, ismain boolean, email character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_emails(personal_identifications_id, is_main, email,
+                                created_at, created_by, updated_at, updated_by)
+    VALUES (personalId, isMain, email,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE');
+$$;
+
+
+ALTER FUNCTION public.addpersonalemails(personalid uuid, ismain boolean, email character varying) OWNER TO test;
+
+--
+-- Name: addpersonalfiliation(uuid, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalfiliation(personalidentificationsid uuid, type character varying, civilname character varying, socialname character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_filiation (personal_identifications_id, type, civil_name, social_name,
+                                    created_at, created_by, updated_at, updated_by)
+    VALUES (personalIdentificationsId, type, civilName, socialName,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addpersonalfiliation(personalidentificationsid uuid, type character varying, civilname character varying, socialname character varying) OWNER TO test;
+
+--
+-- Name: addpersonalfinancialrelations(character varying, timestamp without time zone, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalfinancialrelations(docid character varying, startdate timestamp without time zone, additional character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_financial_relations (account_holder_id, start_date, products_services_type_additional_info,
+                                              created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), startDate, additional,
+        NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING personal_financial_relations_id
+$$;
+
+
+ALTER FUNCTION public.addpersonalfinancialrelations(docid character varying, startdate timestamp without time zone, additional character varying) OWNER TO test;
+
+--
+-- Name: addpersonalfinancialrelationsprocurator(character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalfinancialrelationsprocurator(docid character varying, type character varying, cpf character varying, civilname character varying, socialname character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_financial_relations_procurators (personal_financial_relations_id, type, cpf_number, civil_name,
+                                                          social_name,
+                                                          created_at, created_by, updated_at, updated_by)
+    VALUES (getPersonalFinancialRelationsId(docId), type, cpf, civilName, socialName,
+        NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addpersonalfinancialrelationsprocurator(docid character varying, type character varying, cpf character varying, civilname character varying, socialname character varying) OWNER TO test;
+
+--
+-- Name: addpersonalfinancialrelationsproductservicestype(character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalfinancialrelationsproductservicestype(docid character varying, type character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_financial_relations_products_services_type (personal_financial_relations_id, type,
+                                                                     created_at, created_by, updated_at, updated_by)
+    VALUES (getPersonalFinancialRelationsId(docId), type,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addpersonalfinancialrelationsproductservicestype(docid character varying, type character varying) OWNER TO test;
+
+--
+-- Name: addpersonalidentifications(character varying, character varying, character varying, character varying, date, character varying, character varying, character varying, boolean, character varying, character varying, character varying, date, date); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalidentifications(docid character varying, brandname character varying, civilname character varying, socialname character varying, birthdate date, maritalstatuscode character varying, maritalstatusadditionalinfo character varying, sex character varying, hasbraziliannationality boolean, cpfnumber character varying, passportnumber character varying, passportcountry character varying, passportexpirationdate date, passportissuedate date) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_identifications (account_holder_id, brand_name, civil_name, social_name, birth_date,
+                                          marital_status_code, marital_status_additional_info, sex,
+                                          has_brazilian_nationality, cpf_number, passport_number, passport_country,
+                                          passport_expiration_date, passport_issue_date,
+                                          created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId),brandName, civilName, socialName, birthDate, maritalStatusCode,
+            maritalStatusAdditionalInfo, sex, hasBrazilianNationality, cpfNumber, passportNumber,
+            passportCountry, passportExpirationDate, passportIssueDate,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING personal_identifications_id
+$$;
+
+
+ALTER FUNCTION public.addpersonalidentifications(docid character varying, brandname character varying, civilname character varying, socialname character varying, birthdate date, maritalstatuscode character varying, maritalstatusadditionalinfo character varying, sex character varying, hasbraziliannationality boolean, cpfnumber character varying, passportnumber character varying, passportcountry character varying, passportexpirationdate date, passportissuedate date) OWNER TO test;
+
+--
+-- Name: addpersonalidentificationscompanycnpj(uuid, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalidentificationscompanycnpj(personalidentificationsid uuid, companycnpj character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_identifications_company_cnpj (personal_identifications_id, company_cnpj,
+                                                     created_at, created_by, updated_at, updated_by)
+    VALUES (personalIdentificationsId, companyCnpj,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addpersonalidentificationscompanycnpj(personalidentificationsid uuid, companycnpj character varying) OWNER TO test;
+
+--
+-- Name: addpersonalidentificationsnationality(uuid, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalidentificationsnationality(personalidentificationsid uuid, othernationalitiesinfo character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_nationality (personal_identifications_id, other_nationalities_info,
+                                          created_at, created_by, updated_at, updated_by)
+    VALUES (personalIdentificationsId, otherNationalitiesInfo,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING personal_nationality_id
+$$;
+
+
+ALTER FUNCTION public.addpersonalidentificationsnationality(personalidentificationsid uuid, othernationalitiesinfo character varying) OWNER TO test;
+
+--
+-- Name: addpersonalidentificationsnationalitydocument(uuid, character varying, character varying, date, date, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalidentificationsnationalitydocument(personalnationalityid uuid, doctype character varying, number character varying, expirationdate date, issuedate date, country character varying, typeadditionalinfo character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_nationality_documents (personal_nationality_id, type, number, expiration_date, issue_date,
+                                                country, type_additional_info,
+                                                created_at, created_by, updated_at, updated_by)
+    VALUES (personalNationalityId, docType, number, expirationDate, issueDate, country, typeAdditionalInfo,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addpersonalidentificationsnationalitydocument(personalnationalityid uuid, doctype character varying, number character varying, expirationdate date, issuedate date, country character varying, typeadditionalinfo character varying) OWNER TO test;
+
+--
+-- Name: addpersonalidentificationsotherdocuments(uuid, character varying, character varying, character varying, character varying, character varying, date); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalidentificationsotherdocuments(personalidentificationsid uuid, type character varying, typeadditionalinfo character varying, number character varying, checkdigit character varying, additionalinfo character varying, expirationdate date) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_other_documents (personal_identifications_id, type, type_additional_info, number, check_digit,
+                                          additional_info, expiration_date,
+                                          created_at, created_by, updated_at, updated_by)
+    VALUES (personalIdentificationsId, type, typeAdditionalInfo, number, checkDigit, additionalInfo, expirationDate,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addpersonalidentificationsotherdocuments(personalidentificationsid uuid, type character varying, typeadditionalinfo character varying, number character varying, checkdigit character varying, additionalinfo character varying, expirationdate date) OWNER TO test;
+
+--
+-- Name: addpersonalidentificationswithid(character varying, uuid, character varying, character varying, character varying, date, character varying, character varying, character varying, boolean, character varying, character varying, character varying, date, date); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalidentificationswithid(docid character varying, personalidentificationsid uuid, brandname character varying, civilname character varying, socialname character varying, birthdate date, maritalstatuscode character varying, maritalstatusadditionalinfo character varying, sex character varying, hasbraziliannationality boolean, cpfnumber character varying, passportnumber character varying, passportcountry character varying, passportexpirationdate date, passportissuedate date) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_identifications (account_holder_id, personal_identifications_id, brand_name, civil_name,
+                                      social_name, birth_date, marital_status_code, marital_status_additional_info, sex,
+                                      has_brazilian_nationality, cpf_number, passport_number, passport_country,
+                                      passport_expiration_date, passport_issue_date,
+                                      created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), personalIdentificationsId, brandName, civilName, socialName, birthDate,
+        maritalStatusCode, maritalStatusAdditionalInfo, sex, hasBrazilianNationality, cpfNumber, passportNumber,
+        passportCountry, passportExpirationDate, passportIssueDate,
+        NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING personal_identifications_id
+$$;
+
+
+ALTER FUNCTION public.addpersonalidentificationswithid(docid character varying, personalidentificationsid uuid, brandname character varying, civilname character varying, socialname character varying, birthdate date, maritalstatuscode character varying, maritalstatusadditionalinfo character varying, sex character varying, hasbraziliannationality boolean, cpfnumber character varying, passportnumber character varying, passportcountry character varying, passportexpirationdate date, passportissuedate date) OWNER TO test;
+
+--
+-- Name: addpersonalphones(uuid, boolean, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalphones(personalid uuid, ismain boolean, type character varying, additionalinfo character varying, countrycallingcode character varying, areacode character varying, number character varying, phoneextension character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_phones(personal_identifications_id, is_main, type, additional_info, country_calling_code,
+                                area_code, number, phone_extension,
+                                created_at, created_by, updated_at, updated_by)
+    VALUES (personalId, isMain, type, additionalInfo, countryCallingCode, areaCode, number, phoneExtension,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE');
+$$;
+
+
+ALTER FUNCTION public.addpersonalphones(personalid uuid, ismain boolean, type character varying, additionalinfo character varying, countrycallingcode character varying, areacode character varying, number character varying, phoneextension character varying) OWNER TO test;
+
+--
+-- Name: addpersonalpostaladdresses(uuid, boolean, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying, character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalpostaladdresses(personalid uuid, ismain boolean, address character varying, additional_info character varying, districtname character varying, townname character varying, ibgetowncode character varying, countrysubdivision character varying, postcode character varying, country character varying, countrycode character varying, latitude character varying, longitude character varying) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_postal_addresses (personal_identifications_id, is_main, address, additional_info, district_name,
+                                           town_name, ibge_town_code, country_subdivision, post_code, country,
+                                           country_code, latitude, longitude,
+                                           created_at, created_by, updated_at, updated_by)
+    VALUES (personalId, isMain, address, additional_info, districtName, townName, ibgeTownCode, countrySubdivision,
+            postCode, country, countryCode, latitude, longitude,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE');
+$$;
+
+
+ALTER FUNCTION public.addpersonalpostaladdresses(personalid uuid, ismain boolean, address character varying, additional_info character varying, districtname character varying, townname character varying, ibgetowncode character varying, countrysubdivision character varying, postcode character varying, country character varying, countrycode character varying, latitude character varying, longitude character varying) OWNER TO test;
+
+--
+-- Name: addpersonalqualifications(character varying, character varying, character varying, character varying, character varying, numeric, character varying, date, numeric, character varying, integer); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addpersonalqualifications(docid character varying, companycnpj character varying, occupationcode character varying, occupationdescription character varying, informedincomefrequency character varying, informedincomeamount numeric, informedincomecurrency character varying, informedincomedate date, informedpatrimonyamount numeric, informedpatrimonycurrency character varying, informedpatrimonyyear integer) RETURNS void
+    LANGUAGE sql
+    AS $$
+    INSERT INTO personal_qualifications (account_holder_id, company_cnpj, occupation_code, occupation_description,
+                                         informed_income_frequency, informed_income_amount, informed_income_currency,
+                                         informed_income_date, informed_patrimony_amount, informed_patrimony_currency,
+                                         informed_patrimony_year,
+                                         created_at, created_by, updated_at, updated_by)
+    VALUES (getAccountHolderId(docId), companyCnpj, occupationCode, occupationDescription, informedIncomeFrequency,
+            informedIncomeAmount, informedIncomeCurrency, informedIncomeDate, informedPatrimonyAmount,
+            informedPatrimonyCurrency, informedPatrimonyYear,
+        NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+$$;
+
+
+ALTER FUNCTION public.addpersonalqualifications(docid character varying, companycnpj character varying, occupationcode character varying, occupationdescription character varying, informedincomefrequency character varying, informedincomeamount numeric, informedincomecurrency character varying, informedincomedate date, informedpatrimonyamount numeric, informedpatrimonycurrency character varying, informedpatrimonyyear integer) OWNER TO test;
+
+--
+-- Name: addreleases(uuid, uuid, boolean, character varying, character varying, character varying, double precision); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.addreleases(contractid uuid, paymentsid uuid, isoverparcelpayment boolean, instalmentid character varying, paiddate character varying, currency character varying, paidamount double precision) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    INSERT INTO releases (contract_id, payments_id, is_over_parcel_payment, instalment_id,
+                          paid_date, currency, paid_amount,
+                          created_at, created_by, updated_at, updated_by)
+    VALUES (contractId, paymentsId, isOverParcelPayment, instalmentId, paidDate,currency, paidAmount,
+            NOW(), 'PREPOPULATE', NOW(), 'PREPOPULATE')
+    RETURNING releases_id
+$$;
+
+
+ALTER FUNCTION public.addreleases(contractid uuid, paymentsid uuid, isoverparcelpayment boolean, instalmentid character varying, paiddate character varying, currency character varying, paidamount double precision) OWNER TO test;
+
+--
+-- Name: getaccountholderid(character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.getaccountholderid(docid character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    SELECT account_holder_id FROM account_holders WHERE document_identification = docId;
+$$;
+
+
+ALTER FUNCTION public.getaccountholderid(docid character varying) OWNER TO test;
+
+--
+-- Name: getbusinessfinancialrelationsid(character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.getbusinessfinancialrelationsid(docid character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    -- works as this is a 1:1 relation with accountholder
+    SELECT business_financial_relations_id FROM business_financial_relations WHERE account_holder_id = getAccountHolderId(docId) LIMIT 1;
+$$;
+
+
+ALTER FUNCTION public.getbusinessfinancialrelationsid(docid character varying) OWNER TO test;
+
+--
+-- Name: getpersonalfinancialrelationsid(character varying); Type: FUNCTION; Schema: public; Owner: test
+--
+
+CREATE FUNCTION public.getpersonalfinancialrelationsid(docid character varying) RETURNS uuid
+    LANGUAGE sql
+    AS $$
+    -- works as this is a 1:1 relation with accountholder
+    SELECT personal_financial_relations_id FROM personal_financial_relations WHERE account_holder_id = getAccountHolderId(docId) LIMIT 1;
+$$;
+
+
+ALTER FUNCTION public.getpersonalfinancialrelationsid(docid character varying) OWNER TO test;
+
 SET default_tablespace = '';
 
-SET default_with_oids = false;
+SET default_table_access_method = heap;
 
 --
 -- Name: account_holders; Type: TABLE; Schema: public; Owner: test
@@ -398,66 +1465,6 @@ ALTER TABLE public.business_emails_reference_id_seq OWNER TO test;
 --
 
 ALTER SEQUENCE public.business_emails_reference_id_seq OWNED BY public.business_emails.reference_id;
-
-
---
--- Name: business_entity_documents; Type: TABLE; Schema: public; Owner: test
---
-
-CREATE TABLE public.business_entity_documents (
-    business_entity_document_id integer NOT NULL,
-    identification character varying,
-    rel character varying,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    hibernate_status character varying,
-    created_by character varying,
-    updated_by character varying
-);
-
-
-ALTER TABLE public.business_entity_documents OWNER TO test;
-
---
--- Name: business_entity_documents_aud; Type: TABLE; Schema: public; Owner: test
---
-
-CREATE TABLE public.business_entity_documents_aud (
-    business_entity_document_id integer NOT NULL,
-    identification character varying,
-    rel character varying,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    hibernate_status character varying,
-    rev integer NOT NULL,
-    revtype smallint,
-    created_by character varying,
-    updated_by character varying
-);
-
-
-ALTER TABLE public.business_entity_documents_aud OWNER TO test;
-
---
--- Name: business_entity_documents_business_entity_document_id_seq; Type: SEQUENCE; Schema: public; Owner: test
---
-
-CREATE SEQUENCE public.business_entity_documents_business_entity_document_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.business_entity_documents_business_entity_document_id_seq OWNER TO test;
-
---
--- Name: business_entity_documents_business_entity_document_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: test
---
-
-ALTER SEQUENCE public.business_entity_documents_business_entity_document_id_seq OWNED BY public.business_entity_documents.business_entity_document_id;
 
 
 --
@@ -1481,9 +2488,10 @@ CREATE TABLE public.consents (
     hibernate_status character varying,
     created_by character varying,
     updated_by character varying,
-    business_entity_document_id integer,
     consent_id text,
-    account_holder_id uuid
+    account_holder_id uuid,
+    business_document_identification character varying,
+    business_document_rel character varying
 );
 
 
@@ -1510,57 +2518,14 @@ CREATE TABLE public.consents_aud (
     updated_by character varying,
     rev integer NOT NULL,
     revtype smallint,
-    business_entity_document_id integer,
     consent_id text,
-    account_holder_id uuid
+    account_holder_id uuid,
+    business_document_identification character varying,
+    business_document_rel character varying
 );
 
 
 ALTER TABLE public.consents_aud OWNER TO test;
-
---
--- Name: consents_aud_business_entity_document_id_seq; Type: SEQUENCE; Schema: public; Owner: test
---
-
-CREATE SEQUENCE public.consents_aud_business_entity_document_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.consents_aud_business_entity_document_id_seq OWNER TO test;
-
---
--- Name: consents_aud_business_entity_document_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: test
---
-
-ALTER SEQUENCE public.consents_aud_business_entity_document_id_seq OWNED BY public.consents_aud.business_entity_document_id;
-
-
---
--- Name: consents_business_entity_document_id_seq; Type: SEQUENCE; Schema: public; Owner: test
---
-
-CREATE SEQUENCE public.consents_business_entity_document_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.consents_business_entity_document_id_seq OWNER TO test;
-
---
--- Name: consents_business_entity_document_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: test
---
-
-ALTER SEQUENCE public.consents_business_entity_document_id_seq OWNED BY public.consents.business_entity_document_id;
-
 
 --
 -- Name: consents_reference_id_seq; Type: SEQUENCE; Schema: public; Owner: test
@@ -2740,7 +3705,6 @@ CREATE TABLE public.payment_consents (
     payment_consent_id character varying,
     client_id character varying,
     status character varying,
-    business_entity_document_id integer,
     creditor_id integer,
     payment_id integer,
     creation_date_time timestamp without time zone,
@@ -2753,7 +3717,9 @@ CREATE TABLE public.payment_consents (
     created_by character varying,
     updated_by character varying,
     account_holder_id uuid,
-    account_id uuid
+    account_id uuid,
+    business_document_identification character varying,
+    business_document_rel character varying
 );
 
 
@@ -2768,7 +3734,6 @@ CREATE TABLE public.payment_consents_aud (
     payment_consent_id character varying,
     client_id character varying,
     status character varying,
-    business_entity_document_id integer,
     creditor_id integer,
     payment_id integer,
     creation_date_time timestamp without time zone,
@@ -2783,7 +3748,9 @@ CREATE TABLE public.payment_consents_aud (
     rev integer NOT NULL,
     revtype smallint,
     account_holder_id uuid,
-    account_id uuid
+    account_id uuid,
+    business_document_identification character varying,
+    business_document_rel character varying
 );
 
 
@@ -2810,6 +3777,54 @@ ALTER TABLE public.payment_consents_reference_id_seq OWNER TO test;
 
 ALTER SEQUENCE public.payment_consents_reference_id_seq OWNED BY public.payment_consents.reference_id;
 
+
+--
+-- Name: payments_simulate_response; Type: TABLE; Schema: public; Owner: test
+--
+
+CREATE TABLE public.payments_simulate_response (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    client_id character varying NOT NULL,
+    payment_consent_id character varying,
+    request_time timestamp without time zone NOT NULL,
+    request_end_time timestamp without time zone NOT NULL,
+    http_status character varying,
+    http_error_message character varying,
+    duration integer,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    hibernate_status character varying,
+    created_by character varying,
+    updated_by character varying
+);
+
+
+ALTER TABLE public.payments_simulate_response OWNER TO test;
+
+--
+-- Name: payments_simulate_response_aud; Type: TABLE; Schema: public; Owner: test
+--
+
+CREATE TABLE public.payments_simulate_response_aud (
+    id uuid NOT NULL,
+    client_id character varying,
+    payment_consent_id character varying,
+    http_status character varying,
+    http_error_message character varying,
+    duration integer,
+    request_time timestamp without time zone,
+    request_end_time timestamp without time zone,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    hibernate_status character varying,
+    created_by character varying,
+    updated_by character varying,
+    rev integer NOT NULL,
+    revtype smallint
+);
+
+
+ALTER TABLE public.payments_simulate_response_aud OWNER TO test;
 
 --
 -- Name: personal_emails; Type: TABLE; Schema: public; Owner: test
@@ -3728,12 +4743,15 @@ CREATE TABLE public.pix_payments (
     rejection_reason character varying,
     idempotency_key character varying,
     payment_consent_id character varying,
+    transaction_identification character varying,
+    end_to_end_id character varying,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     hibernate_status character varying,
     created_by character varying,
     updated_by character varying,
-    transaction_identification character varying
+    cancellation_reason character varying,
+    cancellation_from character varying
 );
 
 
@@ -3758,14 +4776,17 @@ CREATE TABLE public.pix_payments_aud (
     rejection_reason character varying,
     idempotency_key character varying,
     payment_consent_id character varying,
+    transaction_identification character varying,
+    end_to_end_id character varying,
+    rev integer NOT NULL,
+    revtype smallint,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     hibernate_status character varying,
     created_by character varying,
     updated_by character varying,
-    rev integer NOT NULL,
-    revtype smallint,
-    transaction_identification character varying
+    cancellation_reason character varying,
+    cancellation_from character varying
 );
 
 
@@ -3987,13 +5008,6 @@ ALTER TABLE ONLY public.business_emails ALTER COLUMN reference_id SET DEFAULT ne
 
 
 --
--- Name: business_entity_documents business_entity_document_id; Type: DEFAULT; Schema: public; Owner: test
---
-
-ALTER TABLE ONLY public.business_entity_documents ALTER COLUMN business_entity_document_id SET DEFAULT nextval('public.business_entity_documents_business_entity_document_id_seq'::regclass);
-
-
---
 -- Name: business_financial_relations reference_id; Type: DEFAULT; Schema: public; Owner: test
 --
 
@@ -4103,20 +5117,6 @@ ALTER TABLE ONLY public.consent_permissions ALTER COLUMN reference_id SET DEFAUL
 --
 
 ALTER TABLE ONLY public.consents ALTER COLUMN reference_id SET DEFAULT nextval('public.consents_reference_id_seq'::regclass);
-
-
---
--- Name: consents business_entity_document_id; Type: DEFAULT; Schema: public; Owner: test
---
-
-ALTER TABLE ONLY public.consents ALTER COLUMN business_entity_document_id SET DEFAULT nextval('public.consents_business_entity_document_id_seq'::regclass);
-
-
---
--- Name: consents_aud business_entity_document_id; Type: DEFAULT; Schema: public; Owner: test
---
-
-ALTER TABLE ONLY public.consents_aud ALTER COLUMN business_entity_document_id SET DEFAULT nextval('public.consents_aud_business_entity_document_id_seq'::regclass);
 
 
 --
@@ -4375,22 +5375,6 @@ COPY public.business_emails_aud (reference_id, business_identifications_id, is_m
 
 
 --
--- Data for Name: business_entity_documents; Type: TABLE DATA; Schema: public; Owner: test
---
-
-COPY public.business_entity_documents (business_entity_document_id, identification, rel, created_at, updated_at, hibernate_status, created_by, updated_by) FROM stdin;
-\.
-
-
---
--- Data for Name: business_entity_documents_aud; Type: TABLE DATA; Schema: public; Owner: test
---
-
-COPY public.business_entity_documents_aud (business_entity_document_id, identification, rel, created_at, updated_at, hibernate_status, rev, revtype, created_by, updated_by) FROM stdin;
-\.
-
-
---
 -- Data for Name: business_financial_relations; Type: TABLE DATA; Schema: public; Owner: test
 --
 
@@ -4634,7 +5618,7 @@ COPY public.consent_permissions_aud (reference_id, permission, consent_id, creat
 -- Data for Name: consents; Type: TABLE DATA; Schema: public; Owner: test
 --
 
-COPY public.consents (reference_id, expiration_date_time, transaction_from_date_time, transaction_to_date_time, creation_date_time, status_update_date_time, status, client_id, created_at, updated_at, hibernate_status, created_by, updated_by, business_entity_document_id, consent_id, account_holder_id) FROM stdin;
+COPY public.consents (reference_id, expiration_date_time, transaction_from_date_time, transaction_to_date_time, creation_date_time, status_update_date_time, status, client_id, created_at, updated_at, hibernate_status, created_by, updated_by, consent_id, account_holder_id, business_document_identification, business_document_rel) FROM stdin;
 \.
 
 
@@ -4642,7 +5626,7 @@ COPY public.consents (reference_id, expiration_date_time, transaction_from_date_
 -- Data for Name: consents_aud; Type: TABLE DATA; Schema: public; Owner: test
 --
 
-COPY public.consents_aud (reference_id, expiration_date_time, transaction_from_date_time, transaction_to_date_time, creation_date_time, status_update_date_time, status, risk, client_id, created_at, updated_at, hibernate_status, created_by, updated_by, rev, revtype, business_entity_document_id, consent_id, account_holder_id) FROM stdin;
+COPY public.consents_aud (reference_id, expiration_date_time, transaction_from_date_time, transaction_to_date_time, creation_date_time, status_update_date_time, status, risk, client_id, created_at, updated_at, hibernate_status, created_by, updated_by, rev, revtype, consent_id, account_holder_id, business_document_identification, business_document_rel) FROM stdin;
 \.
 
 
@@ -4843,33 +5827,37 @@ COPY public.creditors_aud (creditor_id, person_type, cpf_cnpj, name, created_at,
 --
 
 COPY public.flyway_schema_history (installed_rank, version, description, type, script, checksum, installed_by, installed_on, execution_time, success) FROM stdin;
-1	1	bank db init	SQL	V1__bank_db_init.sql	-797840297	test	2022-05-24 08:36:57.934346	16	t
-2	2	use obb consents	SQL	V2__use_obb_consents.sql	1974840662	test	2022-05-24 08:36:57.959551	12	t
-3	3	make business entities optional	SQL	V3__make_business_entities_optional.sql	184549556	test	2022-05-24 08:36:57.976929	1	t
-4	4	add linked account ids	SQL	V4__add_linked_account_ids.sql	-729410023	test	2022-05-24 08:36:57.98266	1	t
-5	5	add consent id temp column	SQL	V5__add_consent_id_temp_column.sql	-896513137	test	2022-05-24 08:36:57.987432	2	t
-6	6	ConsentIdMigration	JDBC	db.migration.V6__ConsentIdMigration	64984658	test	2022-05-24 08:36:58.000266	10	t
-7	7	MigrateExistingPermissions	JDBC	db.migration.V7__MigrateExistingPermissions	4978491	test	2022-05-24 08:36:58.01128	8	t
-8	8	rename new consent id	SQL	V8__rename_new_consent_id.sql	-907289308	test	2022-05-24 08:36:58.015633	5	t
-9	9	add payments tables	SQL	V9__add_payments_tables.sql	319106568	test	2022-05-24 08:36:58.025927	15	t
-10	10	add payment consent details table	SQL	V10__add_payment_consent_details_table.sql	1137821738	test	2022-05-24 08:36:58.04557	6	t
-11	11	add jti table	SQL	V11__add_jti_table.sql	-1940158719	test	2022-05-24 08:36:58.055813	1	t
-12	12	adding contracts tables	SQL	V12__adding_contracts_tables.sql	78805329	test	2022-05-24 08:36:58.063186	22	t
-13	13	add schedule column	SQL	V13__add_schedule_column.sql	153766538	test	2022-05-24 08:36:58.089532	1	t
-14	14	pix payment transaction identification	SQL	V14__pix_payment_transaction_identification.sql	1520780521	test	2022-05-24 08:36:58.093315	1	t
-15	15	add accounts entities	SQL	V15__add_accounts_entities.sql	477333927	test	2022-05-24 08:36:58.097604	7	t
-16	16	add owner ids	SQL	V16__add_owner_ids.sql	-1359388111	test	2022-05-24 08:36:58.107625	1	t
-17	17	fix user situation	SQL	V17__fix_user_situation.sql	-643275879	test	2022-05-24 08:36:58.114728	28	t
-18	18	fix consent accounts relation	SQL	V18__fix_consent_accounts_relation.sql	-1116214457	test	2022-05-24 08:36:58.14721	5	t
-19	19	add customer records	SQL	V19__add_customer_records.sql	1392635866	test	2022-05-24 08:36:58.162836	52	t
-20	20	fix contracts table	SQL	V20__fix_contracts_table.sql	-600222947	test	2022-05-24 08:36:58.220523	5	t
-21	21	add account transactions table	SQL	V21__add_account_transactions_table.sql	-655143683	test	2022-05-24 08:36:58.2292	3	t
-22	22	add username	SQL	V22__add_username.sql	-1871150235	test	2022-05-24 08:36:58.233857	1	t
-23	23	add credit card tables	SQL	V23__add_credit_card_tables.sql	-645762698	test	2022-05-24 08:36:58.239355	17	t
-24	24	fix payment consent	SQL	V24__fix_payment_consent.sql	-466542705	test	2022-05-24 08:36:58.258726	2	t
-25	25	fix credit rard transaction	SQL	V25__fix_credit_rard_transaction.sql	344352929	test	2022-05-24 08:36:58.263697	1	t
-26	26	multiple business cnpjs	SQL	V26__multiple_business_cnpjs.sql	1870985311	test	2022-05-24 08:36:58.266931	3	t
-27	27	add user sub	SQL	V27__add_user_sub.sql	-1294281799	test	2022-05-24 08:36:58.272082	0	t
+1	1	bank db init	SQL	V1__bank_db_init.sql	-797840297	test	2022-09-01 11:02:12.808325	38	t
+2	2	use obb consents	SQL	V2__use_obb_consents.sql	1974840662	test	2022-09-01 11:02:12.869027	31	t
+3	3	make business entities optional	SQL	V3__make_business_entities_optional.sql	184549556	test	2022-09-01 11:02:12.916253	8	t
+4	4	add linked account ids	SQL	V4__add_linked_account_ids.sql	-729410023	test	2022-09-01 11:02:12.939038	9	t
+5	5	add consent id temp column	SQL	V5__add_consent_id_temp_column.sql	-896513137	test	2022-09-01 11:02:12.963348	11	t
+6	6	ConsentIdMigration	JDBC	db.migration.V6__ConsentIdMigration	64984658	test	2022-09-01 11:02:13.017629	37	t
+7	7	MigrateExistingPermissions	JDBC	db.migration.V7__MigrateExistingPermissions	4978491	test	2022-09-01 11:02:13.066049	34	t
+8	8	rename new consent id	SQL	V8__rename_new_consent_id.sql	-907289308	test	2022-09-01 11:02:13.084991	20	t
+9	9	add payments tables	SQL	V9__add_payments_tables.sql	319106568	test	2022-09-01 11:02:13.125021	42	t
+10	10	add payment consent details table	SQL	V10__add_payment_consent_details_table.sql	1137821738	test	2022-09-01 11:02:13.183561	27	t
+11	11	add jti table	SQL	V11__add_jti_table.sql	-1940158719	test	2022-09-01 11:02:13.229145	11	t
+12	12	adding contracts tables	SQL	V12__adding_contracts_tables.sql	78805329	test	2022-09-01 11:02:13.269081	69	t
+13	13	add schedule column	SQL	V13__add_schedule_column.sql	153766538	test	2022-09-01 11:02:13.353996	10	t
+14	14	pix payment transaction identification	SQL	V14__pix_payment_transaction_identification.sql	1520780521	test	2022-09-01 11:02:13.377526	7	t
+15	15	add accounts entities	SQL	V15__add_accounts_entities.sql	477333927	test	2022-09-01 11:02:13.400985	25	t
+16	16	add owner ids	SQL	V16__add_owner_ids.sql	-1359388111	test	2022-09-01 11:02:13.440124	6	t
+17	17	fix user situation	SQL	V17__fix_user_situation.sql	-643275879	test	2022-09-01 11:02:13.465356	134	t
+18	18	fix consent accounts relation	SQL	V18__fix_consent_accounts_relation.sql	-1116214457	test	2022-09-01 11:02:13.614907	20	t
+19	19	add customer records	SQL	V19__add_customer_records.sql	1392635866	test	2022-09-01 11:02:13.662444	138	t
+20	20	fix contracts table	SQL	V20__fix_contracts_table.sql	-600222947	test	2022-09-01 11:02:13.872083	103	t
+21	21	add account transactions table	SQL	V21__add_account_transactions_table.sql	-655143683	test	2022-09-01 11:02:13.987801	11	t
+22	22	add username	SQL	V22__add_username.sql	-1871150235	test	2022-09-01 11:02:14.013139	8	t
+23	23	add credit card tables	SQL	V23__add_credit_card_tables.sql	-645762698	test	2022-09-01 11:02:14.037898	40	t
+24	24	fix payment consent	SQL	V24__fix_payment_consent.sql	-466542705	test	2022-09-01 11:02:14.089625	16	t
+25	25	fix credit rard transaction	SQL	V25__fix_credit_rard_transaction.sql	344352929	test	2022-09-01 11:02:14.116946	14	t
+26	26	multiple business cnpjs	SQL	V26__multiple_business_cnpjs.sql	1870985311	test	2022-09-01 11:02:14.146145	16	t
+27	27	add user sub	SQL	V27__add_user_sub.sql	-1294281799	test	2022-09-01 11:02:14.172626	6	t
+28	28	add payments forced response table	SQL	V28__add_payments_forced_response_table.sql	662221187	test	2022-09-01 11:02:14.189497	10	t
+29	29	ditch business entity	SQL	V29__ditch_business_entity.sql	-1403196391	test	2022-09-01 11:02:14.224403	28	t
+30	30	transactions unique id	SQL	V30__transactions_unique_id.sql	369232883	test	2022-09-01 11:02:14.264885	6	t
+31	31	pix payment add end to end id	SQL	V31__pix_payment_add_end_to_end_id.sql	-268667258	test	2022-09-01 11:02:14.28182	5	t
 \.
 
 
@@ -4981,7 +5969,7 @@ COPY public.payment_consent_payments_aud (payment_id, payment_type, payment_date
 -- Data for Name: payment_consents; Type: TABLE DATA; Schema: public; Owner: test
 --
 
-COPY public.payment_consents (reference_id, payment_consent_id, client_id, status, business_entity_document_id, creditor_id, payment_id, creation_date_time, expiration_date_time, status_update_date_time, idempotency_key, created_at, updated_at, hibernate_status, created_by, updated_by, account_holder_id, account_id) FROM stdin;
+COPY public.payment_consents (reference_id, payment_consent_id, client_id, status, creditor_id, payment_id, creation_date_time, expiration_date_time, status_update_date_time, idempotency_key, created_at, updated_at, hibernate_status, created_by, updated_by, account_holder_id, account_id, business_document_identification, business_document_rel) FROM stdin;
 \.
 
 
@@ -4989,7 +5977,23 @@ COPY public.payment_consents (reference_id, payment_consent_id, client_id, statu
 -- Data for Name: payment_consents_aud; Type: TABLE DATA; Schema: public; Owner: test
 --
 
-COPY public.payment_consents_aud (reference_id, payment_consent_id, client_id, status, business_entity_document_id, creditor_id, payment_id, creation_date_time, expiration_date_time, status_update_date_time, idempotency_key, created_at, updated_at, hibernate_status, created_by, updated_by, rev, revtype, account_holder_id, account_id) FROM stdin;
+COPY public.payment_consents_aud (reference_id, payment_consent_id, client_id, status, creditor_id, payment_id, creation_date_time, expiration_date_time, status_update_date_time, idempotency_key, created_at, updated_at, hibernate_status, created_by, updated_by, rev, revtype, account_holder_id, account_id, business_document_identification, business_document_rel) FROM stdin;
+\.
+
+
+--
+-- Data for Name: payments_simulate_response; Type: TABLE DATA; Schema: public; Owner: test
+--
+
+COPY public.payments_simulate_response (id, client_id, payment_consent_id, request_time, request_end_time, http_status, http_error_message, duration, created_at, updated_at, hibernate_status, created_by, updated_by) FROM stdin;
+\.
+
+
+--
+-- Data for Name: payments_simulate_response_aud; Type: TABLE DATA; Schema: public; Owner: test
+--
+
+COPY public.payments_simulate_response_aud (id, client_id, payment_consent_id, http_status, http_error_message, duration, request_time, request_end_time, created_at, updated_at, hibernate_status, created_by, updated_by, rev, revtype) FROM stdin;
 \.
 
 
@@ -5205,7 +6209,7 @@ COPY public.personal_qualifications_aud (reference_id, personal_qualifications_i
 -- Data for Name: pix_payments; Type: TABLE DATA; Schema: public; Owner: test
 --
 
-COPY public.pix_payments (reference_id, payment_id, local_instrument, pix_payment_id, creditor_account_id, remittance_information, qr_code, proxy, status, creation_date_time, status_update_date_time, rejection_reason, idempotency_key, payment_consent_id, created_at, updated_at, hibernate_status, created_by, updated_by, transaction_identification) FROM stdin;
+COPY public.pix_payments (reference_id, payment_id, local_instrument, pix_payment_id, creditor_account_id, remittance_information, qr_code, proxy, status, creation_date_time, status_update_date_time, rejection_reason, idempotency_key, payment_consent_id, transaction_identification, end_to_end_id, created_at, updated_at, hibernate_status, created_by, updated_by, cancellation_reason, cancellation_from) FROM stdin;
 \.
 
 
@@ -5213,7 +6217,7 @@ COPY public.pix_payments (reference_id, payment_id, local_instrument, pix_paymen
 -- Data for Name: pix_payments_aud; Type: TABLE DATA; Schema: public; Owner: test
 --
 
-COPY public.pix_payments_aud (reference_id, payment_id, local_instrument, pix_payment_id, creditor_account_id, remittance_information, qr_code, proxy, status, creation_date_time, status_update_date_time, rejection_reason, idempotency_key, payment_consent_id, created_at, updated_at, hibernate_status, created_by, updated_by, rev, revtype, transaction_identification) FROM stdin;
+COPY public.pix_payments_aud (reference_id, payment_id, local_instrument, pix_payment_id, creditor_account_id, remittance_information, qr_code, proxy, status, creation_date_time, status_update_date_time, rejection_reason, idempotency_key, payment_consent_id, transaction_identification, end_to_end_id, rev, revtype, created_at, updated_at, hibernate_status, created_by, updated_by, cancellation_reason, cancellation_from) FROM stdin;
 \.
 
 
@@ -5299,13 +6303,6 @@ SELECT pg_catalog.setval('public.accounts_reference_id_seq', 1, false);
 --
 
 SELECT pg_catalog.setval('public.business_emails_reference_id_seq', 1, false);
-
-
---
--- Name: business_entity_documents_business_entity_document_id_seq; Type: SEQUENCE SET; Schema: public; Owner: test
---
-
-SELECT pg_catalog.setval('public.business_entity_documents_business_entity_document_id_seq', 1, false);
 
 
 --
@@ -5411,20 +6408,6 @@ SELECT pg_catalog.setval('public.consent_credit_card_accounts_reference_id_seq',
 --
 
 SELECT pg_catalog.setval('public.consent_permissions_reference_id_seq', 1, false);
-
-
---
--- Name: consents_aud_business_entity_document_id_seq; Type: SEQUENCE SET; Schema: public; Owner: test
---
-
-SELECT pg_catalog.setval('public.consents_aud_business_entity_document_id_seq', 1, false);
-
-
---
--- Name: consents_business_entity_document_id_seq; Type: SEQUENCE SET; Schema: public; Owner: test
---
-
-SELECT pg_catalog.setval('public.consents_business_entity_document_id_seq', 1, false);
 
 
 --
@@ -5710,22 +6693,6 @@ ALTER TABLE ONLY public.business_emails_aud
 
 ALTER TABLE ONLY public.business_emails
     ADD CONSTRAINT business_emails_pkey PRIMARY KEY (reference_id);
-
-
---
--- Name: business_entity_documents_aud business_entity_documents_aud_pkey; Type: CONSTRAINT; Schema: public; Owner: test
---
-
-ALTER TABLE ONLY public.business_entity_documents_aud
-    ADD CONSTRAINT business_entity_documents_aud_pkey PRIMARY KEY (business_entity_document_id, rev);
-
-
---
--- Name: business_entity_documents business_entity_documents_pkey; Type: CONSTRAINT; Schema: public; Owner: test
---
-
-ALTER TABLE ONLY public.business_entity_documents
-    ADD CONSTRAINT business_entity_documents_pkey PRIMARY KEY (business_entity_document_id);
 
 
 --
@@ -6353,6 +7320,30 @@ ALTER TABLE ONLY public.payment_consents
 
 
 --
+-- Name: payments_simulate_response_aud payments_simulate_response_aud_payment_consent_id_key; Type: CONSTRAINT; Schema: public; Owner: test
+--
+
+ALTER TABLE ONLY public.payments_simulate_response_aud
+    ADD CONSTRAINT payments_simulate_response_aud_payment_consent_id_key UNIQUE (payment_consent_id);
+
+
+--
+-- Name: payments_simulate_response_aud payments_simulate_response_aud_pkey; Type: CONSTRAINT; Schema: public; Owner: test
+--
+
+ALTER TABLE ONLY public.payments_simulate_response_aud
+    ADD CONSTRAINT payments_simulate_response_aud_pkey PRIMARY KEY (id, rev);
+
+
+--
+-- Name: payments_simulate_response payments_simulate_response_payment_consent_id_key; Type: CONSTRAINT; Schema: public; Owner: test
+--
+
+ALTER TABLE ONLY public.payments_simulate_response
+    ADD CONSTRAINT payments_simulate_response_payment_consent_id_key UNIQUE (payment_consent_id);
+
+
+--
 -- Name: personal_emails_aud personal_emails_aud_pkey; Type: CONSTRAINT; Schema: public; Owner: test
 --
 
@@ -6665,6 +7656,14 @@ ALTER TABLE ONLY public.revinfo
 
 
 --
+-- Name: account_transactions unique_transaction_id; Type: CONSTRAINT; Schema: public; Owner: test
+--
+
+ALTER TABLE ONLY public.account_transactions
+    ADD CONSTRAINT unique_transaction_id UNIQUE (transaction_id);
+
+
+--
 -- Name: warranties_aud warranties_aud_pkey; Type: CONSTRAINT; Schema: public; Owner: test
 --
 
@@ -6757,14 +7756,6 @@ ALTER TABLE ONLY public.business_emails_aud
 
 ALTER TABLE ONLY public.business_emails
     ADD CONSTRAINT business_emails_business_identifications_id_fkey FOREIGN KEY (business_identifications_id) REFERENCES public.business_identifications(business_identifications_id);
-
-
---
--- Name: business_entity_documents_aud business_entity_documents_aud_rev_fkey; Type: FK CONSTRAINT; Schema: public; Owner: test
---
-
-ALTER TABLE ONLY public.business_entity_documents_aud
-    ADD CONSTRAINT business_entity_documents_aud_rev_fkey FOREIGN KEY (rev) REFERENCES public.revinfo(rev);
 
 
 --
@@ -6965,14 +7956,6 @@ ALTER TABLE ONLY public.consent_accounts_aud
 
 ALTER TABLE ONLY public.consent_accounts
     ADD CONSTRAINT consent_accounts_consent_id_fkey FOREIGN KEY (consent_id) REFERENCES public.consents(consent_id);
-
-
---
--- Name: consents consent_bed_fk; Type: FK CONSTRAINT; Schema: public; Owner: test
---
-
-ALTER TABLE ONLY public.consents
-    ADD CONSTRAINT consent_bed_fk FOREIGN KEY (business_entity_document_id) REFERENCES public.business_entity_documents(business_entity_document_id);
 
 
 --
@@ -7336,14 +8319,6 @@ ALTER TABLE ONLY public.payment_consents_aud
 
 
 --
--- Name: payment_consents payment_consents_business_entity_document_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: test
---
-
-ALTER TABLE ONLY public.payment_consents
-    ADD CONSTRAINT payment_consents_business_entity_document_id_fkey FOREIGN KEY (business_entity_document_id) REFERENCES public.business_entity_documents(business_entity_document_id);
-
-
---
 -- Name: payment_consents payment_consents_creditor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: test
 --
 
@@ -7357,6 +8332,14 @@ ALTER TABLE ONLY public.payment_consents
 
 ALTER TABLE ONLY public.payment_consents
     ADD CONSTRAINT payment_consents_payment_id_fkey FOREIGN KEY (payment_id) REFERENCES public.payment_consent_payments(payment_id);
+
+
+--
+-- Name: payments_simulate_response_aud payments_simulate_response_aud_rev_fkey; Type: FK CONSTRAINT; Schema: public; Owner: test
+--
+
+ALTER TABLE ONLY public.payments_simulate_response_aud
+    ADD CONSTRAINT payments_simulate_response_aud_rev_fkey FOREIGN KEY (rev) REFERENCES public.revinfo(rev);
 
 
 --

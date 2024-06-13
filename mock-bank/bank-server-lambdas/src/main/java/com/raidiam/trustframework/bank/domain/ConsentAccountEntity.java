@@ -17,7 +17,7 @@ import java.util.UUID;
 public class ConsentAccountEntity extends BaseEntity  {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
 
@@ -36,8 +36,7 @@ public class ConsentAccountEntity extends BaseEntity  {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    // this is given "EAGER" fetch type, because there is no back-link from accounts to this table
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", referencedColumnName = "account_id", insertable = false, nullable = false, updatable = false)
     @NotAudited
     private AccountEntity account;

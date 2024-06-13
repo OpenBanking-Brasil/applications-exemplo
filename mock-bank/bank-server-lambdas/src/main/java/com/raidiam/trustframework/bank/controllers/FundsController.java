@@ -73,12 +73,12 @@ public class FundsController extends BaseBankController {
                                                                         Pageable pageable, @NotNull HttpRequest<?> request) {
         var consentId = bankLambdaUtils.getConsentIdFromRequest(request);
         LOG.info("Looking up Funds transactions for consent id {}", consentId);
-        var fromTransactionDate = bankLambdaUtils.getDateFromRequest(request, "fromTransactionDate").orElse(LocalDate.now());
-        var toTransactionDate = bankLambdaUtils.getDateFromRequest(request, "toTransactionDate").orElse(LocalDate.now());
+        var fromTransactionDate = bankLambdaUtils.getDateFromRequest(request, "fromTransactionConversionDate").orElse(LocalDate.now());
+        var toTransactionDate = bankLambdaUtils.getDateFromRequest(request, "toTransactionConversionDate").orElse(LocalDate.now());
         Pageable adjustedPageable = BankLambdaUtils.adjustPageable(pageable, request, maxPageSize);
         var response = investmentService.getFundsTransactions(consentId, investmentId, fromTransactionDate, toTransactionDate, adjustedPageable);
         BankLambdaUtils.decorateResponseTransactionsV2(response::setLinks, adjustedPageable.getSize(), appBaseUrl + request.getPath(), adjustedPageable.getNumber(), response.getMeta().getTotalPages(),
-                "fromTransactionDate", fromTransactionDate.toString(), "toTransactionDate", toTransactionDate.toString());
+                "fromTransactionConversionDate", fromTransactionDate.toString(), "toTransactionConversionDate", toTransactionDate.toString());
         LOG.info("Returning funds transactions");
         BankLambdaUtils.logObject(mapper, response);
         return response;
@@ -88,12 +88,12 @@ public class FundsController extends BaseBankController {
     public ResponseFundsTransactions getFundsTransactionsCurrentByInvestmentId(@PathVariable("investmentId") UUID investmentId, Pageable pageable, @NotNull HttpRequest<?> request) {
         var consentId = bankLambdaUtils.getConsentIdFromRequest(request);
         LOG.info("Looking up Funds current transactions for consent id {}", consentId);
-        var fromTransactionDate = bankLambdaUtils.getDateFromRequest(request, "fromTransactionDate").orElse(LocalDate.now().minusDays(7));
-        var toTransactionDate = bankLambdaUtils.getDateFromRequest(request, "toTransactionDate").orElse(LocalDate.now());
+        var fromTransactionDate = bankLambdaUtils.getDateFromRequest(request, "fromTransactionConversionDate").orElse(LocalDate.now().minusDays(7));
+        var toTransactionDate = bankLambdaUtils.getDateFromRequest(request, "toTransactionConversionDate").orElse(LocalDate.now());
         Pageable adjustedPageable = BankLambdaUtils.adjustPageable(pageable, request, maxPageSize);
         var response = investmentService.getFundsTransactions(consentId, investmentId, fromTransactionDate, toTransactionDate, adjustedPageable);
         BankLambdaUtils.decorateResponseTransactionsV2(response::setLinks, adjustedPageable.getSize(), appBaseUrl + request.getPath(), adjustedPageable.getNumber(), response.getMeta().getTotalPages(),
-                "fromTransactionDate", fromTransactionDate.toString(), "toTransactionDate", toTransactionDate.toString());
+                "fromTransactionConversionDate", fromTransactionDate.toString(), "toTransactionConversionDate", toTransactionDate.toString());
         LOG.info("Returning funds current transactions");
         BankLambdaUtils.logObject(mapper, response);
         return response;

@@ -13,15 +13,19 @@ class CleanupSpecification extends Specification {
     @Inject
     AccountTransactionsRepository accountTransactionsRepository
     @Inject
-    BusinessEntityDocumentRepository businessEntityDocumentRepository
-    @Inject
     ConsentAccountRepository consentAccountRepository
     @Inject
     ConsentContractRepository consentContractRepository
     @Inject
+    ConsentInvestmentRepository consentInvestmentRepository
+    @Inject
     ConsentPermissionsRepository consentPermissionsRepository
     @Inject
     ConsentRepository consentRepository
+    @Inject
+    ConsentExtensionRepository consentExtensionRepository
+    @Inject
+    ConsentExchangeOperationRepository consentExchangeOperationRepository
     @Inject
     ContractBalloonPaymentsRepository contractBalloonPaymentsRepository
     @Inject
@@ -58,6 +62,8 @@ class CleanupSpecification extends Specification {
     PixPaymentRepository pixPaymentRepository
     @Inject
     AccountHolderRepository accountHolderRepository
+    @Inject
+    WebhookRepository webhookRepository
 
     @Inject
     BusinessIdentificationsRepository businessIdentificationsRepository
@@ -125,6 +131,48 @@ class CleanupSpecification extends Specification {
     CreditCardAccountsBillsPaymentRepository creditCardAccountsBillsPaymentRepository
     @Inject
     CreditCardAccountsTransactionRepository creditCardAccountsTransactionRepository
+    @Inject
+    BankFixedIncomesRepository bankFixedIncomesRepository
+    @Inject
+    BankFixedIncomesBalancesRepository bankFixedIncomesBalancesRepository
+    @Inject
+    BankFixedIncomesTransactionsRepository bankFixedIncomesTransactionsRepository
+    @Inject
+    CreditFixedIncomesRepository creditFixedIncomesRepository
+    @Inject
+    CreditFixedIncomesBalancesRepository creditFixedIncomesBalancesRepository
+    @Inject
+    CreditFixedIncomesTransactionsRepository creditFixedIncomesTransactionsRepository
+    @Inject
+    FundsRepository fundsRepository
+    @Inject
+    FundsBalancesRepository fundsBalancesRepository
+    @Inject
+    FundsTransactionsRepository fundsTransactionsRepository
+    @Inject
+    TreasureTitlesBalancesRepository treasureTitlesBalancesRepository
+    @Inject
+    TreasureTitlesTransactionsRepository treasureTitlesTransactionsRepository
+    @Inject
+    TreasureTitlesRepository treasureTitlesRepository
+    @Inject
+    VariableIncomesBalancesRepository variableIncomesBalancesRepository
+    @Inject
+    VariableIncomesRepository variableIncomesRepository
+    @Inject
+    VariableIncomesBrokerNotesRepository variableIncomesBrokerNotesRepository
+    @Inject
+    VariableIncomesTransactionsRepository variableIncomesTransactionsRepository
+    @Inject
+    EnrollmentRepository enrollmentRepository
+    @Inject
+    EnrollmentRiskSignalsRepository enrollmentRiskSignalsRepository
+    @Inject
+    FidoJwkRepository fidoJwkRepository
+    @Inject
+    ExchangesOperationRepository exchangesOperationRepository
+    @Inject
+    ExchangesOperationEventRepository  exchangesOperationEventRepository
 
     @Shared
     boolean runSetup = true
@@ -154,7 +202,7 @@ class CleanupSpecification extends Specification {
             consentCreditCardAccountsRepository.deleteAll()
             consentPermissionsRepository.deleteAll()
             consentRepository.deleteAll()
-            businessEntityDocumentRepository.deleteAll()
+            consentExtensionRepository.deleteAll()
             contractBalloonPaymentsRepository.deleteAll()
             contractsRepository.deleteAll()
             businessOtherDocumentRepository.deleteAll()
@@ -192,6 +240,10 @@ class CleanupSpecification extends Specification {
             creditCardAccountsLimitsRepository.deleteAll()
             creditCardAccountsRepository.deleteAll()
             accountHolderRepository.deleteAll()
+            enrollmentRepository.deleteAll()
+            enrollmentRiskSignalsRepository.deleteAll()
+            fidoJwkRepository.deleteAll()
+            webhookRepository.deleteAll()
             runCleanup = false
             runSetup = true
         }

@@ -7,9 +7,7 @@ import com.emv.qrcode.model.mpm.MerchantPresentedMode;
 import com.emv.qrcode.model.mpm.constants.MerchantPresentedModeCodes;
 import com.google.common.base.Strings;
 import com.raidiam.trustframework.bank.exceptions.TrustframeworkException;
-import com.raidiam.trustframework.mockbank.models.generated.CreatePaymentConsent;
-import com.raidiam.trustframework.mockbank.models.generated.Identification;
-import com.raidiam.trustframework.mockbank.models.generated.PaymentConsent;
+import com.raidiam.trustframework.mockbank.models.generated.*;
 
 import java.util.Currency;
 
@@ -21,6 +19,10 @@ public class QrCodeUtils {
     }
 
     public static MerchantPresentedMode createQrCode(CreatePaymentConsent request){
+        return createQrCode(request.getData().getCreditor(), request.getData().getPayment());
+    }
+
+    public static MerchantPresentedMode createQrCode(CreatePaymentConsentV4 request){
         return createQrCode(request.getData().getCreditor(), request.getData().getPayment());
     }
 
@@ -48,6 +50,10 @@ public class QrCodeUtils {
     }
 
     public static MerchantPresentedMode createQrCode(Identification identification, PaymentConsent paymentConsent){
+        return createQrCode(identification.getName(), paymentConsent.getDetails().getProxy(), paymentConsent.getAmount(), paymentConsent.getCurrency());
+    }
+
+    public static MerchantPresentedMode createQrCode(Identification identification, PaymentConsentV4Payment paymentConsent){
         return createQrCode(identification.getName(), paymentConsent.getDetails().getProxy(), paymentConsent.getAmount(), paymentConsent.getCurrency());
     }
 

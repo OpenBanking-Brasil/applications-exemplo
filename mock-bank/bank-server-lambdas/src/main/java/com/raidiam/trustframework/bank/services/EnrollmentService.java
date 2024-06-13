@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.raidiam.trustframework.bank.domain.*;
 import com.raidiam.trustframework.bank.exceptions.TrustframeworkException;
+import com.raidiam.trustframework.bank.services.validate.EnrollmentAccountTypeValidator;
 import com.raidiam.trustframework.bank.services.validate.EnrollmentPermissionsValidator;
 import com.raidiam.trustframework.bank.services.validate.EnrollmentValidator;
 import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
@@ -43,7 +44,8 @@ public class EnrollmentService extends BaseBankService {
     private String appBaseUrl;
 
     private final List<EnrollmentValidator> validators = List.of(
-            new EnrollmentPermissionsValidator());
+            new EnrollmentPermissionsValidator(),
+            new EnrollmentAccountTypeValidator());
 
     public ResponseCreateEnrollment createEnrollment(String clientId, String idempotencyKey, String jti, CreateEnrollment body) {
         validateRequest(body);

@@ -17,4 +17,7 @@ public interface ConsentContractRepository extends PageableRepository<ConsentCon
     @Join(value = "contract", type = Join.Type.FETCH)
     Page<ConsentContractEntity> findByConsentIdAndContractContractTypeOrderByCreatedAtAsc(@NotNull String consentId, @NotNull String contractType,
                                                                                           Pageable pageable);
+    @Join(value = "contract", type = Join.Type.FETCH)
+    Page<ConsentContractEntity> findByConsentIdAndContractContractTypeAndContractStatusOrderByCreatedAtAsc(@NotNull String consentId, @NotNull String contractType,
+                                                                                                   @NotNull String status, Pageable pageable);
 }

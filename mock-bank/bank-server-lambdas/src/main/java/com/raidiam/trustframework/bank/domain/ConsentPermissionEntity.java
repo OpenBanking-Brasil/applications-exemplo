@@ -1,7 +1,6 @@
 package com.raidiam.trustframework.bank.domain;
 
-import com.raidiam.trustframework.mockbank.models.generated.CreateConsentData;
-import com.raidiam.trustframework.mockbank.models.generated.ResponseConsentData;
+import com.raidiam.trustframework.mockbank.models.generated.*;
 import lombok.*;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
@@ -20,7 +19,7 @@ import javax.validation.constraints.NotNull;
 public class ConsentPermissionEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
 
@@ -39,7 +38,7 @@ public class ConsentPermissionEntity extends BaseEntity {
     @NotAudited
     private ConsentEntity consent;
 
-    public static ConsentPermissionEntity fromRequest(CreateConsentData.PermissionsEnum req, ConsentEntity consent) {
+    public static ConsentPermissionEntity fromRequest(EnumConsentPermissions req, ConsentEntity consent) {
         ConsentPermissionEntity entity = new ConsentPermissionEntity();
         entity.setPermission(req.toString());
         entity.setConsentId(consent.getConsentId());
@@ -47,7 +46,7 @@ public class ConsentPermissionEntity extends BaseEntity {
         return entity;
     }
 
-    public ResponseConsentData.PermissionsEnum getDTO() {
-        return ResponseConsentData.PermissionsEnum.fromValue(permission);
+    public EnumConsentPermissions getDTO() {
+        return EnumConsentPermissions.fromValue(permission);
     }
 }

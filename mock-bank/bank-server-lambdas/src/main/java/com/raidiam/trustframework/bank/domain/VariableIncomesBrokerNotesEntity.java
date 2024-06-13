@@ -4,11 +4,9 @@ import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Data
@@ -85,16 +83,6 @@ public class VariableIncomesBrokerNotesEntity extends BaseEntity {
 
     @Column(name = "net_value_currency")
     private String netValueCurrency;
-
-    @Column(name = "investment_id")
-    private UUID investmentId;
-
-    @NotNull
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "investment_id", referencedColumnName = "investment_id", nullable = false, updatable = false, insertable = false)
-    private VariableIncomesEntity investment;
 
     public ResponseVariableIncomesBrokerData getResponseVariableIncomesBrokerData() {
         return new ResponseVariableIncomesBrokerData()

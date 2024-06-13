@@ -10,5 +10,4 @@ import java.util.Optional;
 @Repository
 public interface ConsentRepository extends PageableRepository<ConsentEntity, Integer> {
     Optional<ConsentEntity> findByConsentId(@NotNull String id);
-    void deleteByConsentId(@NotNull String consentId);
 }

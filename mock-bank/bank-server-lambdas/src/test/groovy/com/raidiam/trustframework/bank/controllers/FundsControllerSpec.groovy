@@ -84,6 +84,8 @@ class FundsControllerSpec extends Specification{
         bankLambdaUtils.getDateFromRequest(_ as HttpRequest<?>, "toDueDate") >> Optional.of(LocalDate.now())
         bankLambdaUtils.getDateFromRequest(_ as HttpRequest<?>, "fromTransactionDate") >> Optional.of(LocalDate.now())
         bankLambdaUtils.getDateFromRequest(_ as HttpRequest<?>, "toTransactionDate") >> Optional.of(LocalDate.now())
+        bankLambdaUtils.getDateFromRequest(_ as HttpRequest<?>, "fromTransactionConversionDate") >> Optional.of(LocalDate.now())
+        bankLambdaUtils.getDateFromRequest(_ as HttpRequest<?>, "toTransactionConversionDate") >> Optional.of(LocalDate.now())
     }
 
     def cleanup() {
@@ -143,8 +145,8 @@ class FundsControllerSpec extends Specification{
 
         AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder("/open-banking/funds/v1/investments/c0826748-22b6-432d-9b3f-a7e5a876e0bf/transactions", HttpMethod.GET.toString())
         var queryParams = new MultiValuedTreeMap()
-        queryParams.add("fromTransactionDate", "2022-08-14")
-        queryParams.add("toTransactionDate", "2023-08-14")
+        queryParams.add("fromTransactionConversionDate", "2022-08-14")
+        queryParams.add("toTransactionConversionDate", "2023-08-14")
         builder.multiValueQueryString(queryParams)
         AuthHelper.authorize(scopes: "funds", builder)
 

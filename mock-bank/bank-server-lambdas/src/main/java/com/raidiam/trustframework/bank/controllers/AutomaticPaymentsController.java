@@ -45,7 +45,7 @@ public class AutomaticPaymentsController extends BaseBankController {
         String jti = requestMeta.getJti();
 
         var response = paymentConsentService.createRecurringConsentV1(clientId, idempotencyKey, jti, body);
-        BankLambdaUtils.decorateResponseSimpleMeta(response::setLinks, response::setMeta, appBaseUrl + request.getPath() + "/" + response.getData().getRecurringConsentId());
+        BankLambdaUtils.decorateResponseSimpleMetaBrasilTimeZone(response::setLinks, response::setMeta, appBaseUrl + request.getPath() + "/" + response.getData().getRecurringConsentId());
         BankLambdaUtils.logObject(mapper, response);
         return response;
     }
@@ -64,7 +64,7 @@ public class AutomaticPaymentsController extends BaseBankController {
 
         String clientId = requestMeta.getClientId();
         var response = paymentConsentService.getRecurringConsentsV1(recurringConsentId, clientId);
-        BankLambdaUtils.decorateResponseSimpleMeta(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
+        BankLambdaUtils.decorateResponseSimpleMetaBrasilTimeZone(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
         BankLambdaUtils.logObject(mapper, response);
         return response;
     }
@@ -81,7 +81,7 @@ public class AutomaticPaymentsController extends BaseBankController {
         String clientId = requestMeta.getClientId();
 
         var response = paymentConsentService.patchRecurringConsentV1(recurringConsentId, clientId, body);
-        BankLambdaUtils.decorateResponseSimpleMeta(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
+        BankLambdaUtils.decorateResponseSimpleMetaBrasilTimeZone(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
         BankLambdaUtils.logObject(mapper, response);
         return response;
     }
@@ -91,17 +91,17 @@ public class AutomaticPaymentsController extends BaseBankController {
     @RequiredAuthenticationGrant(AuthenticationGrant.AUTHORISATION_CODE)
     @XFapiInteractionIdRequired
     public ResponseRecurringPixPayments createRecurringPixPaymentV1(@Body @Valid CreateRecurringPixPaymentV1 body, HttpRequest<?> request) {
-        LOG.info("Creating recurring pix payment for v1");
         var requestMeta = BankLambdaUtils.getRequestMeta(request);
+        var consentId = bankLambdaUtils.getConsentIdFromRequest(requestMeta);
+        String jti = requestMeta.getJti();
         String clientId = requestMeta.getClientId();
         LOG.info("Creating new recurring pix payment for client {}", clientId);
         BankLambdaUtils.logObject(mapper, body);
 
         String idempotencyKey = BankLambdaUtils.getIdempotencyKey(request);
-        String jti = requestMeta.getJti();
 
-        var response = paymentsService.createRecurringPixPaymentV1(requestMeta.getConsentId(), idempotencyKey, jti, clientId, body);
-        BankLambdaUtils.decorateResponseSimpleMeta(response::setLinks, response::setMeta, appBaseUrl + request.getPath() + "/" + response.getData().getRecurringPaymentId());
+        var response = paymentsService.createRecurringPixPaymentV1(consentId, idempotencyKey, jti, clientId, body);
+        BankLambdaUtils.decorateResponseSimpleMetaBrasilTimeZone(response::setLinks, response::setMeta, appBaseUrl + request.getPath() + "/" + response.getData().getRecurringPaymentId());
         BankLambdaUtils.logObject(mapper, response);
         return response;
     }
@@ -114,11 +114,9 @@ public class AutomaticPaymentsController extends BaseBankController {
         var requestMeta = BankLambdaUtils.getRequestMeta(request);
         var clientId = requestMeta.getClientId();
         var consentId = BankLambdaUtils.getRecurringConsentIdFromRequest(request);
-        var fromDate = bankLambdaUtils.getDateFromRequest(request, "startDate").orElse(LocalDate.now());
-        var toDate = bankLambdaUtils.getDateFromRequest(request, "endDate").orElse(LocalDate.now());
 
-        var response = paymentsService.getRecurringPixPaymentByConsentIdV1(consentId,  fromDate, toDate, clientId);
-        BankLambdaUtils.decorateResponseSimpleMeta(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
+        var response = paymentsService.getRecurringPixPaymentByConsentIdV1(consentId, clientId);
+        BankLambdaUtils.decorateResponseSimpleMetaBrasilTimeZone(response::setLinks, response::setMeta, appBaseUrl + request.getPath() + "?recurringConsentId=" + consentId);
         BankLambdaUtils.logObject(mapper, response);
         return response;
     }
@@ -132,7 +130,7 @@ public class AutomaticPaymentsController extends BaseBankController {
         String clientId = requestMeta.getClientId();
 
         var response = paymentsService.getRecurringPixPaymentV1(recurringPaymentId, clientId);
-        BankLambdaUtils.decorateResponseSimpleMeta(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
+        BankLambdaUtils.decorateResponseSimpleMetaBrasilTimeZone(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
         BankLambdaUtils.logObject(mapper, response);
         return response;
     }
@@ -148,7 +146,7 @@ public class AutomaticPaymentsController extends BaseBankController {
 
         var requestMeta = BankLambdaUtils.getRequestMeta(request);
         var response = paymentsService.patchRecurringPixPaymentV1(requestMeta.getConsentId(), recurringPaymentId, body);
-        BankLambdaUtils.decorateResponseSimpleMeta(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
+        BankLambdaUtils.decorateResponseSimpleMetaBrasilTimeZone(response::setLinks, response::setMeta, appBaseUrl + request.getPath());
         BankLambdaUtils.logObject(mapper, response);
         return response;
     }
@@ -158,7 +156,7 @@ public class AutomaticPaymentsController extends BaseBankController {
     public ResponsePaymentConsent putRecurringConsentV1(@PathVariable("recurringConsentId") String recurringConsentId, @Body @Valid UpdatePaymentConsent body, HttpRequest<?> request) {
         LOG.info("Updating payment consent {} for v1", recurringConsentId);
         var response = paymentConsentService.updateRecurringConsentV1(recurringConsentId, body);
-        BankLambdaUtils.decorateResponse(response::setLinks, response::setMeta, appBaseUrl + request.getPath(), 1);
+        BankLambdaUtils.decorateResponseBrasilTimeZone(response::setLinks, response::setMeta, appBaseUrl + request.getPath(), 1);
         LOG.info("Updated payment consent {}", recurringConsentId);
         BankLambdaUtils.logObject(mapper, response);
         return response;

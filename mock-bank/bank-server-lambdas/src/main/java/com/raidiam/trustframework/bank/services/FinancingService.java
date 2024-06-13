@@ -3,111 +3,68 @@ package com.raidiam.trustframework.bank.services;
 import com.raidiam.trustframework.bank.domain.ConsentContractEntity;
 import com.raidiam.trustframework.bank.domain.ContractEntity;
 import com.raidiam.trustframework.bank.domain.ContractWarrantyEntity;
-import com.raidiam.trustframework.bank.enums.AccountOrContractType;
 import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.*;
 import io.micronaut.data.model.Pageable;
-import io.micronaut.http.HttpStatus;
-import io.micronaut.http.exceptions.HttpStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Singleton;
+import javax.transaction.Transactional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Singleton
-public class FinancingService extends BaseBankService {
+@Transactional
+public class FinancingService extends ContractService {
 
     private static final Logger LOG = LoggerFactory.getLogger(FinancingService.class);
-    private static final String CONTRACT_TYPE = AccountOrContractType.FINANCING.name();
+    private static final String CONTRACT_TYPE = EnumContractType.FINANCING.name();
 
     public ResponseFinancingsContractList getFinancingContractList(Pageable pageable, String consentId) {
-        LOG.info("Getting Financings Contract List response for consent id {}", consentId);
-
-        var consentEntity = BankLambdaUtils.getConsent(consentId, consentRepository);
-
-        BankLambdaUtils.checkAuthorisationStatus(consentEntity);
-        BankLambdaUtils.checkConsentPermissions(consentEntity, CreateConsentData.PermissionsEnum.FINANCINGS_READ);
-
-        var consentContractsPage = consentContractRepository.findByConsentIdAndContractContractTypeOrderByCreatedAtAsc(consentId, CONTRACT_TYPE, pageable);
-        BankLambdaUtils.checkConsentOwnerIsContractOwner(consentContractsPage, consentEntity);
+        LOG.info("Getting {} Contract List response for consent id {}", CONTRACT_TYPE, consentId);
+        var consentContractsPage = getPageContractList(pageable, consentId,
+                CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_READ);
         var response = new ResponseFinancingsContractList().data(consentContractsPage.getContent()
                 .stream()
                 .map(ConsentContractEntity::getContract)
                 .map(ContractEntity::getFinancingsDTOList)
                 .collect(Collectors.toList()));
-
-        response.setMeta(BankLambdaUtils.getMeta(consentContractsPage, response.getData().size()));
-
+        response.setMeta(BankLambdaUtils.getMeta(consentContractsPage));
         return response;
     }
 
-    public ResponseFinancingsContract getFinancingContract(String consentId, UUID contractId) {
-        LOG.info("Getting Financings Contract response for consent id {} and contract id {}", consentId, contractId);
-
-        var consentEntity = BankLambdaUtils.getConsent(consentId, consentRepository);
-        var contractEntity = BankLambdaUtils.getContract(contractId, contractsRepository, CONTRACT_TYPE);
-
-        BankLambdaUtils.checkAuthorisationStatus(consentEntity);
-        BankLambdaUtils.checkConsentCoversContract(consentEntity, contractEntity);
-        BankLambdaUtils.checkConsentOwnerIsContractOwner(consentEntity, contractEntity);
-        BankLambdaUtils.checkConsentPermissions(consentEntity, CreateConsentData.PermissionsEnum.FINANCINGS_READ);
-
-        if(consentEntity.getAccountHolder() == null) {
-            throw new HttpStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Consent has no associated accountholder, cannot proceed");
-        }
-
-        return new ResponseFinancingsContract().data(contractEntity.getFinancingsDTO());
+    public ResponseFinancingsContractV2 getFinancingContractV2(String consentId, UUID contractId) {
+        LOG.info("Getting {} Contract response for consent id {} and contract id {} v2", CONTRACT_TYPE, consentId, contractId);
+        validateContractStatus(consentId, contractId, CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_READ);
+        return new ResponseFinancingsContractV2().data(getContractEntity(consentId, contractId,
+                CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_READ).getFinancingsDtoV2());
     }
 
-    public ResponseFinancingsInstalments getFinancingScheduledInstalments(String consentId, UUID contractId) {
-        LOG.info("Getting Financings Instalments response for consent id {} and contract id {}", consentId, contractId);
-
-        var consentEntity = BankLambdaUtils.getConsent(consentId, consentRepository);
-        var contractEntity = BankLambdaUtils.getContract(contractId, contractsRepository, CONTRACT_TYPE);
-
-        BankLambdaUtils.checkAuthorisationStatus(consentEntity);
-        BankLambdaUtils.checkConsentCoversContract(consentEntity, contractEntity);
-        BankLambdaUtils.checkConsentOwnerIsContractOwner(consentEntity, contractEntity);
-        BankLambdaUtils.checkConsentPermissions(consentEntity, CreateConsentData.PermissionsEnum.FINANCINGS_SCHEDULED_INSTALMENTS_READ);
-
-        return new ResponseFinancingsInstalments().data(contractEntity.getFinancingInstalmentsData());
+    public ResponseFinancingsInstalmentsV2 getFinancingScheduledInstalmentsV2(String consentId, UUID contractId) {
+        LOG.info("Getting {} Instalments response for consent id {} and contract id {} v2", CONTRACT_TYPE, consentId, contractId);
+        validateContractStatus(consentId, contractId, CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_SCHEDULED_INSTALMENTS_READ);
+        return new ResponseFinancingsInstalmentsV2().data(getContractEntity(consentId, contractId,
+                CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_SCHEDULED_INSTALMENTS_READ).getFinancingInstalmentsDataV2());
     }
 
-    public ResponseFinancingsWarranties getFinancingWarranties(Pageable pageable, String consentId, UUID contractId) {
-        LOG.info("Getting Financings Warranties response for consent id {} and contract id {}", consentId, contractId);
+    public ResponseFinancingsWarrantiesV2 getFinancingsWarrantiesV2(Pageable pageable, String consentId, UUID contractId) {
+        LOG.info("Getting {} Warranties response for consent id {} and contract id {} v2", CONTRACT_TYPE, consentId, contractId);
+        validateContractStatus(consentId, contractId, CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_WARRANTIES_READ);
+        var warranties = getPageContractWarrantyEntity(pageable, consentId, contractId,
+                CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_WARRANTIES_READ);
 
-        var consentEntity = BankLambdaUtils.getConsent(consentId, consentRepository);
-        var contractEntity = BankLambdaUtils.getContract(contractId, contractsRepository, CONTRACT_TYPE);
+        var response = new ResponseFinancingsWarrantiesV2().data(warranties.getContent()
+                .stream().map(ContractWarrantyEntity::getFinancingsWarrantiesV2).collect(Collectors.toList()));
 
-        BankLambdaUtils.checkAuthorisationStatus(consentEntity);
-        BankLambdaUtils.checkConsentCoversContract(consentEntity, contractEntity);
-        BankLambdaUtils.checkConsentOwnerIsContractOwner(consentEntity, contractEntity);
-        BankLambdaUtils.checkConsentPermissions(consentEntity, CreateConsentData.PermissionsEnum.FINANCINGS_WARRANTIES_READ);
-
-        var warranties = contractWarrantiesRepository.findByContractIdOrderByCreatedAtAsc(contractId, pageable);
-
-        var response = new ResponseFinancingsWarranties().data(warranties.getContent()
-                .stream().map(ContractWarrantyEntity::getFinancingDTO)
-                .collect(Collectors.toList()));
-
-        response.setMeta(BankLambdaUtils.getMeta(warranties, response.getData().size()));
-
+        response.setMeta(BankLambdaUtils.getMeta(warranties));
         return response;
     }
 
-    public ResponseFinancingsPayments getFinancingPayments(String consentId, UUID contractId) {
-        LOG.info("Getting Financings Payments response for consent id {} and contract id {}", consentId, contractId);
-
-        var consentEntity = BankLambdaUtils.getConsent(consentId, consentRepository);
-        var contractEntity = BankLambdaUtils.getContract(contractId, contractsRepository, CONTRACT_TYPE);
-
-        BankLambdaUtils.checkAuthorisationStatus(consentEntity);
-        BankLambdaUtils.checkConsentCoversContract(consentEntity, contractEntity);
-        BankLambdaUtils.checkConsentOwnerIsContractOwner(consentEntity, contractEntity);
-        BankLambdaUtils.checkConsentPermissions(consentEntity, CreateConsentData.PermissionsEnum.FINANCINGS_PAYMENTS_READ);
-
-        return new ResponseFinancingsPayments().data(contractEntity.getFinancingPaymentsData());
+    public ResponseFinancingsPaymentsV2 getFinancingPaymentsV2(String consentId, UUID contractId) {
+        LOG.info("Getting {} Payments response for consent id {} and contract id {}", CONTRACT_TYPE, consentId, contractId);
+        validateContractStatus(consentId, contractId, CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_PAYMENTS_READ);
+        return new ResponseFinancingsPaymentsV2().data(getContractEntity(consentId, contractId,
+                CONTRACT_TYPE, EnumConsentPermissions.FINANCINGS_PAYMENTS_READ).getFinancingPaymentsDataV2());
     }
 }

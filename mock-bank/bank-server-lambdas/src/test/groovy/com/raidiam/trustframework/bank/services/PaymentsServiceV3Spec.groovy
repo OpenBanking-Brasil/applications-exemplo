@@ -8,6 +8,8 @@ import com.raidiam.trustframework.bank.domain.PaymentConsentEntity
 import com.raidiam.trustframework.bank.enums.ErrorCodesEnumV2
 import com.raidiam.trustframework.bank.repository.PaymentsSimulateResponseRepository
 import com.raidiam.trustframework.bank.services.message.PaymentErrorMessageV2
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils
+import com.raidiam.trustframework.bank.utils.QrCodeUtils
 import com.raidiam.trustframework.mockbank.models.generated.*
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.exceptions.HttpStatusException
@@ -16,6 +18,7 @@ import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils
 import spock.lang.Shared
 import spock.lang.Stepwise
+import spock.lang.Unroll
 
 import javax.inject.Inject
 import java.time.LocalDate
@@ -158,7 +161,7 @@ class PaymentsServiceV3Spec extends CleanupSpecification {
         CreatePaymentConsent paymentConsentRequest = TestRequestDataFactory.createPaymentConsentRequest("BID1", "REL1", "66.001.455/0001-30",
                 "Bob Creditor", EnumCreditorPersonType.NATURAL, EnumAccountPaymentsType.CACC, "ispb1",
                 "issuer1", "1234567890", accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification(), EnumPaymentType.PIX.toString(),
-                LocalDate.now(), "BRL", "100")
+                LocalDate.now(BankLambdaUtils.getBrasilZoneId()), "BRL", "100")
 
         ResponsePaymentConsentV2 responseConsent = paymentConsentService.createConsentV3(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
 
@@ -204,7 +207,7 @@ class PaymentsServiceV3Spec extends CleanupSpecification {
         then:
         HttpStatusException e = thrown()
         e.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
-        e.message == new PaymentErrorMessageV2().getMessageInvalidParameter()
+        e.message == new PaymentErrorMessageV2().getMessageInvalidParameter("endToEndId timestamp must be the correct format and match 15:00")
 
 
         and:
@@ -257,7 +260,7 @@ class PaymentsServiceV3Spec extends CleanupSpecification {
         CreatePaymentConsent paymentConsentRequest = TestRequestDataFactory.createPaymentConsentRequest("BID1", "REL1", "66.001.455/0001-30",
                 "Bob Creditor", EnumCreditorPersonType.NATURAL, EnumAccountPaymentsType.CACC, "ispb1",
                 "issuer1", "1234567890", accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification(), EnumPaymentType.PIX.toString(),
-                LocalDate.now(), "GBP", "100")
+                LocalDate.now(BankLambdaUtils.getBrasilZoneId()), "GBP", "100")
         ResponsePaymentConsentV2 responseConsent = paymentConsentService.createConsentV3(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
 
         CreatePixPaymentV3 paymentRequest = TestRequestDataFactory.createPaymentRequestV3("CRAC1", "CRISS1", "CRISPB1", EnumAccountPaymentsType.CACC, EnumLocalInstrument.DICT, "100", "BRL", "", "", "cnpj", "")
@@ -280,7 +283,7 @@ class PaymentsServiceV3Spec extends CleanupSpecification {
         CreatePaymentConsent paymentConsentRequest = TestRequestDataFactory.createPaymentConsentRequest("BID1", "REL1", "66.001.455/0001-30",
                 "Bob Creditor", EnumCreditorPersonType.NATURAL, EnumAccountPaymentsType.CACC, "ispb1",
                 "issuer1", "1234567890", accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification(), EnumPaymentType.PIX.toString(),
-                LocalDate.now(), "BRL", "100")
+                LocalDate.now(BankLambdaUtils.getBrasilZoneId()), "BRL", "100")
         ResponsePaymentConsentV2 responseConsent = paymentConsentService.createConsentV3(clientId, idemPotencyKey, "randomjti248", paymentConsentRequest)
 
         CreatePixPaymentV3 paymentRequest = TestRequestDataFactory.createPaymentRequestV3("CRAC1", "CRISS1", "CRISPB1", EnumAccountPaymentsType.CACC, EnumLocalInstrument.DICT, "100", "BRL", "", "", "cnpj", "", null)
@@ -311,6 +314,60 @@ class PaymentsServiceV3Spec extends CleanupSpecification {
 
     }
 
+    def "422 DETALHE_PGTO_INVALIDO is thrown if the qrCode has incorrect fields"() {
+        given: "The amount is different to the payment consent"
+        CreatePaymentConsent paymentConsentRequest = TestRequestDataFactory.createPaymentConsentRequest("BID1", "REL1", "66.001.455/0001-30",
+                        "Bob Creditor", EnumCreditorPersonType.NATURAL, EnumAccountPaymentsType.CACC, "ispb1",
+                        "issuer1", "1234567890", accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification(), EnumPaymentType.PIX.toString(),
+                        LocalDate.now(), "BRL", "100")
+        String qrCode = QrCodeUtils.createQrCode(paymentConsentRequest.getData().getCreditor().getName(), paymentConsentRequest.getData().getPayment().getDetails().getProxy(),
+                paymentConsentRequest.getData().getPayment().getAmount(), paymentConsentRequest.getData().getPayment().getCurrency())
+        paymentConsentRequest.getData().getPayment().getDetails().setLocalInstrument(EnumLocalInstrument.QRDN)
+        paymentConsentRequest.getData().getPayment().getDetails().setQrCode(qrCode)
+
+        when: "The amount is different to the payment consent"
+        paymentConsentRequest.getData().getPayment().setAmount("12345")
+        paymentConsentService.createConsentV3(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
+
+        then:
+        def e = thrown(HttpStatusException)
+        def message = "DETALHE_PAGAMENTO_INVALIDO: Amount defined in QrCode - 100.00 differs from the amount specified in the Consent - 12345.00"
+        e.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
+        e.getMessage() == message
+
+        when: "The currency is different to the payment consent"
+        paymentConsentRequest.getData().getPayment().setCurrency("USD")
+        paymentConsentRequest.getData().getPayment().setAmount("100.00")
+        paymentConsentService.createConsentV3(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
+
+        then:
+        def e2 = thrown(HttpStatusException)
+        def message2 = "DETALHE_PAGAMENTO_INVALIDO: Currency code defined in QrCode - 986 differs from the currency code specified in the Consent - 840"
+        e2.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
+        e2.getMessage() == message2
+
+        when: "The proxy is different to the payment consent"
+        paymentConsentRequest.getData().getPayment().getDetails().setProxy("proxy99")
+        paymentConsentRequest.getData().getPayment().setCurrency("BRL")
+        paymentConsentService.createConsentV3(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
+
+        then:
+        def e3 = thrown(HttpStatusException)
+        def message3 = "DETALHE_PAGAMENTO_INVALIDO: Proxy defined in QrCode - proxy differs from the proxy specified in the Consent - proxy99"
+        e3.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
+        e3.getMessage() == message3
+
+        when: "The creditor name is different to the payment consent"
+        paymentConsentRequest.getData().getCreditor().setName("Billy Loanman")
+        paymentConsentRequest.getData().getPayment().getDetails().setProxy("proxy")
+        paymentConsentService.createConsentV3(UUID.randomUUID().toString(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
+
+        then:
+        def e4 = thrown(HttpStatusException)
+        def message4 = "DETALHE_PAGAMENTO_INVALIDO: Creditor name defined in QrCode - Bob Creditor differs from the Creditor name specified in the Consent - Billy Loanman"
+        e4.getStatus() == HttpStatus.UNPROCESSABLE_ENTITY
+        e4.getMessage() == message4
+    }
 
     def "we cannot create a payment if end to end ID is missing or incorrect"() {
         given:
@@ -318,7 +375,7 @@ class PaymentsServiceV3Spec extends CleanupSpecification {
         CreatePaymentConsent paymentConsentRequest = TestRequestDataFactory.createPaymentConsentRequest("BID1", "REL1", "66.001.455/0001-30",
                 "Bob Creditor", EnumCreditorPersonType.NATURAL, EnumAccountPaymentsType.CACC, "ispb1",
                 "issuer1", "1234567890", accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification(), EnumPaymentType.PIX.toString(),
-                LocalDate.now(), "GBP", "100")
+                LocalDate.now(BankLambdaUtils.getBrasilZoneId()), "GBP", "100")
 
         ResponsePaymentConsentV2 responseConsent = paymentConsentService.createConsentV3(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
 
@@ -341,6 +398,34 @@ class PaymentsServiceV3Spec extends CleanupSpecification {
                 "b" * 32,
                 "1234568789"
         ]
+    }
+
+    @Unroll
+    def "We can create a payment with a transactionIdentification value and a supported localInstrument"() {
+        given:
+        def clientId = UUID.randomUUID().toString()
+        CreatePaymentConsent paymentConsentRequest = TestRequestDataFactory.createPaymentConsentRequest("BID1", "REL1", "66.001.455/0001-30",
+                "Bob Creditor", EnumCreditorPersonType.NATURAL, EnumAccountPaymentsType.CACC, "ispb1",
+                "issuer1", "1234567890", accountHolder.getDocumentRel(), accountHolder.getDocumentIdentification(), EnumPaymentType.PIX.toString(),
+                LocalDate.now(BankLambdaUtils.getBrasilZoneId()), "BRL", "100")
+        paymentConsentRequest.getData().getPayment().getDetails().setQrCode(qrCode)
+        paymentConsentRequest.getData().getPayment().getDetails().setLocalInstrument(localInstrument)
+
+        when:
+        def responseConsent = paymentConsentService.createConsentV3(clientId, UUID.randomUUID().toString(), UUID.randomUUID().toString(), paymentConsentRequest)
+        UpdatePaymentConsent updatePaymentConsent = TestRequestDataFactory.createPaymentConsentUpdateRequest(UpdatePaymentConsentData.StatusEnum.AUTHORISED, false)
+        paymentConsentService.updateConsent(responseConsent.getData().getConsentId(), clientId, updatePaymentConsent)
+        def createPixPaymentRequest = TestRequestDataFactory.createPaymentRequestV3("CRAC1", "CRISS1", "CRISPB1", EnumAccountPaymentsType.CACC, localInstrument, "100", "BRL", "", responseConsent.getData().getPayment().getDetails().getQrCode(), "cnpj", "", "validTransactionIdentfication")
+        paymentsService.createPaymentV3(responseConsent.getData().getConsentId(), UUID.randomUUID().toString(), UUID.randomUUID().toString(), createPixPaymentRequest, clientId)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        localInstrument             |   qrCode
+        EnumLocalInstrument.INIC    |   null
+        EnumLocalInstrument.QRDN    |   QrCodeUtils.createQrCode("Bob Creditor", "proxy", "100", "BRL").toString()
+        EnumLocalInstrument.QRES    |   QrCodeUtils.createQrCode("Bob Creditor", "proxy", "100", "BRL").toString()
     }
 
     def "enable cleanup"() {

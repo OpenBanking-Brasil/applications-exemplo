@@ -31,15 +31,14 @@ public class JwtSigner {
         try {
             JWTClaimsSet claimsSet = JWTClaimsSet.parse(payload);
             JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder(claimsSet);
-            if(other != null) {
+            if (other != null) {
                 other.getClaims().forEach(builder::claim);
             }
             claimsSet = builder.build();
             JWSHeader header = buildHeader(signingKey);
             JWSSigner signer = buildSigner(signingKey);
             return performSigning(header, claimsSet, signer);
-        }
-        catch (JOSEException | ParseException e) {
+        } catch (JOSEException | ParseException e) {
             throw new TrustframeworkException(e);
         }
     }
@@ -56,8 +55,10 @@ public class JwtSigner {
         if (alg == null) {
             throw new TrustframeworkException("No alg selected");
         }
-
-        return new JWSHeader(JWSAlgorithm.parse(alg.getName()), new JOSEObjectType("JWT"), null, null, null, null, null, null, null, null, signingJwk.getKeyID(), null, null);
+        return new JWSHeader.Builder(JWSAlgorithm.parse(alg.getName())).
+                type(new JOSEObjectType("JWT")).
+                keyID(signingJwk.getKeyID()).
+                build();
     }
 
     private JWK findSigningJwk(JWKSet jwkSet) {

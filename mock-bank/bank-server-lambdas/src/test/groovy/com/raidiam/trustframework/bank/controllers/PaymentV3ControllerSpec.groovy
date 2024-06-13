@@ -132,7 +132,7 @@ class PaymentV3ControllerSpec extends Specification {
 
         consentFull = new ResponsePaymentConsentFull()
                 .data(new ResponsePaymentConsentFullData()
-                        .status(ResponsePaymentConsentFullData.StatusEnum.AWAITING_AUTHORISATION)
+                        .status(EnumAuthorisationStatusType.AWAITING_AUTHORISATION)
                         .clientId("client1")
                         .expirationDateTime(OffsetDateTime.now())
                         .consentId("somepaymentconsent")
@@ -876,7 +876,7 @@ class PaymentV3ControllerSpec extends Specification {
 
     def "we can PUT payment"(){
         given:
-        mockService.updatePaymentV2(_ as String, _ as UpdatePixPaymentV2, _ as String) >> responsePixPaymentV2
+        mockService.updatePaymentV3(_ as String, _ as UpdatePixPaymentV2, _ as String) >> responsePixPaymentV2
 
         String entity = mapper.writeValueAsString(updatePixPaymentV2)
 

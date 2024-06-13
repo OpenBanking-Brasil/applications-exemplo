@@ -119,7 +119,7 @@ public class ExchangesOperationEntity extends BaseEntity implements HasStatusInt
                 .authorizedInstitutionCnpjNumber(companyCnpj)
                 .authorizedInstitutionName(brandName)
                 .intermediaryInstitutionCnpjNumber(intermediaryInstitutionCnpjNumber)
-                .intemediaryInstitutionName(intermediaryInstitutionName)
+                .intermediaryInstitutionName(intermediaryInstitutionName)
                 .operationNumber(operationNumber)
                 .operationType(operationType)
                 .operationDate(operationDate)

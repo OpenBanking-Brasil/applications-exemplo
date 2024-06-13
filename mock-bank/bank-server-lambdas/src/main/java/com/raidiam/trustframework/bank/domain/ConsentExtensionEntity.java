@@ -1,8 +1,8 @@
 package com.raidiam.trustframework.bank.domain;
 
 import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
+import com.raidiam.trustframework.mockbank.models.generated.Document;
 import com.raidiam.trustframework.mockbank.models.generated.LoggedUser;
-import com.raidiam.trustframework.mockbank.models.generated.LoggedUserDocument;
 import com.raidiam.trustframework.mockbank.models.generated.ResponseConsentReadExtendsData;
 import com.raidiam.trustframework.mockbank.models.generated.ResponseConsentReadExtensionsV3Data;
 import lombok.Data;
@@ -74,7 +74,7 @@ public class ConsentExtensionEntity {
                 .expirationDateTime(BankLambdaUtils.dateToOffsetDate(expirationDateTime))
                 .requestDateTime(BankLambdaUtils.dateToOffsetDate(requestDateTime))
                 .loggedUser(new LoggedUser()
-                        .document(new LoggedUserDocument()
+                        .document(new Document()
                                 .identification(loggedDocumentIdentification)
                                 .rel(loggedDocumentRel)));
     }
@@ -87,7 +87,7 @@ public class ConsentExtensionEntity {
                 .xCustomerUserAgent(xCustomerUserAgent)
                 .xFapiCustomerIpAddress(xFapiCustomerIpAddress)
                 .loggedUser(new LoggedUser()
-                        .document(new LoggedUserDocument()
+                        .document(new Document()
                                 .identification(loggedDocumentIdentification)
                                 .rel(loggedDocumentRel)));
     }

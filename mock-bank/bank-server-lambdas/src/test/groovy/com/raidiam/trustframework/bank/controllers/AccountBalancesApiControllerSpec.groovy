@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.raidiam.trustframework.bank.AuthHelper
 import com.raidiam.trustframework.bank.services.AccountsService
 import com.raidiam.trustframework.bank.services.ConsentService
-import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountBalances
+import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountBalancesV2
 import io.micronaut.function.aws.proxy.MicronautLambdaContainerHandler
 import io.micronaut.http.HttpMethod
 import io.micronaut.http.HttpStatus
@@ -25,15 +25,15 @@ class AccountBalancesApiControllerSpec extends Specification {
     AccountsService mockService = Mock(AccountsService)
     ConsentService consentService = Mock(ConsentService)
 
-    ResponseAccountBalances response
+    ResponseAccountBalancesV2 response
     private static Context lambdaContext = new MockLambdaContext()
 
     def setup () {
-        mapper.findAndRegisterModules();
+        mapper.findAndRegisterModules()
         handler = new MicronautLambdaContainerHandler(Micronaut.build().singletons(mockService, consentService))
 
         given: "An Account Balances"
-        response = new ResponseAccountBalances().data(anAccountBalances())
+        response = new ResponseAccountBalancesV2().data(anAccountBalances())
     }
 
     def cleanup() {
@@ -42,8 +42,8 @@ class AccountBalancesApiControllerSpec extends Specification {
 
     void "we can not get account Balances without ACCOUNTS_BALANCES_READ role"() {
         given:
-        mockService.getAccountBalances(_ as String, _ as String) >> response
-        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/accounts/v1/accounts/account1/balances', HttpMethod.GET.toString())
+        mockService.getAccountBalancesV2(_ as String, _ as String) >> response
+        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/accounts/v2/accounts/account1/balances', HttpMethod.GET.toString())
         AuthHelper.authorize(scopes: "bananas consent:urn:raidiambank:bf43d0e5-7bc2-4a5b-b6da-19d43fabd991", builder)
 
         when:
@@ -55,9 +55,10 @@ class AccountBalancesApiControllerSpec extends Specification {
 
     void "we can get account Balances"() {
         given:
-        mockService.getAccountBalances(_ as String, _ as String) >> response
-        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/accounts/v1/accounts/account1/balances', HttpMethod.GET.toString())
+        mockService.getAccountBalancesV2(_ as String, _ as String) >> response
+        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder('/open-banking/accounts/v2/accounts/account1/balances', HttpMethod.GET.toString())
         AuthHelper.authorize(scopes: "accounts consent:urn:raidiambank:bf43d0e5-7bc2-4a5b-b6da-19d43fabd991", builder)
+        builder.header("x-fapi-interaction-id", UUID.randomUUID().toString())
 
         when:
         def response = handler.proxy(builder.build(), lambdaContext)

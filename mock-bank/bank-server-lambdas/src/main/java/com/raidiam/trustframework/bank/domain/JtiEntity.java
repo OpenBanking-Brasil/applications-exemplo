@@ -17,7 +17,7 @@ import java.time.OffsetDateTime;
 public class JtiEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer id;
 

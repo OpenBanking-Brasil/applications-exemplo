@@ -1,10 +1,8 @@
 package com.raidiam.trustframework.bank.domain;
 
 import com.raidiam.trustframework.mockbank.models.generated.CreditorAccount;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
@@ -12,14 +10,12 @@ import java.util.Optional;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "creditor_accounts")
 public class CreditorAccountEntity extends BaseEntity{
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "creditor_account_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer creditorAccountId;
 

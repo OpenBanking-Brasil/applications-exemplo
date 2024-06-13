@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.raidiam.trustframework.bank.AuthHelper
 import com.raidiam.trustframework.bank.services.AccountsService
 import com.raidiam.trustframework.bank.utils.BankLambdaUtils
-import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountOverdraftLimits
+import com.raidiam.trustframework.mockbank.models.generated.ResponseAccountOverdraftLimitsV2
 import io.micronaut.function.aws.proxy.MicronautLambdaContainerHandler
 import io.micronaut.http.HttpMethod
 import io.micronaut.http.HttpRequest
@@ -28,7 +28,7 @@ class AccountOverdraftLimitsApiControllerSpec extends Specification {
     def mapper = new ObjectMapper()
     MicronautLambdaContainerHandler handler
     AccountsService mockService = Mock(AccountsService)
-    ResponseAccountOverdraftLimits response
+    ResponseAccountOverdraftLimitsV2 response
     private static Context lambdaContext = new MockLambdaContext()
 
     @Shared
@@ -44,7 +44,7 @@ class AccountOverdraftLimitsApiControllerSpec extends Specification {
     }
 
     def setup () {
-        mapper.findAndRegisterModules();
+        mapper.findAndRegisterModules()
         handler = new MicronautLambdaContainerHandler(Micronaut.build()
                 .singletons(mockService, bankLambdaUtils))
 
@@ -52,7 +52,7 @@ class AccountOverdraftLimitsApiControllerSpec extends Specification {
         def account = anAccount()
         account.setAccountId(accountId)
 
-        response = new ResponseAccountOverdraftLimits().data(account.getOverDraftLimits())
+        response = new ResponseAccountOverdraftLimitsV2().data(account.getOverDraftLimitsV2())
 
         bankLambdaUtils.getConsentIdFromRequest(_ as HttpRequest<?>) >> "12345"
     }
@@ -63,9 +63,10 @@ class AccountOverdraftLimitsApiControllerSpec extends Specification {
 
     void "we can get account OverdraftLimits"() {
         given:
-        mockService.getAccountOverdraftLimits(_ as String, _ as String) >> response
-        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder("/open-banking/accounts/v1/accounts/${accountId}/overdraft-limits", HttpMethod.GET.toString())
+        mockService.getAccountOverdraftLimitsV2(_ as String, _ as String) >> response
+        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder("/open-banking/accounts/v2/accounts/${accountId}/overdraft-limits", HttpMethod.GET.toString())
         AuthHelper.authorize(scopes: "accounts", builder)
+        builder.header("x-fapi-interaction-id", UUID.randomUUID().toString())
 
         when:
         def response = handler.proxy(builder.build(), lambdaContext)
@@ -81,8 +82,9 @@ class AccountOverdraftLimitsApiControllerSpec extends Specification {
     void "we can not get account OverdraftLimits without ACCOUNTS_OVERDRAFT_LIMITS_READ role"() {
         given:
         mockService.getAccountBalances(_ as String, _ as String) >> response
-        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder("/open-banking/accounts/v1/accounts/${accountId}/overdraft-limits", HttpMethod.GET.toString())
+        AwsProxyRequestBuilder builder = new AwsProxyRequestBuilder("/open-banking/accounts/v2/accounts/${accountId}/overdraft-limits", HttpMethod.GET.toString())
         AuthHelper.authorize(scopes: "bananas", builder)
+        builder.header("x-fapi-interaction-id", UUID.randomUUID().toString())
 
         when:
         def response = handler.proxy(builder.build(), lambdaContext)

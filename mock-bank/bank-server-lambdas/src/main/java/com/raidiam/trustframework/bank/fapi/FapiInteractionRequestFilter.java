@@ -1,6 +1,7 @@
 package com.raidiam.trustframework.bank.fapi;
 
 import com.nimbusds.jose.util.Pair;
+import com.raidiam.trustframework.bank.enums.ErrorCodesEnumV2;
 import com.raidiam.trustframework.bank.utils.AnnotationsUtil;
 import io.micronaut.context.ApplicationContext;
 import io.micronaut.http.HttpMethod;
@@ -63,7 +64,7 @@ public class FapiInteractionRequestFilter implements HttpServerFilter {
         LOG.info("Validating {} - {}", X_FAPI_INTERACTION_ID, interactionId);
 
         if (!interactionId.matches(INTERACTION_ID_VALIDATION_REGEX)) {
-            throw new HttpStatusException(HttpStatus.BAD_REQUEST, String.format("x-fapi-interaction-id - %s is invalid", interactionId));
+            throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, String.format("%s: x-fapi-interaction-id - %s is invalid", ErrorCodesEnumV2.PARAMETRO_INVALIDO, interactionId));
         }
     }
 
@@ -77,7 +78,7 @@ public class FapiInteractionRequestFilter implements HttpServerFilter {
         if (isRequired(request)) {
             LOG.info("Request path matched the required list - checking {} header", X_FAPI_INTERACTION_ID);
             interactionIdOptional.ifPresentOrElse(
-                    (interactionId) -> LOG.info("Payment request has {} header - {}", X_FAPI_INTERACTION_ID, interactionId),
+                    interactionId -> LOG.info("Payment request has {} header - {}", X_FAPI_INTERACTION_ID, interactionId),
                     () -> {
                         throw new HttpStatusException(HttpStatus.BAD_REQUEST, "No x-fapi-interaction-id in the request");
                     }

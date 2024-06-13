@@ -79,6 +79,15 @@ public class ExchangesOperationEventEntity extends BaseEntity {
     @Column(name = "operationCategoryCode")
     private String operationCategoryCode;
 
+    @Column(name = "relationship_code")
+    private String relationshipCode;
+
+    @Column(name = "foreign_partie_name")
+    private String foreignPartieName;
+
+    @Column(name = "foreign_partie_country_code")
+    private String foreignPartieCountryCode;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
@@ -117,6 +126,14 @@ public class ExchangesOperationEventEntity extends BaseEntity {
             events.vetAmount(new OperationDetailsVetAmount()
                     .currency(vetAmountCurrency)
                     .amount(vetAmountAmount.toString()));
+        }
+
+        if (foreignPartieCountryCode != null && foreignPartieName != null && relationshipCode != null) {
+            events.foreignPartie(new EventsForeignPartie()
+                    .foreignPartieCountryCode(foreignPartieCountryCode)
+                    .foreignPartieName(foreignPartieName)
+                    .relationshipCode(relationshipCode)
+            );
         }
 
         return events;

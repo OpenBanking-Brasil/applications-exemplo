@@ -4,7 +4,7 @@ import com.raidiam.trustframework.bank.CleanupSpecification
 import com.raidiam.trustframework.bank.TestEntityDataFactory
 import com.raidiam.trustframework.bank.controllers.ConsentFactory
 import com.raidiam.trustframework.bank.domain.AccountHolderEntity
-import com.raidiam.trustframework.bank.enums.AccountOrContractType
+import com.raidiam.trustframework.bank.enums.ResourceType
 import com.raidiam.trustframework.bank.utils.BankLambdaUtils
 import com.raidiam.trustframework.mockbank.models.generated.*
 import io.micronaut.http.HttpStatus
@@ -42,28 +42,28 @@ class ConsentServiceV2Spec extends CleanupSpecification {
             def creditCard = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
             def creditCard2 = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
             def loan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.LOAN,
+                    ResourceType.LOAN,
                     EnumContractProductTypeLoans.EMPRESTIMOS.toString(), EnumContractProductSubTypeLoans.CAPITAL_GIRO_TETO_ROTATIVO.toString())
             def loan2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.LOAN,
+                    ResourceType.LOAN,
                     EnumContractProductTypeLoans.EMPRESTIMOS.toString(), EnumContractProductSubTypeLoans.CREDITO_PESSOAL_COM_CONSIGNACAO.toString())
             def financing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.FINANCING,
+                    ResourceType.FINANCING,
                     EnumProductType.FINANCIAMENTOS_IMOBILIARIOS.toString(), EnumProductSubType.CUSTEIO.toString())
             def financing2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.FINANCING,
+                    ResourceType.FINANCING,
                     EnumProductType.FINANCIAMENTOS.toString(), EnumProductSubType.INVESTIMENTO.toString())
             def invoiceFinancing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.INVOICE_FINANCING,
+                    ResourceType.INVOICE_FINANCING,
                     EnumContractProductTypeInvoiceFinancings.DIREITOS_CREDITORIOS_DESCONTADOS.toString(), EnumContractProductSubTypeInvoiceFinancings.DESCONTO_CHEQUES.toString())
             def invoiceFinancing2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.INVOICE_FINANCING,
+                    ResourceType.INVOICE_FINANCING,
                     EnumContractProductTypeInvoiceFinancings.DIREITOS_CREDITORIOS_DESCONTADOS.toString(), EnumContractProductSubTypeInvoiceFinancings.ANTECIPACAO_FATURA_CARTAO_CREDITO.toString())
             def overdraft = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT,
+                    ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT,
                     ProductType.ADIANTAMENTO_A_DEPOSITANTES.toString(), ProductSubType.ADIANTAMENTO_A_DEPOSITANTES.toString())
             def overdraft2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(),
-                    AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT,
+                    ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT,
                     ProductType.ADIANTAMENTO_A_DEPOSITANTES.toString(), ProductSubType.ADIANTAMENTO_A_DEPOSITANTES.toString())
 
             List<String> linkedAccountIds = [account.getAccountId().toString(), account2.getAccountId().toString()]
@@ -96,14 +96,14 @@ class ConsentServiceV2Spec extends CleanupSpecification {
         def account2 = accountRepository.save(anAccount(testAccountHolder))
         def creditCard = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
         def creditCard2 = creditCardAccountsRepository.save(anCreditCardAccounts(testAccountHolder.getAccountHolderId()))
-        def loan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.LOAN, "a", "b")
-        def loan2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.LOAN, "a", "b")
-        def financing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.FINANCING, "a", "b")
-        def financing2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.FINANCING, "a", "b")
-        def invoiceFinancing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.INVOICE_FINANCING, "a", "b")
-        def invoiceFinancing2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.INVOICE_FINANCING, "a", "b")
-        def overdraft = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT, "a", "b")
-        def overdraft2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), AccountOrContractType.UNARRANGED_ACCOUNT_OVERDRAFT, "a", "b")
+        def loan = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.LOAN, "a", "b")
+        def loan2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.LOAN, "a", "b")
+        def financing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.FINANCING, "a", "b")
+        def financing2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.FINANCING, "a", "b")
+        def invoiceFinancing = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.INVOICE_FINANCING, "a", "b")
+        def invoiceFinancing2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.INVOICE_FINANCING, "a", "b")
+        def overdraft = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT, "a", "b")
+        def overdraft2 = testEntityDataFactory.createAndSaveFullContract(testAccountHolder.getAccountHolderId(), ResourceType.UNARRANGED_ACCOUNT_OVERDRAFT, "a", "b")
         def bankFixedIncome = testEntityDataFactory.createAndSaveBankFixedIncome(testAccountHolder.getAccountHolderId())
         def creditFixedIncome = testEntityDataFactory.createAndSaveCreditFixedIncome(testAccountHolder.getAccountHolderId())
         def variableIncome = testEntityDataFactory.createAndSaveVariableIncome(testAccountHolder.getAccountHolderId())
@@ -250,6 +250,21 @@ class ConsentServiceV2Spec extends CleanupSpecification {
         def rejection = response2.getData().getRejection()
         rejection.getRejectedBy() == EnumRejectedByV2.ASPSP
         rejection.getReason().getCode() == EnumReasonCodeV2.CONSENT_MAX_DATE_REACHED
+    }
+
+    def "400 error when creating consent with invalid expirationDateTime"() {
+        given:
+        CreateConsentV2 consent = ConsentFactory.createConsentV2(testAccountHolder.documentIdentification, testAccountHolder.documentRel, null)
+
+        OffsetDateTime offsetDateTime = OffsetDateTime.of(2300, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        consent.getData().setExpirationDateTime(offsetDateTime)
+
+        when:
+        ResponseConsentV2 response = service.createConsentV2('client3', consent)
+
+        then:
+        def e = thrown(HttpStatusException)
+        e.getStatus() == HttpStatus.BAD_REQUEST
     }
 
     def "customer manually revoked v2"() {

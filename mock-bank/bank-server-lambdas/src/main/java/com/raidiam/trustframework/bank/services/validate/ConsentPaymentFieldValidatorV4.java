@@ -2,14 +2,17 @@ package com.raidiam.trustframework.bank.services.validate;
 
 import com.google.common.base.Strings;
 import com.raidiam.trustframework.bank.enums.DayOfWeekEnum;
+import com.raidiam.trustframework.bank.services.ScheduledDatesService;
 import com.raidiam.trustframework.bank.services.message.PaymentErrorMessage;
+import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.*;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.http.exceptions.HttpStatusException;
 import org.apache.commons.lang3.EnumUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -17,17 +20,21 @@ import java.util.Optional;
 
 public class ConsentPaymentFieldValidatorV4 implements PaymentConsentValidatorV4{
 
-    LocalDate currentDate = new Date().toInstant().atZone(ZoneId.of("America/Sao_Paulo")).toLocalDate();
+    private static final Logger LOG = LoggerFactory.getLogger(ConsentPaymentFieldValidatorV4.class);
 
     private final PaymentErrorMessage errorMessage;
-    public ConsentPaymentFieldValidatorV4(PaymentErrorMessage errorMessage) {
+    private final ScheduledDatesService scheduledDatesService;
+
+    public ConsentPaymentFieldValidatorV4(PaymentErrorMessage errorMessage, ScheduledDatesService scheduledDatesService) {
         this.errorMessage = errorMessage;
+        this.scheduledDatesService = scheduledDatesService;
     }
 
     @Override
     public void validate(CreatePaymentConsentV4 request) {
+        LOG.info("Started Payment Consent Field validation");
         CreatePaymentConsentV4Data data = request.getData();
-        CreatePaymentConsentV4DataPayment payment = data.getPayment();
+        PaymentConsentV4Payment payment = data.getPayment();
 
         // Message: Invalid payment type
         var containTypeEnum = Arrays.stream(EnumPaymentType.values()).filter(p -> p == payment.getType()).findAny();
@@ -65,9 +72,11 @@ public class ConsentPaymentFieldValidatorV4 implements PaymentConsentValidatorV4
                     errorMessage.getMessageInvalidParameter()
             );
         }
+        LOG.info("Finished Payment Consent Field validation");
     }
 
     public void validatePaymentDate(LocalDate consentDate){
+        LocalDate currentDate = new Date().toInstant().atZone(BankLambdaUtils.getBrasilZoneId()).toLocalDate();
         if(consentDate.isBefore(currentDate)){
             throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidDate("Data de pagamento " +
                     "inválida no contexto, data no passado. Para pagamentos únicos deve ser informada a data atual, " +
@@ -76,7 +85,8 @@ public class ConsentPaymentFieldValidatorV4 implements PaymentConsentValidatorV4
         }
     }
 
-    private void validatePaymentScheduleV4(AllOfCreatePaymentConsentV4DataPaymentSchedule schedule) {
+    private void validatePaymentScheduleV4(AllOfPaymentConsentV4PaymentSchedule schedule) {
+        LocalDate currentDate = new Date().toInstant().atZone(BankLambdaUtils.getBrasilZoneId()).toLocalDate();
         if (schedule.getSingle() != null) {
             ScheduleSingleSingle single = schedule.getSingle();
             LocalDate singleDate = Optional.ofNullable(single.getDate()).orElseThrow(() -> new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getParameterNotInformed("")));
@@ -87,6 +97,7 @@ public class ConsentPaymentFieldValidatorV4 implements PaymentConsentValidatorV4
 
         if (schedule.getDaily() != null) {
             ScheduleDailyDaily daily = schedule.getDaily();
+            validateMaximumQuantity(daily.getQuantity());
             LocalDate startDate = daily.getStartDate();
             int quantity = daily.getQuantity();
             LocalDate consentDate = startDate.plusDays(quantity);
@@ -95,9 +106,11 @@ public class ConsentPaymentFieldValidatorV4 implements PaymentConsentValidatorV4
 
         if (schedule.getWeekly() != null) {
             ScheduleWeeklyWeekly weekly = schedule.getWeekly();
+            validateMaximumQuantity(weekly.getQuantity());
             LocalDate startDate = weekly.getStartDate();
             int quantity = weekly.getQuantity();
-            LocalDate consentDate = currentDate.plusWeeks(quantity);
+            LocalDate effectiveStartDate = scheduledDatesService.getEffectiveWeeklyStartDate(startDate, BankLambdaUtils.getPaymentScheduleWeeklyOrdinal(weekly.getDayOfWeek().toString()));
+            LocalDate consentDate = effectiveStartDate.plusWeeks(quantity);
             checkScheduleParams(startDate, consentDate, currentDate, quantity);
             if (!EnumUtils.isValidEnum(DayOfWeekEnum.class, weekly.getDayOfWeek().toString())) {
                 throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidDate("Data de agendamento inválida - Dia da semana inválido"));
@@ -107,22 +120,38 @@ public class ConsentPaymentFieldValidatorV4 implements PaymentConsentValidatorV4
         if (schedule.getMonthly() != null) {
             ScheduleMonthlyMonthly monthly = schedule.getMonthly();
             LocalDate startDate = monthly.getStartDate();
+            LocalDate effectiveStartDate = scheduledDatesService.getEffectiveMonthlyStartDate(startDate, monthly.getDayOfMonth());
             int quantity = monthly.getQuantity();
-            LocalDate consentDate = currentDate.plusMonths(quantity);
+            LocalDate consentDate = effectiveStartDate.plusMonths(quantity);
             checkScheduleParams(startDate, consentDate, currentDate, quantity);
         }
 
         if (schedule.getCustom() != null) {
             ScheduleCustomCustom custom = schedule.getCustom();
+            validateMaximumQuantity(custom.getDates().size());
             List<LocalDate> customDates = custom.getDates();
             for (LocalDate date : customDates) {
                 if (date.isBefore(currentDate) || date.isAfter(currentDate.plusYears(2))) {
-                    throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidDate("Data de agendamento inválida - a data tem que estar entre a data atual e no máximo 2 anos a frente"));
+                    throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidDate("Data de consentimento tem que ser no máximo até 2 anos no futuro"));
                 }
             }
             if (Strings.isNullOrEmpty(custom.getAdditionalInformation())) {
                 throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidDate("Data de agendamento inválida - Informações adicionai não informadas"));
             }
+
+            if (customDates.size() < 2) {
+                throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidParameter("There must be more than one custom date scheduled in the request"));
+            }
+
+            if(customDates.size() != customDates.stream().distinct().count()){
+                throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidParameter("All custom dates must be unique"));
+            }
+        }
+    }
+
+    private void validateMaximumQuantity(Integer quantity) {
+        if(quantity > 60) {
+            throw new HttpStatusException(HttpStatus.UNPROCESSABLE_ENTITY, errorMessage.getMessageInvalidParameter("Quantidade acima do limite máximo"));
         }
     }
 

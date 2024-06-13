@@ -1,26 +1,23 @@
 package com.raidiam.trustframework.bank.domain;
 
-import com.raidiam.trustframework.bank.utils.BankLambdaUtils;
 import com.raidiam.trustframework.mockbank.models.generated.BusinessOtherDocument;
+import com.raidiam.trustframework.mockbank.models.generated.BusinessOtherDocumentV2;
 import lombok.*;
-import org.hibernate.annotations.Type;
 import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.UUID;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Audited
 @Table(name = "business_other_documents")
 public class BusinessOtherDocumentEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reference_id", unique = true, nullable = false, updatable = false, insertable = false)
     private Integer referenceId;
 
@@ -34,16 +31,13 @@ public class BusinessOtherDocumentEntity extends BaseEntity {
     private String country;
 
     @Column(name = "expiration_date")
-    private Date expirationDate;
+    private LocalDate expirationDate;
 
-    @Column(name = "business_identifications_id")
-    @Type(type = "pg-uuid")
-    private UUID businessIdentificationsId;
-
+    @NotNull
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "business_identifications_id", referencedColumnName = "business_identifications_id", insertable = false, nullable = false, updatable = false)
+    @JoinColumn(name = "business_identifications_id", referencedColumnName = "business_identifications_id", nullable = false, updatable = false)
     private BusinessIdentificationsEntity businessIdentifications;
 
     public BusinessOtherDocument getDTO() {
@@ -51,6 +45,24 @@ public class BusinessOtherDocumentEntity extends BaseEntity {
                 .type(this.getType())
                 .number(this.getNumber())
                 .country(this.getCountry())
-                .expirationDate(BankLambdaUtils.dateToLocalDate(this.getExpirationDate()));
+                .expirationDate(this.getExpirationDate());
+    }
+
+    public BusinessOtherDocumentV2 getDTOV2() {
+        return new BusinessOtherDocumentV2()
+                .type(this.getType())
+                .number(this.getNumber())
+                .country(this.getCountry())
+                .expirationDate(this.getExpirationDate());
+    }
+
+    public static BusinessOtherDocumentEntity from(BusinessIdentificationsEntity business, BusinessOtherDocument otherDocuments) {
+        var otherDocumentsEntity = new BusinessOtherDocumentEntity();
+        otherDocumentsEntity.setBusinessIdentifications(business);
+        otherDocumentsEntity.setType(otherDocuments.getType());
+        otherDocumentsEntity.setNumber(otherDocuments.getNumber());
+        otherDocumentsEntity.setCountry(otherDocuments.getCountry());
+        otherDocumentsEntity.setExpirationDate(otherDocuments.getExpirationDate());
+        return otherDocumentsEntity;
     }
 }

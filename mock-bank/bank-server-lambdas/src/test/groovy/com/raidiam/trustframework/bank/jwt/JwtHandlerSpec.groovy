@@ -3,8 +3,6 @@ package com.raidiam.trustframework.bank.jwt
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.raidiam.trustframework.bank.fapi.JwtSigningErrorResponseHandler
 import com.raidiam.trustframework.bank.utils.JwtSigner
-import io.micronaut.http.server.exceptions.response.HateoasErrorResponseProcessor
-import io.micronaut.jackson.JacksonConfiguration
 import io.micronaut.test.extensions.spock.annotation.MicronautTest
 import spock.lang.Specification
 
@@ -13,7 +11,6 @@ class JwtHandlerSpec extends Specification {
     def "We can generate the right error details"() {
         given:
         JwtSigningErrorResponseHandler handler = new JwtSigningErrorResponseHandler(
-                new HateoasErrorResponseProcessor(new JacksonConfiguration()),
                 new JwtSigner(),
                 new ObjectMapper(),
                 "test")
@@ -30,6 +27,7 @@ class JwtHandlerSpec extends Specification {
         handler.generateTitle("DETALHE_PGTO_INVALIDO") == "Detalhe do pagamento inválido."
         handler.generateTitle("NAO_INFORMADO") == "Não informado."
         handler.generateTitle("PAGAMENTO_DIVERGENTE_DO_CONSENTIMENTO") == "Pagamento divergente do consentimento"
+        handler.generateTitle("PAGAMENTO_DIVERGENTE_CONSENTIMENTO") == "Divergência entre pagamento e consentimento"
 
         handler.generateDetail("FORMA_PGTO_INVALIDA: blah") == "blah"
         handler.generateDetail("DATA_PGTO_INVALIDA: blah") == "blah"

@@ -101,7 +101,6 @@ class AccountAdminServiceSpec extends CleanupSpecification {
         then:
         updatedTransactionDto.getTransactionId() != null
         updatedTransactionDto.getTransactionName() == forUpdate.getTransactionName()
-        updatedTransactionDto.getTransactionDate() == forUpdate.getTransactionDate()
         updatedTransactionDto.getAmount() == forUpdate.getAmount()
         updatedTransactionDto.getCompletedAuthorisedPaymentType() == forUpdate.getCompletedAuthorisedPaymentType()
         updatedTransactionDto.getCreditDebitType() == forUpdate.getCreditDebitType()

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.raidiam.trustframework.bank.exceptions.TrustframeworkException;
+import com.raidiam.trustframework.bank.fapi.JwtRequestFilter;
 import io.micronaut.core.bind.ArgumentBinder;
 import io.micronaut.core.convert.ArgumentConversionContext;
 import io.micronaut.function.aws.proxy.MicronautAwsProxyRequest;
@@ -43,7 +44,8 @@ public abstract class AbstractJwtBinder<T> implements TypedRequestArgumentBinder
         }
         String body = bodyOpt.get();
         if(mediaType.getExtension().equals("jwt")) {
-            String unpacked = unpack(body);
+            bindJtiForLocalRequest(source, body);
+            String unpacked = unpack(body, "data");
             return bindFromJson(unpacked);
         }
         return ArgumentBinder.BindingResult.EMPTY;
@@ -78,14 +80,20 @@ public abstract class AbstractJwtBinder<T> implements TypedRequestArgumentBinder
         return null;
     }
 
-    private String unpack(String body) {
+    private String unpack(String body, String claimName) {
         try {
             SignedJWT jwt = SignedJWT.parse(body);
             JWTClaimsSet claims = jwt.getJWTClaimsSet();
-            Object json = Optional.ofNullable(claims.getClaim("data")).orElseThrow(() -> new HttpStatusException(HttpStatus.BAD_REQUEST, "JWT does not appear to be a payment consent"));
-            return String.valueOf(json);
-        } catch (ParseException e) {
+            Object json = Optional.ofNullable(claims.getClaim(claimName)).orElseThrow(() -> new HttpStatusException(HttpStatus.BAD_REQUEST, "JWT does not appear to be a payment consent"));
+            return objectMapper.writeValueAsString(json);
+        } catch (ParseException | JsonProcessingException e) {
             throw new HttpStatusException(HttpStatus.BAD_REQUEST, "Unparseable payload");
+        }
+    }
+
+    private void bindJtiForLocalRequest(HttpRequest<?> source, String body) {
+        if (!(source instanceof MicronautAwsProxyRequest)) {
+            source.setAttribute(JwtRequestFilter.JTI_ATTRIBUTE, unpack(body, "jti"));
         }
     }
 

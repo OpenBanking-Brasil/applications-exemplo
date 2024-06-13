@@ -80,12 +80,8 @@ servers:
   - url: 'https://apih.banco.com.br/open-banking/accounts/v1'
     description: Servidor de Homologação
 tags:
-  - name: Accounts
-    description: Operações para listagem das informações da Conta do Cliente
   - name: Accounts v2
     description: Operações para listagem das informações da Conta do Cliente
-  - name: Consents
-    description: Operações para criação, consulta e revogação do consentimento dado pelo cliente.
   - name: Consents v2
     description: Operações para criação, consulta e revogação do consentimento dado pelo cliente.
   - name: Credit Card
@@ -94,8 +90,6 @@ tags:
     description: Operações para listagem das informações de Cartão de Crédito
   - name: Resources
   - name: Resources v2
-  - name: Customers
-    description: Operações para listagem das informações Cadastrais do Cliente
   - name: Customers v2
   - name: Loans
   - name: Loans v2
@@ -109,393 +103,6 @@ tags:
   - name: User
   - name: Admin
 paths:
-  '/open-banking/payments/v2/consents':
-    post:
-      tags:
-        - Payments V2
-      summary: Criar consentimento para a iniciação de pagamento.
-      operationId: paymentsPostConsentsV2
-      description: Método de criação do consentimento para a iniciação de pagamento.
-      parameters:
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/xFapiAuthDate'
-        - $ref: '#/components/parameters/xFapiCustomerIpAddress'
-        - $ref: '#/components/parameters/xFapiInteractionId'
-        - $ref: '#/components/parameters/xCustomerUserAgent'
-        - $ref: '#/components/parameters/XIdempotencyKey'
-      requestBody:
-        content:
-          application/jwt:
-            schema:
-              $ref: '#/components/schemas/CreatePaymentConsent'
-        description: Payload para criação do consentimento para iniciação do pagamento.
-        required: true
-      responses:
-        '201':
-          $ref: '#/components/responses/201PaymentsConsentsConsentCreatedV2'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '406':
-          $ref: '#/components/responses/NotAcceptable'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntityConsents'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        default:
-          description: Erro inesperado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseError'
-      security:
-        - authorizer: [ ]
-        - OpenId:
-            - openid
-          OAuth2Security:
-            - payments
-      x-amazon-apigateway-integration:
-        type: aws_proxy
-        httpMethod: POST
-        uri: "${mockbank_write_arn}"
-        passthroughBehavior: when_no_match
-        timeoutInMillis: 29000
-  '/open-banking/payments/v2/consents/{consentId}':
-    get:
-      tags:
-        - Payments V2
-      summary: Consultar consentimento para iniciação de pagamento.
-      operationId: paymentsGetConsentsConsentIdV2
-      description: Método para consulta do consentimento para a iniciação de pagamento.
-      parameters:
-        - $ref: '#/components/parameters/consentId'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/xFapiAuthDate'
-        - $ref: '#/components/parameters/xFapiCustomerIpAddress'
-        - $ref: '#/components/parameters/xFapiInteractionId'
-        - $ref: '#/components/parameters/xCustomerUserAgent'
-      responses:
-        '200':
-          $ref: '#/components/responses/200PaymentsConsentsConsentIdReadV2'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '406':
-          $ref: '#/components/responses/NotAcceptable'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        default:
-          description: Erro inesperado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseError'
-      security:
-        - authorizer: [ ]
-        - OpenId:
-            - openid
-          OAuth2Security:
-            - payments
-      x-amazon-apigateway-integration:
-        type: aws_proxy
-        httpMethod: POST
-        uri: "${mockbank_write_arn}"
-        passthroughBehavior: when_no_match
-        timeoutInMillis: 29000
-    put:
-      tags:
-        - Admin
-      summary: Aplicar atualização de consentimento.
-      operationId: paymentsPutConsentsConsentIdV2
-      description: Método de aplicação de atualização de pagamento.
-      parameters:
-        - $ref: '#/components/parameters/consentId'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/xFapiAuthDate'
-        - $ref: '#/components/parameters/xFapiCustomerIpAddress'
-        - $ref: '#/components/parameters/xFapiInteractionId'
-        - $ref: '#/components/parameters/xCustomerUserAgent'
-        - $ref: '#/components/parameters/XIdempotencyKey'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdatePaymentConsent'
-        description: Payload para criação do consentimento para iniciação do pagamento.
-        required: true
-      responses:
-        '200':
-          $ref: '#/components/responses/200PaymentsConsentsConsentIdRead'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '406':
-          $ref: '#/components/responses/NotAcceptable'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        default:
-          description: Erro inesperado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseError'
-      security:
-        - authorizer: [ ]
-      x-amazon-apigateway-integration:
-        type: aws_proxy
-        httpMethod: POST
-        uri: "${mockbank_write_arn}"
-        passthroughBehavior: when_no_match
-        timeoutInMillis: 29000
-  '/open-banking/payments/v2/pix/payments':
-    post:
-      tags:
-        - Payments V2
-      summary: Criar iniciação de pagamento.
-      operationId: paymentsPostPixPaymentsV2
-      description: Método para criar uma iniciação de pagamento.
-      parameters:
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/xFapiAuthDate'
-        - $ref: '#/components/parameters/xFapiCustomerIpAddress'
-        - $ref: '#/components/parameters/xFapiInteractionId'
-        - $ref: '#/components/parameters/xCustomerUserAgent'
-        - $ref: '#/components/parameters/XIdempotencyKey'
-      requestBody:
-        content:
-          application/jwt:
-            schema:
-              $ref: '#/components/schemas/CreatePixPaymentV2'
-        description: Payload para criação da iniciação do pagamento Pix.
-        required: true
-      responses:
-        '201':
-          $ref: '#/components/responses/201PaymentsInitiationPixPaymentCreatedV2'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '406':
-          $ref: '#/components/responses/NotAcceptable'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '422':
-          $ref: '#/components/responses/UnprocessableEntityPixPayments'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        default:
-          description: Erro inesperado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseError'
-      security:
-        - authorizer: [ ]
-        - OpenId:
-            - openid
-          OAuth2Security:
-            - 'consent:consentId'
-            - payments
-      x-amazon-apigateway-integration:
-        type: aws_proxy
-        httpMethod: POST
-        uri: "${mockbank_write_arn}"
-        passthroughBehavior: when_no_match
-        timeoutInMillis: 29000
-  '/open-banking/payments/v2/pix/payments/{paymentId}':
-    get:
-      tags:
-        - Payments V2
-      summary: Consultar iniciação de pagamento.
-      operationId: paymentsGetPixPaymentsPaymentIdV2
-      description: Método para consultar uma iniciação de pagamento.
-      parameters:
-        - $ref: '#/components/parameters/paymentId'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/xFapiAuthDate'
-        - $ref: '#/components/parameters/xFapiCustomerIpAddress'
-        - $ref: '#/components/parameters/xFapiInteractionId'
-        - $ref: '#/components/parameters/xCustomerUserAgent'
-      responses:
-        '200':
-          $ref: '#/components/responses/200PaymentsInitiationPixPaymentIdReadV2'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '406':
-          $ref: '#/components/responses/NotAcceptable'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        default:
-          description: Erro inesperado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseError'
-      security:
-        - authorizer: [ ]
-        - OpenId:
-            - openid
-          OAuth2Security:
-            - payments
-      x-amazon-apigateway-integration:
-        type: aws_proxy
-        httpMethod: POST
-        uri: "${mockbank_read_arn}"
-        passthroughBehavior: when_no_match
-        timeoutInMillis: 29000
-    put:
-      tags:
-        - Payments V2
-      summary: Aplicar atualização de pagamento.
-      operationId: paymentsPutPaymentsPaymentIdV2
-      description: Método de aplicação de atualização de pagamento.
-      parameters:
-        - $ref: '#/components/parameters/paymentId'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/xFapiAuthDate'
-        - $ref: '#/components/parameters/xFapiCustomerIpAddress'
-        - $ref: '#/components/parameters/xFapiInteractionId'
-        - $ref: '#/components/parameters/xCustomerUserAgent'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdatePixPaymentV2'
-        description: Payload para criação do consentimento para iniciação do pagamento.
-        required: true
-      responses:
-        '200':
-          $ref: '#/components/responses/200PaymentsInitiationPixPaymentIdReadV2'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '406':
-          $ref: '#/components/responses/NotAcceptable'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        default:
-          description: Erro inesperado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseError'
-      security:
-        - authorizer: [ ]
-      x-amazon-apigateway-integration:
-        type: aws_proxy
-        httpMethod: POST
-        uri: "${mockbank_write_arn}"
-        passthroughBehavior: when_no_match
-        timeoutInMillis: 29000
-    patch:
-      tags:
-        - Payments V2
-      summary: Cancelar iniciação de pagamento
-      operationId: paymentsPatchPixPaymentsV2
-      description: Método de aplicação de atualização de pagamento.
-      parameters:
-        - $ref: '#/components/parameters/paymentId'
-        - $ref: '#/components/parameters/Authorization'
-        - $ref: '#/components/parameters/xFapiAuthDate'
-        - $ref: '#/components/parameters/xFapiCustomerIpAddress'
-        - $ref: '#/components/parameters/xFapiInteractionId'
-        - $ref: '#/components/parameters/xCustomerUserAgent'
-      requestBody:
-        content:
-          application/jwt:
-            schema:
-              $ref: '#/components/schemas/PatchPaymentsV2'
-        description: Payload para revogação do consentimento.
-        required: true
-      responses:
-        '200':
-          $ref: '#/components/responses/200PaymentsInitiationPixPaymentIdReadV2'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '405':
-          $ref: '#/components/responses/MethodNotAllowed'
-        '406':
-          $ref: '#/components/responses/NotAcceptable'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-        default:
-          description: Erro inesperado.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ResponseError'
-      security:
-        - authorizer: [ ]
-      x-amazon-apigateway-integration:
-        type: aws_proxy
-        httpMethod: POST
-        uri: "${mockbank_write_arn}"
-        passthroughBehavior: when_no_match
-        timeoutInMillis: 29000
   '/open-banking/customers/v2/personal/identifications':
     get:
       tags:
@@ -542,7 +149,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -590,7 +197,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -638,7 +245,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -691,7 +298,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -739,7 +346,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -787,7 +394,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -841,7 +448,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -892,7 +499,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -943,7 +550,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1000,7 +607,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1057,7 +664,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1108,7 +715,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1161,7 +768,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1212,7 +819,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1271,7 +878,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1332,7 +939,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1384,7 +991,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultWithAdditionalPropertiesV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1444,7 +1051,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1502,7 +1109,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1563,7 +1170,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseErrorV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1614,7 +1221,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1675,7 +1282,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
         - OpenId:
             - openid
           OAuth2Security:
@@ -1730,7 +1337,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseErrorV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1784,7 +1391,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseErrorV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1834,7 +1441,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseErrorV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1882,7 +1489,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1935,7 +1542,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -1986,7 +1593,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2040,7 +1647,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2094,7 +1701,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2148,7 +1755,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2201,7 +1808,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2252,7 +1859,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2306,7 +1913,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2360,7 +1967,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2414,7 +2021,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2467,7 +2074,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
         - OpenId:
             - openid
           OAuth2Security:
@@ -2523,7 +2130,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
         - OpenId:
             - openid
           OAuth2Security:
@@ -2582,7 +2189,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
         - OpenId:
             - openid
           OAuth2Security:
@@ -2641,7 +2248,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
         - OpenId:
             - openid
           OAuth2Security:
@@ -2700,7 +2307,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
         - OpenId:
             - openid
           OAuth2Security:
@@ -2758,7 +2365,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2809,7 +2416,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2863,7 +2470,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2917,7 +2524,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -2971,7 +2578,7 @@ paths:
         default:
           $ref: '#/components/responses/DefaultV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -3947,8 +3554,8 @@ paths:
         - $ref: '#/components/parameters/pageV2'
         - $ref: '#/components/parameters/pageSizeV2'
         - $ref: '#/components/parameters/pagination-keyV2'
-        - $ref: '#/components/parameters/fromTransactionDateV2'
-        - $ref: '#/components/parameters/toTransactionDateV2'
+        - $ref: '#/components/parameters/fromTransactionConversionDate'
+        - $ref: '#/components/parameters/toTransactionConversionDate'
       responses:
         '200':
           $ref: '#/components/responses/OkResponseFundsProductMovement'
@@ -4003,6 +3610,8 @@ paths:
         - $ref: '#/components/parameters/pageV2'
         - $ref: '#/components/parameters/pageSizeV2'
         - $ref: '#/components/parameters/pagination-keyV2'
+        - $ref: '#/components/parameters/fromTransactionConversionDate'
+        - $ref: '#/components/parameters/toTransactionConversionDate'
       responses:
         '200':
           $ref: '#/components/responses/OkResponseFundsProductMovement'
@@ -4305,7 +3914,7 @@ paths:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: when_no_match
         timeoutInMillis: 29000
-  '/open-banking/variable-incomes/v1/investments/{investmentId}/broker-notes/{brokerNoteId}':
+  '/open-banking/variable-incomes/v1/broker-notes/{brokerNoteId}':
     get:
       tags:
         - Variable Incomes v1
@@ -4635,6 +4244,60 @@ paths:
         type: aws_proxy
         httpMethod: POST
         uri: "${mockbank_read_arn}"
+        passthroughBehavior: when_no_match
+        timeoutInMillis: 29000
+    put:
+      tags:
+        - Payments V4
+      summary: Aplicar atualização de consentimento.
+      operationId: paymentsPutConsentsConsentIdV4
+      description: Método de aplicação de atualização de pagamento.
+      parameters:
+        - $ref: '#/components/parameters/consentId'
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/xFapiAuthDate'
+        - $ref: '#/components/parameters/xFapiCustomerIpAddress'
+        - $ref: '#/components/parameters/xFapiInteractionId'
+        - $ref: '#/components/parameters/xCustomerUserAgent'
+        - $ref: '#/components/parameters/XIdempotencyKey'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePaymentConsent'
+        description: Payload para criação do consentimento para iniciação do pagamento.
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/200PaymentsConsentsConsentIdRead'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '405':
+          $ref: '#/components/responses/MethodNotAllowed'
+        '406':
+          $ref: '#/components/responses/NotAcceptable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        default:
+          description: Erro inesperado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+      security:
+        - authorizer: [ ]
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        uri: "${mockbank_write_arn}"
         passthroughBehavior: when_no_match
         timeoutInMillis: 29000
   '/open-banking/payments/v3/pix/payments':
@@ -5169,7 +4832,7 @@ paths:
         - No redirection journey
       summary: Obter parâmetros para criação de credenciais FIDO2.
       operationId: enrollmentCreateFidoRegistrationOptions
-      description:  |
+      description: |
         Método para obter os parâmetros para criação de uma nova credencial FIDO2. Um novo challenge deve ser criado a cada chamada.
         Os parâmetros da resposta devem ser compatíveis com a definição [W3C](https://www.w3.org/TR/webauthn-2/#dictionary-makecredentialoptions)
       parameters:
@@ -5883,7 +5546,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
         - OpenId:
             - openid
           OAuth2Security:
@@ -5912,6 +5575,8 @@ paths:
         - $ref: '#/components/parameters/xFapiCustomerIpAddress'
         - $ref: '#/components/parameters/xFapiInteractionId'
         - $ref: '#/components/parameters/xCustomerUserAgent'
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/pageSize'
       responses:
         '200':
           $ref: '#/components/responses/200ConsentsConsentIdReadExtensionsV3'
@@ -5942,7 +5607,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -7335,7 +7000,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: "when_no_match"
@@ -7434,7 +7099,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: "when_no_match"
@@ -7533,7 +7198,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: "when_no_match"
@@ -7632,7 +7297,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: "when_no_match"
@@ -7731,7 +7396,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: "when_no_match"
@@ -7830,7 +7495,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: "when_no_match"
@@ -8008,7 +7673,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: "when_no_match"
@@ -8107,7 +7772,7 @@ paths:
         '529':
           $ref: '#/components/responses/SiteIsOverloadedV2'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -8178,7 +7843,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         uri: "${mockbank_read_arn}"
         passthroughBehavior: "when_no_match"
@@ -8268,7 +7933,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -8293,7 +7958,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -8343,7 +8008,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -8440,7 +8105,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -8532,7 +8197,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -8558,7 +8223,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -8608,13 +8273,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
         uri: "${mockbank_write_arn}"
         passthroughBehavior: when_no_match
-        timeoutInMillis: 29000  
+        timeoutInMillis: 29000
   '/admin/customers/{accountHolderId}/personal/financial-relations':
     post:
       tags:
@@ -8705,7 +8370,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -8795,7 +8460,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -8820,7 +8485,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -8870,13 +8535,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
         uri: "${mockbank_write_arn}"
         passthroughBehavior: when_no_match
-        timeoutInMillis: 29000  
+        timeoutInMillis: 29000
   '/admin/customers/{accountHolderId}/personal/qualifications':
     post:
       tags:
@@ -8967,7 +8632,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9057,7 +8722,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9082,7 +8747,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -9132,7 +8797,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9229,7 +8894,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9321,7 +8986,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9347,7 +9012,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -9397,7 +9062,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9494,7 +9159,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9584,7 +9249,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9609,7 +9274,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -9659,7 +9324,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9756,7 +9421,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9846,7 +9511,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -9871,7 +9536,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -9921,7 +9586,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10018,7 +9683,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10110,7 +9775,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10136,7 +9801,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -10186,7 +9851,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10284,7 +9949,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10377,7 +10042,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10404,7 +10069,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -10454,7 +10119,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10551,7 +10216,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10643,7 +10308,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10669,7 +10334,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -10719,7 +10384,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10817,7 +10482,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10910,7 +10575,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -10937,7 +10602,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -10987,7 +10652,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11085,7 +10750,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11178,7 +10843,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11205,7 +10870,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -11255,7 +10920,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11448,7 +11113,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11476,7 +11141,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -11526,7 +11191,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11624,7 +11289,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11798,7 +11463,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11825,7 +11490,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -11875,7 +11540,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -11974,7 +11639,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -12066,7 +11731,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
@@ -12093,7 +11758,7 @@ paths:
             x-fapi-interaction-id:
               schema:
                 type: string
-          content: {}
+          content: { }
         '400':
           description: 400 response
           content:
@@ -12143,13 +11808,163 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseError'
       security:
-        - authorizer: []
+        - authorizer: [ ]
       x-amazon-apigateway-integration:
         type: aws_proxy
         httpMethod: POST
         uri: "${mockbank_write_arn}"
         passthroughBehavior: when_no_match
         timeoutInMillis: 29000
+  '/admin/webhook':
+    post:
+      operationId: postWebhook
+      tags:
+        - Admin
+      parameters:
+        - $ref: '#/components/parameters/clientId'
+        - $ref: '#/components/parameters/webhookUri'
+      responses:
+        '201':
+          description: 201 response
+          headers:
+            x-fapi-interaction-id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWebhook'
+        '400':
+          description: 400 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '401':
+          description: 401 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '403':
+          description: 403 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '404':
+          description: 404 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '405':
+          description: 405 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '406':
+          description: 406 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '429':
+          description: 429 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '500':
+          description: 500 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+      security:
+        - authorizer: [ ]
+      x-amazon-apigateway-integration:
+        uri: "${mockbank_write_arn}"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        timeoutInMillis: 29000
+        type: "aws_proxy"
+  '/admin/webhook/{clientId}':
+    get:
+      operationId: getWebhook
+      tags:
+        - Admin
+      parameters:
+        - $ref: '#/components/parameters/clientId'
+      responses:
+        '200':
+          description: 200 response
+          headers:
+            x-fapi-interaction-id:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseWebhook'
+        '400':
+          description: 400 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '401':
+          description: 401 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '403':
+          description: 403 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '404':
+          description: 404 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '405':
+          description: 405 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '406':
+          description: 406 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '429':
+          description: 429 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+        '500':
+          description: 500 response
+          content:
+            application/json; charset=utf-8:
+              schema:
+                $ref: '#/components/schemas/ResponseError'
+      security:
+        - authorizer: [ ]
+      x-amazon-apigateway-integration:
+        uri: "${mockbank_read_arn}"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        timeoutInMillis: 29000
+        type: "aws_proxy"
+
 components:
   schemas:
     PartiesParticipation:
@@ -12389,7 +12204,7 @@ components:
         PARTIALLY_ACCEPTED – Aguardando múltiplas alçadas
         
         AUTHORISED - Autorizado
-       
+        
         REJECTED - Rejeitado
         
         CONSUMED - Consumido
@@ -14090,22 +13905,7 @@ components:
       type: object
       properties:
         document:
-          required:
-            - identification
-            - rel
-          type: object
-          properties:
-            identification:
-              maxLength: 11
-              pattern: '^\d{11}$'
-              type: string
-              description: Número do documento de identificação oficial do usuário.
-            rel:
-              maxLength: 3
-              pattern: '^[A-Z]{3}$'
-              type: string
-              description: Tipo do documento de identificação oficial do usuário.
-          additionalProperties: false
+          $ref: '#/components/schemas/Document'
       additionalProperties: false
       description: >-
         Usuário (pessoa natural) que encontra-se logado na instituição receptora
@@ -15439,7 +15239,7 @@ components:
       type: object
       properties:
         data:
-           $ref: '#/components/schemas/EditedAccountData'
+          $ref: '#/components/schemas/EditedAccountData'
       additionalProperties: false
     ResponseAccount:
       required:
@@ -15643,9 +15443,9 @@ components:
           format: double
         transactionCurrency:
           type: string
-        transactionDate:
+        transactionDateTime:
           type: string
-          format: date
+          format: date-time
         transactionName:
           type: string
         partieCnpjCpf:
@@ -15677,9 +15477,9 @@ components:
           format: double
         transactionCurrency:
           type: string
-        transactionDate:
+        transactionDateTime:
           type: string
-          format: date
+          format: date-time
         transactionName:
           type: string
         partieCnpjCpf:
@@ -15972,9 +15772,9 @@ components:
           format: double
         currency:
           type: string
-        transactionDate:
+        transactionDateTime:
           type: string
-          format: date
+          format: date-time
         billPostDate:
           type: string
           format: date
@@ -16023,9 +15823,9 @@ components:
           format: double
         currency:
           type: string
-        transactionDate:
+        transactionDateTime:
           type: string
-          format: date
+          format: date-time
         billPostDate:
           type: string
           format: date
@@ -16126,7 +15926,7 @@ components:
           type: number
           format: int32
         typeContractRemaining:
-           $ref: '#/components/schemas/EnumTypeContractRemaining'
+          $ref: '#/components/schemas/EnumTypeContractRemaining'
         contractRemainingNumber:
           type: number
           format: int
@@ -16222,7 +16022,7 @@ components:
           type: number
           format: int32
         typeContractRemaining:
-           $ref: '#/components/schemas/EnumTypeContractRemaining'
+          $ref: '#/components/schemas/EnumTypeContractRemaining'
         contractRemainingNumber:
           type: number
           format: int32
@@ -16323,7 +16123,7 @@ components:
           type: number
           format: int32
         typeContractRemaining:
-           $ref: '#/components/schemas/EnumTypeContractRemaining'
+          $ref: '#/components/schemas/EnumTypeContractRemaining'
         contractRemainingNumber:
           type: number
           format: int32
@@ -16891,7 +16691,7 @@ components:
         startDate:
           maxLength: 20
           pattern: >-
-                ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])T(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$
+            ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])T(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$
           type: string
           format: date-time
         productsServicesType:
@@ -18143,17 +17943,11 @@ components:
           description: >-
             Moeda referente ao valor da transação, segundo modelo ISO-4217.
             p.ex. 'BRL'.
-        transactionDate:
+        transactionDateTime:
           maxLength: 10
-          pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
+          pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])T(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)\.(?:[0-9]){3}Z$'
           type: string
-          description: >
-            Se indicador de transação:
-
-            TRANSACAO_EFETIVADA - corresponde a data de lançamento da transação
-
-            LANCAMENTO_FUTURO - corresponde a data prevista de efetivação da
-            transação
+          description: Data e hora original da transação.
         partieCnpjCpf:
           maxLength: 14
           pattern: '^\d{11}$|^\d{14}$|^NA$'
@@ -20817,73 +20611,75 @@ components:
             creditor:
               $ref: '#/components/schemas/Identification'
             payment:
-              type: object
-              description: Objeto contendo dados de pagamento para consentimento.
-              required:
-                - type
-                - currency
-                - amount
-                - details
-              properties:
-                type:
-                  $ref: '#/components/schemas/EnumPaymentType'
-                schedule:
-                  description: |
-                    [Restrição] Mutuamente excludente com o campo date. 
-                    Este campo é obrigatório no caso de agendamento. 
-                    Neste caso, o campo date não deverá ser informado. 
-                    O prazo máximo para o consentimento deverá ser de dois anos, contando a partir da data de criação do consentimento retornada na criação do mesmo (campo /data/creationDateTime).
-                  allOf:
-                    - $ref: '#/components/schemas/ScheduleSingle'
-                    - $ref: '#/components/schemas/ScheduleDaily'
-                    - $ref: '#/components/schemas/ScheduleWeekly'
-                    - $ref: '#/components/schemas/ScheduleMonthly'
-                    - $ref: '#/components/schemas/ScheduleCustom'
-                date:
-                  type: string
-                  format: date
-                  maxLength: 10
-                  pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
-                  example: '2021-01-01'
-                  description: |
-                    [Restrição] Mutuamente excludente com o objeto schedule. 
-
-                    Este campo é obrigatório no caso de pagamento único. 
-
-                    Neste caso, o objeto schedule não deve ser informado.
-                currency:
-                  type: string
-                  maxLength: 3
-                  pattern: '^([A-Z]{3})$'
-                  example: BRL
-                  description: |
-                    Código da moeda nacional segundo modelo ISO-4217, ou seja, 'BRL'.
-                    Todos os valores monetários informados estão representados com a moeda vigente do Brasil.
-                amount:
-                  type: string
-                  minLength: 4
-                  maxLength: 19
-                  pattern: '^((\d{1,16}\.\d{2}))$'
-                  example: '100000.12'
-                  description: |
-                    Valor da transação com 2 casas decimais. O valor deve ser o mesmo enviado no consentimento. 
-
-                    Para QR Code estático com valor pré-determinado no QR Code ou para QR Code dinâmico com indicação de que o valor não pode ser alterado: O campo amount deve ser preenchido com o valor estabelecido no QR Code. 
-                    Caso seja preenchido com valor divergente do QR Code, deve ser retornado um erro HTTP Status 422.
-                ibgeTownCode:
-                  type: string
-                  minLength: 7
-                  maxLength: 7
-                  pattern: '^\d{7}$'
-                  example: '5300108'
-                  description: |
-                    O campo ibgetowncode no arranjo PIX, tem o mesmo comportamento que o campo codMun descrito no item 1.6.6 do manual do PIX, conforme segue:
-
-                    1. Caso a informação referente ao município não seja enviada; o PSP do recebedor assumirá que não existem feriados estaduais e municipais no período em questão;
-                details:
-                  $ref: '#/components/schemas/Details'
+              $ref: '#/components/schemas/PaymentConsentV4Payment'
             debtorAccount:
               $ref: '#/components/schemas/DebtorAccount'
+    PaymentConsentV4Payment:
+      type: object
+      description: Objeto contendo dados de pagamento para consentimento.
+      required:
+        - type
+        - currency
+        - amount
+        - details
+      properties:
+        type:
+          $ref: '#/components/schemas/EnumPaymentType'
+        schedule:
+          description: |
+            [Restrição] Mutuamente excludente com o campo date. 
+            Este campo é obrigatório no caso de agendamento. 
+            Neste caso, o campo date não deverá ser informado. 
+            O prazo máximo para o consentimento deverá ser de dois anos, contando a partir da data de criação do consentimento retornada na criação do mesmo (campo /data/creationDateTime).
+          allOf:
+            - $ref: '#/components/schemas/ScheduleSingle'
+            - $ref: '#/components/schemas/ScheduleDaily'
+            - $ref: '#/components/schemas/ScheduleWeekly'
+            - $ref: '#/components/schemas/ScheduleMonthly'
+            - $ref: '#/components/schemas/ScheduleCustom'
+        date:
+          type: string
+          format: date
+          maxLength: 10
+          pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
+          example: '2021-01-01'
+          description: |
+            [Restrição] Mutuamente excludente com o objeto schedule. 
+
+            Este campo é obrigatório no caso de pagamento único. 
+
+            Neste caso, o objeto schedule não deve ser informado.
+        currency:
+          type: string
+          maxLength: 3
+          pattern: '^([A-Z]{3})$'
+          example: BRL
+          description: |
+            Código da moeda nacional segundo modelo ISO-4217, ou seja, 'BRL'.
+            Todos os valores monetários informados estão representados com a moeda vigente do Brasil.
+        amount:
+          type: string
+          minLength: 4
+          maxLength: 19
+          pattern: '^((\d{1,16}\.\d{2}))$'
+          example: '100000.12'
+          description: |
+            Valor da transação com 2 casas decimais. O valor deve ser o mesmo enviado no consentimento. 
+
+            Para QR Code estático com valor pré-determinado no QR Code ou para QR Code dinâmico com indicação de que o valor não pode ser alterado: O campo amount deve ser preenchido com o valor estabelecido no QR Code. 
+            Caso seja preenchido com valor divergente do QR Code, deve ser retornado um erro HTTP Status 422.
+        ibgeTownCode:
+          type: string
+          minLength: 7
+          maxLength: 7
+          pattern: '^\d{7}$'
+          example: '5300108'
+          description: |
+            O campo ibgetowncode no arranjo PIX, tem o mesmo comportamento que o campo codMun descrito no item 1.6.6 do manual do PIX, conforme segue:
+
+            1. Caso a informação referente ao município não seja enviada; o PSP do recebedor assumirá que não existem feriados estaduais e municipais no período em questão;
+        details:
+          $ref: '#/components/schemas/Details'
     UpdatePaymentConsent:
       type: object
       required:
@@ -20907,11 +20703,11 @@ components:
             - REJECTED
             - CONSUMED
             - REVOKED
+            - PARTIALLY_ACCEPTED
           example: AWAITING_AUTHORISATION
         debtorAccount:
           $ref: '#/components/schemas/DebtorAccount'
       additionalProperties: false
-
     CreatePixPaymentData:
       type: object
       description: Objeto contendo dados do pagamento e do recebedor (creditor).
@@ -21067,7 +20863,7 @@ components:
             - Dígitos decimais, de ‘0’ a ‘9’
 
             [Restrição] Preenchimento condicional de acordo com o conteúdo do campo localInstument:
-  
+            
             – MANU - O campo transactionIdentification não deve ser preenchido.
             – DICT - O campo transactionIdentification não deve ser preenchido.
             – INIC - O campo transactionIdentification deve ser preenchido obrigatoriamente e deve conter até 25 caracteres alfanuméricos ([a-z|A-Z|0-9]).
@@ -21365,6 +21161,7 @@ components:
             - REJECTED
             - CONSUMED
             - REVOKED
+            - PARTIALLY_ACCEPTED
           example: AWAITING_AUTHORISATION
           description: |
             Retorna o estado do consentimento, o qual no momento de sua criação será AWAITING_AUTHORISATION.
@@ -21378,6 +21175,7 @@ components:
             REJECTED - Rejeitado
             CONSUMED - Consumido
             REVOKED - Revogado
+            PARTIALLY_ACCEPTED – Aguardando múltiplas alçadas
         loggedUser:
           $ref: '#/components/schemas/LoggedUser'
         businessEntity:
@@ -21467,24 +21265,7 @@ components:
           description: |
             Data e hora em que o recurso foi atualizado. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
         status:
-          type: string
-          maxLength: 22
-          enum:
-            - AWAITING_AUTHORISATION
-            - AUTHORISED
-            - REJECTED
-            - CONSUMED
-          example: AWAITING_AUTHORISATION
-          description: |
-            Retorna o estado do consentimento, o qual no momento de sua criação será AWAITING_AUTHORISATION.
-            Este estado será alterado depois da autorização do consentimento na detentora da conta do pagador (Debtor) para AUTHORISED ou REJECTED.
-            O consentimento fica no estado CONSUMED após ocorrer a iniciação do pagamento referente ao consentimento.
-            Em caso de consentimento expirado a detentora deverá retornar o status REJECTED.
-            Estados possíveis:
-            AWAITING_AUTHORISATION - Aguardando autorização
-            AUTHORISED - Autorizado
-            REJECTED - Rejeitado
-            CONSUMED - Consumido
+          $ref: '#/components/schemas/EnumAuthorisationStatusType'
         loggedUser:
           $ref: '#/components/schemas/LoggedUser'
         businessEntity:
@@ -22627,15 +22408,12 @@ components:
           $ref: '#/components/schemas/EnumTransactionTypesV2'
         transactionAmount:
           $ref: '#/components/schemas/AccountTransactionsDataAmountV2'
-        transactionDate:
+        transactionDateTime:
           type: string
           maxLength: 10
-          pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
-          description: |
-            Se indicador de transação:
-            TRANSACAO_EFETIVADA - corresponde a data de lançamento da transação
-            LANCAMENTO_FUTURO - corresponde a data prevista de efetivação da transação
-          example: '2021-01-07'
+          pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])T(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)\.(?:[0-9]){3}Z$
+          description: Data e hora original da transação.
+          example: '2016-01-29T12:29:03.374Z'
         partieCnpjCpf:
           type: string
           maxLength: 14
@@ -22888,7 +22666,7 @@ components:
         links:
           $ref: '#/components/schemas/TransactionsLinksV2'
         meta:
-          $ref: '#/components/schemas/MetaOnlyRequestDateTime'
+          $ref: '#/components/schemas/Meta'
     ResponseErrorV2:
       type: object
       required:
@@ -23035,7 +22813,7 @@ components:
           properties:
             dates:
               type: array
-              example: ['2023-08-23', '2023-09-26']
+              example: [ '2023-08-23', '2023-09-26' ]
               items:
                 type: string
                 format: date
@@ -23584,16 +23362,8 @@ components:
           $ref: '#/components/schemas/CreditCardAccountsTransactionBrazilianAmountV2'
         amount:
           $ref: '#/components/schemas/CreditCardAccountsTransactionAmountV2'
-        transactionDate:
-          type: string
-          format: date
-          maxLength: 20
-          pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
-          example: '2021-05-21'
-          description: Data original da transação
         transactionDateTime:
           type: string
-          format: date-time
           maxLength: 24
           pattern: '(^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])T(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)\.(?:[0-9]){3}Z$)'
           example: '2016-01-29T12:29:03.374Z'
@@ -23865,7 +23635,7 @@ components:
         links:
           $ref: '#/components/schemas/TransactionsLinksV2'
         meta:
-          $ref: '#/components/schemas/MetaOnlyRequestDateTime'
+          $ref: '#/components/schemas/Meta'
     ResponseCreditCardAccountsBillsTransactionsV2:
       type: object
       required:
@@ -23904,9 +23674,9 @@ components:
                 $ref: '#/components/schemas/EnumConsentPermissions'
               minItems: 1
               example:
-               - ACCOUNTS_READ
-               - ACCOUNTS_OVERDRAFT_LIMITS_READ
-               - RESOURCES_READ
+                - ACCOUNTS_READ
+                - ACCOUNTS_OVERDRAFT_LIMITS_READ
+                - RESOURCES_READ
             expirationDateTime:
               description: Data e hora de expiração da permissão. De preenchimento obrigatório, reflete a data limite de validade do consentimento. Uma string com data e hora conforme especificação RFC-3339, sempre com a utilização de timezone UTC(UTC time format).
               type: string
@@ -24337,6 +24107,7 @@ components:
                   - VARIABLE_INCOME
                   - TREASURE_TITLE
                   - FUND
+                  - EXCHANGE
                 description: |
                   Tipo de recurso (vide Enum):
                   Account - Conta de depósito à vista, poupança ou pagamento pré-paga
@@ -24683,7 +24454,7 @@ components:
           type: string
           description: Endereço de email
           maxLength: 320
-          pattern: '[\w\W\s]*'
+          pattern: ^[a-z0-9.!#$&'+\/=?^_`{|}~-]+@a-z0-9?(?:\.a-z0-9?)$
           example: karinafernandes-81@br.inter.net
     CustomerPhoneV2:
       type: object
@@ -25578,6 +25349,16 @@ components:
           minItems: 0
           description: |
             Lista de contas depósito à vista, poupança e pagamento pré-pagas mantidas pelo cliente na instituição transmissora.
+        portabilitiesReceived:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortabilitiesReceived'
+          minItems: 0
+        paychecksBankLink:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaychecksBankLink'
+          minItems: 0
     PersonalIdentificationDataV2:
       type: object
       description: Conjunto de informações relativas a Identificação ou seja a ação e o efeito de identificar de forma única a pessoa natural através de seus dados cadastrais.
@@ -25922,6 +25703,91 @@ components:
           $ref: '#/components/schemas/Links'
         meta:
           $ref: '#/components/schemas/Meta'
+    PortabilitiesReceived:
+      type: object
+      required:
+        - employerName
+        - employerCnpjCpf
+        - paycheckBankDetainerCnpj
+        - paycheckBankDetainerIspb
+        - portabilityApprovalDate
+      properties:
+        employerName:
+          type: string
+          pattern: ^(?!\s)[\w\W\s]*[^\s]$
+          maxLength: 80
+          minLength: 2
+          description: |
+            Nome do empregador conforme recebido pela comunicação de portabilidade.
+        employerCnpjCpf:
+          type: string
+          pattern: ^\d{14}$|^\d{11}$
+          maxLength: 14
+          description: |
+            Número de inscrição (CPF/CNPJ) do empregador (contratante dos serviços de pagamento), conforme recebido pela comunicação de portabilidade.
+        paycheckBankDetainerCnpj:
+          type: string
+          pattern: ^\d{14}$
+          maxLength: 14
+          description: |
+            Número de inscrição no Cadastro Nacional da Pessoa Jurídica (CNPJ) do banco folha (instituição financeira detentora da conta salário) conforme recebido pela comunicação de portabilidade.
+        paycheckBankDetainerIspb:
+          type: string
+          pattern: ^[0-9]{8}$
+          maxLength: 8
+          description: |
+            Número do ISPB do Banco Folha (instituição financeira detentora da conta salário) conforme recebido pela comunicação de portabilidade.
+        portabilityApprovalDate:
+          type: string
+          format: date
+          pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
+          maxLength: 10
+          description: |
+            Data de aprovação da portabilidade, conforme recebido pela comunicação de portabilidade.
+            
+            Obs.: somente devem ser compartilhadas solicitações aprovadas, mesmo que de forma compulsória.
+    PaychecksBankLink:
+      type: object
+      required:
+        - employerName
+        - employerCnpjCpf
+        - paycheckBankCnpj
+        - paycheckBankIspb
+        - accountOpeningDate
+        - portabilityApprovalDate
+      properties:
+        employerName:
+          type: string
+          pattern: ^(?!\s)[\w\W\s]*[^\s]$
+          maxLength: 80
+          minLength: 2
+          description: |
+            Nome do empregador conforme registrado na abertura da conta salário.
+        employerCnpjCpf:
+          type: string
+          pattern: ^\d{14}$|^\d{11}$
+          maxLength: 14
+          description: |
+            Documento do empregador (CNPJ/CPF), conforme registrado na abertura da conta salário.
+        paycheckBankCnpj:
+          type: string
+          pattern: ^\d{14}$
+          maxLength: 14
+          description: |
+            CNPJ da instituição financeira contratada para prestar serviço de pagamento de salário (banco-folha).
+        paycheckBankIspb:
+          type: string
+          pattern: ^[0-9]{8}$
+          maxLength: 8
+          description: |
+            Número ISPB (Identificador do Sistema de Pagamentos Brasileiros) do instituição financeira contratada para prestar serviço de pagamento de salário (banco-folha).
+        accountOpeningDate:
+          type: string
+          format: date
+          pattern: ^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$
+          maxLength: 10
+          description: |
+            Data de abertura da conta salário.
     ResponsePersonalCustomersQualificationV2:
       type: object
       required:
@@ -29862,7 +29728,7 @@ components:
       description: Valor relacionado ao objeto.
       type: string
       maxLength: 20
-#      pattern: ^-?\d{1,15}\.\d{2,8}$
+      #      pattern: ^-?\d{1,15}\.\d{2,8}$
       example: '1000.0004'
     ResponseBankFixedIncomesBalances:
       type: object
@@ -30107,7 +29973,7 @@ components:
           type: object
           description: |
             Valor do imposto de renda recolhido na transação.
-              
+            
             [Restrição] Campo de preenchimento obrigatório pelas participantes quando o campo 'type' for preenchido com o valor 'SAIDA'.
           required:
             - amount
@@ -30125,7 +29991,7 @@ components:
           type: object
           description: |
             Valor do IOF recolhido na transação.
-              
+            
             [Restrição] Campo de preenchimento obrigatório pelas participantes quando o campo 'type' for preenchido com o valor 'SAIDA'.
           required:
             - amount
@@ -30165,7 +30031,7 @@ components:
           example: '0.300000'
           description: |
             Taxa de remuneração da transação.
-              
+            
             [Restrição] Campo de preenchimento obrigatório pelas participantes quando o campo 'type' for preenchido com o valor 'ENTRADA'.
         indexerPercentage:
           type: string
@@ -30176,7 +30042,7 @@ components:
           example: '1.100000'
           description: |
             Percentual máximo do indexador acordado com o cliente na contratação.
-              
+            
             [Restrição] Campo de preenchimento obrigatório pelas participantes quando o campo 'type' for preenchido com o valor 'ENTRADA'.
         transactionId:
           type: string
@@ -30558,8 +30424,8 @@ components:
     PostFixedIndexerPercentage:
       type: string
       description: |
-          Percentual do indexador acordado com o  cliente na contratação. Em casos de produtos progressivos, considerar taxa vigente.     
-          [Restrição] Campo de preenchimento obrigatório pelas participantes quando o campo 'indexer' for preenchido de forma diferente de 'PRE_FIXADO' ou quando se tratar de produto com remuneração híbrida.
+        Percentual do indexador acordado com o  cliente na contratação. Em casos de produtos progressivos, considerar taxa vigente.     
+        [Restrição] Campo de preenchimento obrigatório pelas participantes quando o campo 'indexer' for preenchido de forma diferente de 'PRE_FIXADO' ou quando se tratar de produto com remuneração híbrida.
       maxLength: 8
       pattern: '^\d{1}\.\d{6}$'
       example: '1.100000'
@@ -31132,7 +30998,6 @@ components:
           pattern: '[\w\W\s]*'
           description: |
             Informação adicional do tipo de movimentação, para preenchimento no caso de movimentações não delimitadas no domínio.
-
             [Restrição] Campo de preenchimento obrigatório pelas participantes quando houver 'Outros' no campo Motivo da movimentação.
         transactionDate:
           type: string
@@ -31183,7 +31048,6 @@ components:
           type: object
           description: |
             Valor do imposto de renda recolhido na transação.
-
             [Restrição] Campo de preenchimento obrigatório pelas participantes quando o campo 'type' for preenchido com o valor 'SAIDA'.
           required:
             - amount
@@ -31201,7 +31065,6 @@ components:
           type: object
           description: |
             Valor do IOF recolhido na transação.
-
             [Restrição] Campo de preenchimento obrigatório pelas participantes quando o campo 'type' for preenchido com o valor 'SAIDA'.
           required:
             - amount
@@ -32268,7 +32131,7 @@ components:
             creditor:
               $ref: '#/components/schemas/Identification'
             payment:
-              $ref: '#/components/schemas/PaymentConsent'
+              $ref: '#/components/schemas/PaymentConsentV4Payment'
             debtorAccount:
               $ref: '#/components/schemas/DebtorAccount'
             rejectionReason:
@@ -32347,72 +32210,7 @@ components:
             creditor:
               $ref: '#/components/schemas/Identification'
             payment:
-              type: object
-              description: Objeto contendo dados de pagamento para consentimento.
-              required:
-                - type
-                - currency
-                - amount
-                - details
-              properties:
-                type:
-                  $ref: '#/components/schemas/EnumPaymentType'
-                schedule:
-                  description: |
-                    [Restrição] Mutuamente excludente com o campo date. 
-
-                    Este campo é obrigatório no caso de agendamento. 
-
-                    Neste caso, o campo date não deve ser informado.
-                  allOf:
-                    - $ref: '#/components/schemas/ScheduleSingle'
-                    - $ref: '#/components/schemas/ScheduleDaily'
-                    - $ref: '#/components/schemas/ScheduleWeekly'
-                    - $ref: '#/components/schemas/ScheduleMonthly'
-                    - $ref: '#/components/schemas/ScheduleCustom'
-                date:
-                  type: string
-                  format: date
-                  maxLength: 10
-                  pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])$'
-                  example: '2021-01-01'
-                  description: |
-                    [Restrição] Mutuamente excludente com o objeto schedule. 
-
-                    Este campo é obrigatório no caso de pagamento único. 
-
-                    Neste caso, o objeto schedule não deve ser informado.
-                currency:
-                  type: string
-                  maxLength: 3
-                  pattern: '^([A-Z]{3})$'
-                  example: BRL
-                  description: |
-                    Código da moeda nacional segundo modelo ISO-4217, ou seja, 'BRL'.
-                    Todos os valores monetários informados estão representados com a moeda vigente do Brasil.
-                amount:
-                  type: string
-                  minLength: 4
-                  maxLength: 19
-                  pattern: '^((\d{1,16}\.\d{2}))$'
-                  example: '100000.12'
-                  description: |
-                    Valor da transação com 2 casas decimais. O valor deve ser o mesmo enviado no consentimento. 
-
-                    Para QR Code estático com valor pré-determinado no QR Code ou para QR Code dinâmico com indicação de que o valor não pode ser alterado: O campo amount deve ser preenchido com o valor estabelecido no QR Code. 
-                    Caso seja preenchido com valor divergente do QR Code, deve ser retornado um erro HTTP Status 422.
-                ibgeTownCode:
-                  type: string
-                  minLength: 7
-                  maxLength: 7
-                  pattern: '^\d{7}$'
-                  example: '5300108'
-                  description: |
-                    O campo ibgetowncode no arranjo PIX, tem o mesmo comportamento que o campo codMun descrito no item 1.6.6 do manual do PIX, conforme segue:
-
-                    1. Caso a informação referente ao município não seja enviada; o PSP do recebedor assumirá que não existem feriados estaduais e municipais no período em questão;
-                details:
-                  $ref: '#/components/schemas/Details'
+              $ref: '#/components/schemas/PaymentConsentV4Payment'
             debtorAccount:
               $ref: '#/components/schemas/DebtorAccount'
         links:
@@ -32476,7 +32274,7 @@ components:
             - QRCODE_INVALIDO: O QRCode utilizado para a iniciação de pagamento não é válido. 
 
             [Restrição] Caso consentimento rejeitado de versões nas quais não havia o campo rejectionReason retornar o seguinte detail: Motivo de rejeição inexistente em versões anteriores.
-          example: O usuário rejeitou a autorização do consentimento 
+          example: O usuário rejeitou a autorização do consentimento
     EnumConsentRejectionReasonType:
       type: string
       description: Define o código da razão pela qual o consentimento foi rejeitado
@@ -32763,9 +32561,9 @@ components:
         - PAYMENTS_INITIATE
       example: PAYMENTS_INITIATE
       description: |
-          Permissões atribuídas ao vínculo de conta:
-          
-          • PAYMENTS_INITIATE: Iniciação de pagamentos sem redirecionamento à detentora.
+        Permissões atribuídas ao vínculo de conta:
+        
+        • PAYMENTS_INITIATE: Iniciação de pagamentos sem redirecionamento à detentora.
     ResponseCreateEnrollment:
       type: object
       required:
@@ -32956,10 +32754,10 @@ components:
         reason:
           type: object
           properties:
-             rejectionReason:
-               $ref: '#/components/schemas/EnrollmentRejectionReason'
-             revocationReason:
-               $ref: '#/components/schemas/EnrollmentRevocationReason'
+            rejectionReason:
+              $ref: '#/components/schemas/EnrollmentRejectionReason'
+            revocationReason:
+              $ref: '#/components/schemas/EnrollmentRevocationReason'
           oneOf:
             - required:
                 - rejectionReason
@@ -33064,15 +32862,15 @@ components:
       example: STATUS_INVALIDO
       description: |
         Códigos de erros previstos na criação do vínculo de conta:
-  
+        
         • STATUS_INVALIDO: O status do vínculo de conta não permite cancelamento.
-  
+        
         • MOTIVO_REJEICAO: A rejeição do vínculo de conta deve estar associada a um motivo de rejeição.
-  
+        
         • REJEITADO_OUTRO_SEM_DETALHES: O uso do motivo REJEITADO_OUTRO, deve estar acompanhado de descrição (additionalInformation).
-  
+        
         • MOTIVO_REVOGACAO: A revogação do vínculo de conta deve estar associada a um motivo de revogação.
-  
+        
         • REVOGADO_OUTRO_SEM_DETALHES: O uso do motivo REVOGADO_OUTRO deve estar acompanhado de descrição (additionalInformation)
     PatchEnrollment:
       type: object
@@ -33205,7 +33003,7 @@ components:
           items:
             $ref: '#/components/schemas/FidoPublicKeyCredentialDescriptor'
         authenticatorSelection:
-            $ref: '#/components/schemas/FidoAuthenticatorSelectionCriteria'
+          $ref: '#/components/schemas/FidoAuthenticatorSelectionCriteria'
         attestation:
           type: string
           description: Indica o tipo de attestation que o autenticador pode utilizar.
@@ -33827,7 +33625,6 @@ components:
       type: object
       description: Objeto contendo dados do pagamento e do recebedor (creditor).
       required:
-        - endToEndId
         - localInstrument
         - payment
         - creditorAccount
@@ -34030,6 +33827,12 @@ components:
             Para o caso de CNPJ deverá ser informado com 14 números, sem pontos ou traços.
             No caso de chave aleatória deve ser informado o UUID gerado pelo DICT, conforme formato especificado na RFC41223.
             [Restrição] Obrigatório quando o campo localInstrument for igual a DICT.
+        ibgeTownCode:
+          type: string
+          minLength: 7
+          maxLength: 7
+          pattern: '^\d{7}$'
+          example: '5300108'
         status:
           $ref: '#/components/schemas/EnumPaymentStatusTypeV2'
         rejectionReason:
@@ -34068,6 +33871,8 @@ components:
             Deve ser preenchido sempre que o usuário pagador inserir alguma informação adicional em um pagamento, a ser enviada ao recebedor.
         creditorAccount:
           $ref: '#/components/schemas/CreditorAccount'
+        cancellation:
+          $ref: '#/components/schemas/PixPaymentCancellationV4'
         debtorAccount:
           $ref: '#/components/schemas/DebtorAccount'
         authorisationFlow:
@@ -34098,7 +33903,6 @@ components:
       description: |
         Utilizado para informar para qual estado deve ir o pagamento.  
         Atualmente o único valor possível é CANC.
-
 
 
     ResponsePatchPixConsentV4:
@@ -34953,8 +34757,6 @@ components:
           required:
             - loggedUser
             - creditors
-            - startDateTime
-            - expirationDateTime
           properties:
             loggedUser:
               $ref: '#/components/schemas/LoggedUser'
@@ -35428,7 +35230,7 @@ components:
         links:
           $ref: '#/components/schemas/Links'
         meta:
-          $ref: '#/components/schemas/MetaOnlyRequestDateTime'
+          $ref: '#/components/schemas/Meta'
 
     CreateRecurringPixPaymentV1:
       type: object
@@ -35443,7 +35245,6 @@ components:
             - date
             - payment
             - cnpjInitiator
-            - ibgeTownCode
             - localInstrument
             - document
           properties:
@@ -35556,6 +35357,7 @@ components:
         - cnpjInitiator
         - payment
         - localInstrument
+        - document
       properties:
         recurringPaymentId:
           type: string
@@ -35679,7 +35481,7 @@ components:
       type: object
       description: |
         Sinais de risco para iniciação de pagamentos automáticos
-  
+        
         [Restrição] Deve ser enviado quando o consentimento for para o produto Sweeping Accounts (O objeto "/data/recurringConfiguration/sweeping" usado no oneOf)
       properties:
         manual:
@@ -35696,7 +35498,7 @@ components:
             - accountTenure
           description: |
             Representa a coleta de sinais de risco com a presença do usuário
-  
+            
             [Restrição] Obrigatório de ser enviado quando a transação ocorrer na presença do usuário
           properties:
             deviceId:
@@ -35772,7 +35574,7 @@ components:
               type: boolean
               description: |
                 Indica chamada ativa no momento do vínculo.
-  
+                
                 [Restrição] Caso o sinal de risco esteja disponível (cliente permitiu que fosse coletado), o mesmo deverá ser enviado
             isDevModeEnabled:
               type: boolean
@@ -35815,7 +35617,7 @@ components:
             - pixKeyRegistrationDateTime
           description: |
             Representa a coleta de sinais de risco com a presença do usuário
-  
+            
             [Restrição] Obrigatório de ser enviado quando a transação não ocorrer na presença do usuário
           properties:
             lastLoginDateTime:
@@ -35841,6 +35643,45 @@ components:
               $ref: '#/components/schemas/EnumPaymentV4CancellationStatusType'
             cancellation:
               $ref: '#/components/schemas/PixPaymentCancellation'
+    EnumPaymentCancellationReasonTypeV4:
+      type: string
+      example: CANCELADO_PENDENCIA
+      enum:
+        - CANCELADO_PENDENCIA
+        - CANCELADO_AGENDAMENTO
+        - CANCELADO_MULTIPLAS_ALCADAS
+    EnumPaymentCancellationFromTypeV4:
+      type: string
+      example: INICIADORA
+      enum:
+        - INICIADORA
+        - DETENTORA
+    PixPaymentCancellationV4:
+      type: object
+      description: Objeto que contém os dados referentes ao usuário pagador que solicitou o cancelamento, o canal utilizado por ele e o motivo.
+      required:
+        - reason
+        - cancelledFrom
+        - cancelledAt
+        - cancelledBy
+      properties:
+        reason:
+          $ref: '#/components/schemas/EnumPaymentCancellationReasonTypeV4'
+        cancelledFrom:
+          $ref: '#/components/schemas/EnumPaymentCancellationFromTypeV4'
+        cancelledAt:
+          type: string
+          maxLength: 20
+          pattern: '^(\d{4})-(1[0-2]|0?[1-9])-(3[01]|[12][0-9]|0?[1-9])T(?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d)Z$'
+          example: '2021-05-21T08:30:00Z'
+        cancelledBy:
+          type: object
+          description: Informação relacionada ao usuário pagador que solicitou o cancelamento do pagamento.
+          required:
+            - document
+          properties:
+            document:
+              $ref: '#/components/schemas/Document'
     PixPaymentCancellation:
       type: object
       description: |
@@ -35852,32 +35693,32 @@ components:
         cancelledBy:
           $ref: '#/components/schemas/CancelledBy'
     CancelledBy:
-          type: object
-          description: Informação relacionada ao usuário pagador que solicitou o cancelamento do pagamento.
-          required:
-            - document
-          properties:
-            document:
-              $ref: '#/components/schemas/Document'
+      type: object
+      description: Informação relacionada ao usuário pagador que solicitou o cancelamento do pagamento.
+      required:
+        - document
+      properties:
+        document:
+          $ref: '#/components/schemas/Document'
     Document:
-          type: object
-          description: Objeto que consolida os dados do documento do usuário que solicitou o cancelamento.
-          required:
-            - identification
-            - rel
-          properties:
-            identification:
-              type: string
-              maxLength: 11
-              description: Número do documento do usuário pagador responsável pelo cancelamento do pagamento.
-              example: '11111111111'
-              pattern: '^\d{11}$'
-            rel:
-              type: string
-              maxLength: 3
-              description: Tipo do documento do usuário pagador responsável pelo cancelamento do pagamento.
-              example: CPF
-              pattern: '^[A-Z]{3}$'
+      type: object
+      description: Objeto que consolida os dados do documento do usuário que solicitou o cancelamento.
+      required:
+        - identification
+        - rel
+      properties:
+        identification:
+          type: string
+          maxLength: 11
+          description: Número do documento do usuário pagador responsável pelo cancelamento do pagamento.
+          example: '11111111111'
+          pattern: '^\d{11}$'
+        rel:
+          type: string
+          maxLength: 3
+          description: Tipo do documento do usuário pagador responsável pelo cancelamento do pagamento.
+          example: CPF
+          pattern: '^[A-Z]{3}$'
     ResponseRecurringPixPaymentByConsent:
       type: object
       required:
@@ -35985,7 +35826,7 @@ components:
           maxLength: 14
           pattern: '^\d{14}$'
           example: '11225860000140'
-        intemediaryInstitutionName:
+        intermediaryInstitutionName:
           type: string
           description: |
             Nome da corretora interveniente autorizada a operar no mercado de câmbio.
@@ -36134,44 +35975,6 @@ components:
           pattern: '^\d{5}$'
           description: Código da natureza fato do fechamento da operação. Deve respeitar os códigos de natureza referenciados na resolução 277 ou na Circular 3690, conforme se aplicar ao contrato de câmbio.
           example: '90302'
-        foreignPartie:
-          type: array
-          description: |
-            Lista para envio de informações de parte envolvida.
-            
-            [Restrição] Lista de preenchimento opcional pelas participantes quando o campo 'deliveryForeignCurrency ' for igual EM ESPÉCIE E/OU CHEQUES DE VIAGEM. 
-            Caso a instituição possua a informação, ela é de envio obrigatório. 
-            Caso a informação seja atualizada posteriormente a contratação, ela deve ser enviada através de eventos.
-          minItems: 1
-          items:
-            type: object
-            required:
-              - relationshipCode
-              - foreignPartieName
-              - foreignPartieCountryCode
-            properties:
-              relationshipCode:
-                type: string
-                maxLength: 2
-                pattern: '^\d{2}$'
-                description: |
-                  Código de Relação de vínculo entre o Cliente e o Pagador/Recebedor no Exterior. Deve respeitar os códigos de vínculo referenciados na resolução 277 ou na Circular 3690, conforme se aplicar ao contrato de câmbio.
-                example: '50'
-              foreignPartieName:
-                type: string
-                description: |
-                  Nome do pagador ou recebedor no exterior.
-                maxLength: 80
-                pattern: '[\w\W\s]*'
-                example: José da Silva
-              foreignPartieCountryCode:
-                type: string
-                description: |
-                  País do pagador ou recebedor. Código do país segundo a norma ISO 3166-1.
-                maxLength: 2
-                pattern: '^[A-Z]{2}$'
-                example: ZA
-      additionalProperties: false
     EnumExchangesOperationType:
       type: string
       description: Compra ou venda de moeda estrangeira.
@@ -36383,42 +36186,83 @@ components:
           description: Código da natureza fato do fechamento da operação. Deve respeitar os códigos de natureza referenciados na resolução 277 ou na Circular 3690, conforme se aplicar ao contrato de câmbio.
           example: '90302'
         foreignPartie:
-          type: array
+          type: object
+          required:
+            - relationshipCode
+            - foreignPartieName
+            - foreignPartieCountryCode
           description: |
             Lista para envio de informações de parte envolvida.
             
-            [Restrição] Lista de preenchimento opcional pelas participantes quando o campo 'deliveryForeignCurrency ' for igual EM ESPÉCIE E/OU CHEQUES DE VIAGEM. 
-            Caso a instituição possua a informação, ela é de envio obrigatório. 
-            Caso a informação seja atualizada posteriormente a contratação, ela deve ser enviada através de eventos.
-          minItems: 1
-          items:
-            type: object
-            required:
-              - relationshipCode
-              - foreignPartieName
-              - foreignPartieCountryCode
-            properties:
-              relationshipCode:
-                type: string
-                maxLength: 2
-                pattern: '^\d{2}$'
-                description: |
-                  Código de Relação de vínculo entre o Cliente e o Pagador/Recebedor no Exterior. Deve respeitar os códigos de vínculo referenciados na resolução 277 ou na Circular 3690, conforme se aplicar ao contrato de câmbio.
-                example: '50'
-              foreignPartieName:
-                type: string
-                description: |
-                  Nome do pagador ou recebedor no exterior.
-                maxLength: 80
-                pattern: '[\w\W\s]*'
-                example: José da Silva
-              foreignPartieCountryCode:
-                type: string
-                description: |
-                  País do pagador ou recebedor. Código do país segundo a norma ISO 3166-1.
-                maxLength: 2
-                pattern: '^[A-Z]{2}$'
-                example: ZA
+            [Restrição] Lista de preenchimento opcional pelas participantes quando:
+            - O campo `deliveryForeignCurrency` for igual a ESPECIE_CHEQUES_VIAGEM ou CARTAO_PREPAGO.
+            - O campo `eventType` for diferente de "4 - Liquidação de Operação Cambial no Mercado Primário."
+
+            Caso a instituição possua a informação, ela é de envio obrigatório. Caso a informação seja atualizada
+            posteriormente à contratação, ela deve ser enviada através de eventos.
+          properties:
+            relationshipCode:
+              type: string
+              maxLength: 2
+              pattern: '^\d{2}$'
+              description: |
+                Código de Relação de vínculo entre o Cliente e o Pagador/Recebedor no Exterior. Deve respeitar os códigos de vínculo referenciados na resolução 277 ou na Circular 3690, conforme se aplicar ao contrato de câmbio.
+              example: '50'
+            foreignPartieName:
+              type: string
+              description: |
+                Nome do pagador ou recebedor no exterior.
+              maxLength: 80
+              pattern: '[\w\W\s]*'
+              example: José da Silva
+            foreignPartieCountryCode:
+              type: string
+              description: |
+                País do pagador ou recebedor. Código do país segundo a norma ISO 3166-1.
+              maxLength: 2
+              pattern: '^[A-Z]{2}$'
+              example: ZA
+      additionalProperties: false
+    ResponseWebhook:
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ResponseWebhookData'
+      additionalProperties: false
+    ResponseWebhookData:
+      type: object
+      properties:
+        clientId:
+          maxLength: 100
+          minLength: 1
+          pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-\:\.]{0,99}$'
+          type: string
+          description: Identification of the client that made the request.
+        webhookUri:
+          pattern: >-
+            ^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
+          type: string
+          format: uri
+          maxLength: 2000
+      additionalProperties: false
+    CreateWebhook:
+      required:
+        - data
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CreateWebhookData'
+    CreateWebhookData:
+      type: object
+      properties:
+        webhookUri:
+          pattern: >-
+            ^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
+          type: string
+          format: uri
+          maxLength: 2000
       additionalProperties: false
   securitySchemes:
     authorizer:
@@ -38590,6 +38434,32 @@ components:
         maxLength: 10
         format: date
         example: '2021-05-21'
+    fromTransactionConversionDate:
+      name: fromTransactionConversionDate
+      description: |
+        Data inicial de filtragem.
+
+        [Restrição] Deve obrigatoriamente ser enviado caso o campo toTransactionConversionDate seja informado. Caso não seja informado, deve ser assumido o dia atual.
+      required: false
+      in: query
+      schema:
+        type: string
+        maxLength: 10
+        format: date
+        example: '2021-05-21'
+    toTransactionConversionDate:
+      name: toTransactionConversionDate
+      description: |
+        Data final de filtragem.
+
+        [Restrição] Deve obrigatoriamente ser enviado caso o campo fromTransactionConversionDate seja informado. Caso não seja informado, deve ser assumido o dia atual.
+      required: false
+      in: query
+      schema:
+        type: string
+        maxLength: 10
+        format: date
+        example: '2021-05-21'
     fromTransactionDateV2:
       name: fromTransactionDate
       description: |
@@ -38780,6 +38650,27 @@ components:
         pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-]{0,99}$'
         maxLength: 100
         example: '92792126019929200000000000000000000000000'
+    clientId:
+      name: clientId
+      in: path
+      description: The Client ID associated with a saved notification webhook URI
+      required: true
+      schema:
+        type: string
+        maxLength: 100
+        pattern: '^[a-zA-Z0-9][a-zA-Z0-9\-\:\.]{0,99}$'
+    webhookUri:
+      name: webhookUri
+      in: query
+      description: A notification URI to update a client on pqyment or consent status changes
+      required: true
+      schema:
+          maxLength: 2000
+          pattern: >-
+            ^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&\/\/=]*)$
+          type: string
+          format: uri
+
 x-amazon-apigateway-gateway-responses:
   DEFAULT_5XX:
     responseTemplates:
@@ -38794,6 +38685,9 @@ x-amazon-apigateway-gateway-responses:
           ]
         }
   DEFAULT_4XX:
+    responseParameters: {
+      gatewayresponse.header.x-fapi-interaction-id: method.request.header.x-fapi-interaction-id
+    }
     responseTemplates:
       application/json: |-
         {
